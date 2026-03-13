@@ -11,8 +11,8 @@ const Colors = {
   incorrect: "#F44336",
   optionBackground: "#1B2838",
   optionBorder: "#2A3F55",
-  optionSelectedBackground: "#1565C0",
-  optionSelectedBorder: "#1E88E5",
+  optionSelectedBackground: "#E91E63",
+  optionSelectedBorder: "#F06292",
 };
 
 export default Colors;
