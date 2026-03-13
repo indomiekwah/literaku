@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "QuizLab4",
+    "name": "Literaku",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0D1B2A"
+      "backgroundColor": "#1565C0"
     },
     "ios": {
       "supportsTablet": false

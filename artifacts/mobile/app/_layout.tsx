@@ -23,8 +23,13 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="quiz" />
-      <Stack.Screen name="result" />
+      <Stack.Screen name="menu" />
+      <Stack.Screen name="explorer" />
+      <Stack.Screen name="article/[id]" />
+      <Stack.Screen name="history" />
+      <Stack.Screen name="collection" />
+      <Stack.Screen name="reader/[id]" />
+      <Stack.Screen name="guide" />
     </Stack>
   );
 }

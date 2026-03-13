@@ -52,13 +52,13 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ### `artifacts/mobile` (`@workspace/mobile`)
 
-Expo React Native mobile quiz app (QuizLab4). A Flutter knowledge quiz with 5 multiple-choice questions.
+Expo React Native reading/literature app (Literaku). A mobile app for browsing articles, reading books, and managing a reading collection.
 
-- **Screens**: Login (index.tsx) → Quiz (quiz.tsx) → Result (result.tsx)
-- **Theme**: Dark navy blue (#0D1B2A) with white text and blue (#1565C0) accent buttons
+- **Screens**: Splash (index.tsx) → Menu (menu.tsx) → Explorer (explorer.tsx) → Article Detail (article/[id].tsx) → History (history.tsx) → Collection (collection.tsx) → Book Reader (reader/[id].tsx) → Guide (guide.tsx)
+- **Theme**: Blue (#1565C0) primary with white background, colored menu buttons (blue/red/green/dark)
 - **Navigation**: Stack-based (no tabs), headerShown: false
-- **Data**: Quiz questions stored in `constants/questions.ts` (no backend needed)
-- **Flow**: User enters name & NPM → answers 5 questions → sees score with option to retry or finish
+- **Data**: Sample articles and books in `constants/data.ts` (no backend needed)
+- **Features**: Article search, book reader with page navigation/playback controls, reading history, book collection, voice command guide
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
