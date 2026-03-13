@@ -50,6 +50,16 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ## Packages
 
+### `artifacts/mobile` (`@workspace/mobile`)
+
+Expo React Native mobile quiz app (QuizLab4). A Flutter knowledge quiz with 5 multiple-choice questions.
+
+- **Screens**: Login (index.tsx) → Quiz (quiz.tsx) → Result (result.tsx)
+- **Theme**: Dark navy blue (#0D1B2A) with white text and blue (#1565C0) accent buttons
+- **Navigation**: Stack-based (no tabs), headerShown: false
+- **Data**: Quiz questions stored in `constants/questions.ts` (no backend needed)
+- **Flow**: User enters name & NPM → answers 5 questions → sees score with option to retry or finish
+
 ### `artifacts/api-server` (`@workspace/api-server`)
 
 Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
