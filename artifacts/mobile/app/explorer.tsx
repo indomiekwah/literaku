@@ -21,11 +21,13 @@ function ArticleCard({ article }: { article: Article }) {
     <Pressable
       style={({ pressed }) => [
         styles.articleCard,
-        { opacity: pressed ? 0.85 : 1 },
+        { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}
       onPress={() =>
         router.push({ pathname: "/article/[id]", params: { id: article.id } })
       }
+      accessibilityRole="button"
+      accessibilityLabel={`Article: ${article.title}`}
     >
       <View style={styles.articleHeader}>
         <Text style={styles.articleTitle}>{article.title}</Text>
@@ -75,14 +77,14 @@ export default function ExplorerScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={Colors.text} />
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+          <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>{searchQuery || "Explorer"}</Text>
       </View>
 
       <View style={styles.searchContainer}>
-        <Feather name="search" size={18} color={Colors.textSecondary} />
+        <Feather name="search" size={24} color={Colors.textSecondary} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search articles..."
@@ -91,6 +93,7 @@ export default function ExplorerScreen() {
           onChangeText={setSearchQuery}
           onSubmitEditing={handleSearch}
           returnKeyType="search"
+          accessibilityLabel="Search articles"
         />
       </View>
 
@@ -103,20 +106,20 @@ export default function ExplorerScreen() {
         scrollEnabled={results.length > 0}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={48} color={Colors.textSecondary} />
+            <Ionicons name="search-outline" size={64} color={Colors.textSecondary} />
             <Text style={styles.emptyText}>No articles found</Text>
           </View>
         }
       />
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
-        <View style={styles.helpButton}>
-          <Ionicons name="help-circle" size={28} color={Colors.historyButton} />
-        </View>
+        <Pressable style={styles.helpButton} accessibilityLabel="Help">
+          <Ionicons name="help-circle" size={44} color={Colors.historyButton} />
+        </Pressable>
       </View>
     </View>
   );
@@ -126,24 +129,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    gap: 12,
+    paddingVertical: 10,
+    gap: 14,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 22,
+    fontSize: 26,
     color: Colors.primary,
     flex: 1,
   },
@@ -151,18 +157,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    gap: 10,
-    marginBottom: 12,
-    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    gap: 14,
+    marginBottom: 14,
+    borderWidth: 2,
     borderColor: Colors.border,
   },
   searchInput: {
     flex: 1,
-    fontFamily: "Inter_400Regular",
-    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 20,
     color: Colors.text,
     padding: 0,
   },
@@ -172,11 +178,12 @@ const styles = StyleSheet.create({
   },
   articleCard: {
     backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
     borderColor: Colors.border,
-    gap: 8,
+    gap: 10,
+    minHeight: 120,
   },
   articleHeader: {
     flexDirection: "row",
@@ -185,33 +192,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   articleTitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    fontSize: 19,
     color: Colors.primary,
     flex: 1,
-    lineHeight: 22,
+    lineHeight: 26,
   },
   articleBadge: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    fontSize: 13,
     color: Colors.primary,
     backgroundColor: "#E3F2FD",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
     overflow: "hidden",
   },
   articleSource: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
     color: Colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   articleSnippet: {
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.text,
-    lineHeight: 20,
+    lineHeight: 24,
   },
   articleMeta: {
     flexDirection: "row",
@@ -220,50 +227,50 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   metaText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
     color: Colors.textSecondary,
   },
   metaDot: {
     color: Colors.textSecondary,
-    fontSize: 12,
+    fontSize: 14,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 60,
-    gap: 12,
+    gap: 16,
   },
   emptyText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.textSecondary,
   },
   bottomBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    gap: 10,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   helpButton: {
-    width: 36,
-    height: 36,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },

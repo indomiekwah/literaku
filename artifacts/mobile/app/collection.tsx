@@ -24,14 +24,16 @@ function BookCard({ book, index }: { book: Book; index: number }) {
     <Pressable
       style={({ pressed }) => [
         styles.bookCard,
-        { opacity: pressed ? 0.85 : 1 },
+        { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}
       onPress={() =>
         router.push({ pathname: "/reader/[id]", params: { id: book.id } })
       }
+      accessibilityRole="button"
+      accessibilityLabel={`Read ${book.title} by ${book.author}`}
     >
       <View style={[styles.bookCover, { backgroundColor: bgColor }]}>
-        <Ionicons name="book" size={24} color={Colors.primary} />
+        <Ionicons name="book" size={36} color={Colors.primary} />
       </View>
       <View style={styles.bookInfo}>
         <Text style={styles.bookTitle} numberOfLines={2}>
@@ -39,7 +41,9 @@ function BookCard({ book, index }: { book: Book; index: number }) {
         </Text>
         <Text style={styles.bookAuthor}>{book.author}</Text>
       </View>
-      <Feather name="chevron-right" size={20} color={Colors.textSecondary} />
+      <View style={styles.chevronCircle}>
+        <Feather name="chevron-right" size={28} color={Colors.primary} />
+      </View>
     </Pressable>
   );
 }
@@ -55,16 +59,16 @@ export default function CollectionScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={Colors.text} />
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+          <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <View style={styles.headerCenter}>
           <View style={styles.headerLogoCircle}>
-            <Ionicons name="globe-outline" size={14} color={Colors.primary} />
+            <Ionicons name="globe-outline" size={18} color={Colors.primary} />
           </View>
           <Text style={styles.headerBrand}>Literaku</Text>
         </View>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 56 }} />
       </View>
 
       <Text style={styles.pageTitle}>Collection</Text>
@@ -78,20 +82,20 @@ export default function CollectionScreen() {
         scrollEnabled={sampleBooks.length > 0}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="library-outline" size={48} color={Colors.textSecondary} />
+            <Ionicons name="library-outline" size={64} color={Colors.textSecondary} />
             <Text style={styles.emptyText}>No books in collection</Text>
           </View>
         }
       />
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
-        <View style={styles.helpButton}>
-          <Ionicons name="help-circle" size={28} color={Colors.historyButton} />
-        </View>
+        <Pressable style={styles.helpButton} accessibilityLabel="Help">
+          <Ionicons name="help-circle" size={44} color={Colors.historyButton} />
+        </Pressable>
       </View>
     </View>
   );
@@ -101,18 +105,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -122,9 +129,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerLogoCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.surface,
     borderWidth: 2,
     borderColor: Colors.primary,
@@ -133,88 +140,97 @@ const styles = StyleSheet.create({
   },
   headerBrand: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 20,
     color: Colors.primary,
   },
   pageTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 24,
+    fontSize: 30,
     color: Colors.primary,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   listContent: {
     paddingBottom: 12,
-    gap: 12,
+    gap: 14,
   },
   bookCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 2,
     borderColor: Colors.border,
-    gap: 14,
+    gap: 16,
+    minHeight: 100,
   },
   bookCover: {
-    width: 52,
-    height: 64,
-    borderRadius: 8,
+    width: 68,
+    height: 80,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   bookInfo: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
   bookTitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    fontSize: 19,
     color: Colors.text,
-    lineHeight: 22,
+    lineHeight: 26,
   },
   bookAuthor: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
     color: Colors.textSecondary,
+  },
+  chevronCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#E3F2FD",
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 60,
-    gap: 12,
+    gap: 16,
   },
   emptyText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.textSecondary,
   },
   bottomBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    gap: 10,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   helpButton: {
-    width: 36,
-    height: 36,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },

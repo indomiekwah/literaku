@@ -37,11 +37,11 @@ export default function ArticleDetailScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={Colors.text} />
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+          <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <View style={styles.headerLogoCircle}>
-          <Ionicons name="globe-outline" size={16} color={Colors.primary} />
+          <Ionicons name="globe-outline" size={20} color={Colors.primary} />
         </View>
       </View>
 
@@ -51,7 +51,7 @@ export default function ArticleDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.articleHeader}>
-          <Text style={styles.journalLabel}>Research Article</Text>
+          <Text style={styles.journalLabel}>RESEARCH ARTICLE</Text>
           <Text style={styles.articleTitle}>{article.title}</Text>
           <Text style={styles.articleSource}>{article.source}</Text>
         </View>
@@ -80,13 +80,13 @@ export default function ArticleDetailScreen() {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
-        <View style={styles.helpButton}>
-          <Ionicons name="help-circle" size={28} color={Colors.historyButton} />
-        </View>
+        <Pressable style={styles.helpButton} accessibilityLabel="Help">
+          <Ionicons name="help-circle" size={44} color={Colors.historyButton} />
+        </Pressable>
       </View>
     </View>
   );
@@ -96,27 +96,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   headerLogoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.surface,
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -132,26 +135,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   journalLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
     color: Colors.primary,
-    textTransform: "uppercase",
     letterSpacing: 1,
   },
   articleTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 20,
+    fontSize: 24,
     color: Colors.text,
-    lineHeight: 28,
+    lineHeight: 34,
   },
   articleSource: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 24,
   },
   divider: {
-    height: 1,
+    height: 2,
     backgroundColor: Colors.border,
     marginVertical: 16,
   },
@@ -161,40 +163,43 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 13,
+    fontSize: 15,
     color: Colors.textSecondary,
     letterSpacing: 1,
   },
   articleContent: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 19,
     color: Colors.text,
-    lineHeight: 24,
+    lineHeight: 32,
   },
   metaSection: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    minHeight: 36,
   },
   metaLabel: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 17,
     color: Colors.textSecondary,
   },
   metaValue: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
     color: Colors.text,
   },
   errorText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.textSecondary,
     textAlign: "center",
     marginTop: 100,
@@ -203,27 +208,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    gap: 10,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   helpButton: {
-    width: 36,
-    height: 36,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },

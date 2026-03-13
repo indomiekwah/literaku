@@ -46,13 +46,13 @@ export default function ReaderScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={Colors.text} />
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+          <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {book.title}
         </Text>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 56 }} />
       </View>
 
       <ScrollView
@@ -76,43 +76,47 @@ export default function ReaderScreen() {
           style={[styles.controlButton, currentPage === 0 && styles.controlDisabled]}
           onPress={() => goToPage(0)}
           disabled={currentPage === 0}
+          accessibilityLabel="First page"
         >
-          <Ionicons name="play-skip-back" size={18} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-skip-back" size={26} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
         </Pressable>
 
         <Pressable
           style={[styles.controlButton, currentPage === 0 && styles.controlDisabled]}
           onPress={() => goToPage(currentPage - 1)}
           disabled={currentPage === 0}
+          accessibilityLabel="Previous page"
         >
-          <Ionicons name="play-back" size={18} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-back" size={26} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
         </Pressable>
 
-        <Pressable style={styles.playButton}>
-          <Ionicons name="pause" size={22} color="#FFF" />
+        <Pressable style={styles.playButton} accessibilityLabel="Play or pause">
+          <Ionicons name="pause" size={34} color="#FFF" />
         </Pressable>
 
         <Pressable
           style={[styles.controlButton, currentPage === totalPages - 1 && styles.controlDisabled]}
           onPress={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages - 1}
+          accessibilityLabel="Next page"
         >
-          <Ionicons name="play-forward" size={18} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-forward" size={26} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
         </Pressable>
 
         <Pressable
           style={[styles.controlButton, currentPage === totalPages - 1 && styles.controlDisabled]}
           onPress={() => goToPage(totalPages - 1)}
           disabled={currentPage === totalPages - 1}
+          accessibilityLabel="Last page"
         >
-          <Ionicons name="play-skip-forward" size={18} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-skip-forward" size={26} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
         </Pressable>
       </View>
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
       </View>
     </View>
@@ -123,24 +127,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
     gap: 12,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.background,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.text,
     flex: 1,
     textAlign: "center",
@@ -149,55 +156,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   readerCard: {
     backgroundColor: Colors.background,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 24,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: Colors.border,
-    minHeight: 300,
+    minHeight: 240,
   },
   pageContent: {
     fontFamily: "Inter_400Regular",
-    fontSize: 15,
+    fontSize: 19,
     color: Colors.text,
-    lineHeight: 26,
+    lineHeight: 32,
   },
   pageInfo: {
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   pageText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    fontSize: 16,
     color: Colors.textSecondary,
   },
   controlsRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 8,
+    gap: 12,
+    paddingVertical: 6,
   },
   controlButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     backgroundColor: Colors.background,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   controlDisabled: {
-    opacity: 0.5,
+    opacity: 0.35,
   },
   playButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -205,28 +212,28 @@ const styles = StyleSheet.create({
   bottomBar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 10,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.background,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   errorText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.textSecondary,
     textAlign: "center",
     marginTop: 100,

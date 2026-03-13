@@ -26,10 +26,10 @@ export default function GuideScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={Colors.text} />
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+          <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
-        <View style={{ width: 36 }} />
+        <View style={{ width: 56 }} />
       </View>
 
       <ScrollView
@@ -39,7 +39,7 @@ export default function GuideScreen() {
       >
         <View style={styles.illustrationContainer}>
           <View style={styles.illustrationCircle}>
-            <Ionicons name="desktop-outline" size={48} color={Colors.primary} />
+            <Ionicons name="desktop-outline" size={64} color={Colors.primary} />
           </View>
           <Text style={styles.illustrationText}>
             Say "Open Help" to see available commands.
@@ -54,8 +54,10 @@ export default function GuideScreen() {
 
         <View style={styles.commandList}>
           {guideCommands.map((item, index) => (
-            <View key={index} style={styles.commandItem}>
-              <Text style={styles.commandNumber}>{index + 1}.</Text>
+            <View key={index} style={styles.commandCard}>
+              <View style={styles.commandNumberCircle}>
+                <Text style={styles.commandNumber}>{index + 1}</Text>
+              </View>
               <Text style={styles.commandText}>
                 <Text style={styles.commandBold}>"{item.command}"</Text> {item.description}
               </Text>
@@ -65,13 +67,13 @@ export default function GuideScreen() {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
-        <View style={styles.helpButton}>
-          <Ionicons name="help-circle" size={28} color={Colors.historyButton} />
-        </View>
+        <Pressable style={styles.helpButton} accessibilityLabel="Help">
+          <Ionicons name="help-circle" size={44} color={Colors.historyButton} />
+        </Pressable>
       </View>
     </View>
   );
@@ -81,18 +83,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -104,90 +109,105 @@ const styles = StyleSheet.create({
   },
   illustrationContainer: {
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 24,
-    marginBottom: 16,
+    gap: 18,
+    paddingVertical: 16,
+    marginBottom: 8,
   },
   illustrationCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: Colors.border,
   },
   illustrationText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
-    lineHeight: 22,
-    paddingHorizontal: 20,
+    lineHeight: 26,
+    paddingHorizontal: 12,
   },
   helpTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 28,
+    fontSize: 34,
     color: Colors.primary,
     textAlign: "center",
     marginBottom: 16,
   },
   helpIntro: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    fontSize: 19,
     color: Colors.text,
-    marginBottom: 20,
+    marginBottom: 18,
   },
   commandList: {
     gap: 14,
   },
-  commandItem: {
+  commandCard: {
     flexDirection: "row",
-    gap: 8,
+    gap: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: "flex-start",
+    minHeight: 72,
+  },
+  commandNumberCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
   },
   commandNumber: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: Colors.text,
-    minWidth: 20,
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: "#FFFFFF",
   },
   commandText: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.text,
-    lineHeight: 22,
+    lineHeight: 28,
     flex: 1,
   },
   commandBold: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_700Bold",
     color: Colors.primary,
   },
   bottomBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
-    gap: 10,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   helpButton: {
-    width: 36,
-    height: 36,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },

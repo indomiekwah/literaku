@@ -25,9 +25,11 @@ function MenuButton({ icon, label, color, onPress }: MenuButtonProps) {
     <Pressable
       style={({ pressed }) => [
         styles.menuButton,
-        { backgroundColor: color, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: color, opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] },
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
     >
       <View style={styles.menuIconContainer}>{icon}</View>
       <Text style={styles.menuButtonText}>{label}</Text>
@@ -48,36 +50,36 @@ export default function MenuScreen() {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View style={styles.headerLogoCircle}>
-            <Ionicons name="globe-outline" size={18} color={Colors.primary} />
+            <Ionicons name="globe-outline" size={26} color={Colors.primary} />
           </View>
           <Text style={styles.headerTitle}>Literaku</Text>
         </View>
-        <Pressable style={styles.settingsButton}>
-          <Feather name="settings" size={22} color={Colors.text} />
+        <Pressable style={styles.settingsButton} accessibilityLabel="Settings">
+          <Feather name="settings" size={30} color={Colors.text} />
         </Pressable>
       </View>
 
       <View style={styles.menuContainer}>
         <MenuButton
-          icon={<Ionicons name="compass-outline" size={24} color="#FFF" />}
+          icon={<Ionicons name="compass-outline" size={44} color="#FFF" />}
           label="Explorer"
           color={Colors.explorerButton}
           onPress={() => router.push("/explorer")}
         />
         <MenuButton
-          icon={<MaterialIcons name="history" size={24} color="#FFF" />}
+          icon={<MaterialIcons name="history" size={44} color="#FFF" />}
           label="History"
           color={Colors.historyButton}
           onPress={() => router.push("/history")}
         />
         <MenuButton
-          icon={<Ionicons name="library-outline" size={24} color="#FFF" />}
+          icon={<Ionicons name="library-outline" size={44} color="#FFF" />}
           label="Collection"
           color={Colors.collectionButton}
           onPress={() => router.push("/collection")}
         />
         <MenuButton
-          icon={<Ionicons name="book-outline" size={24} color="#FFF" />}
+          icon={<Ionicons name="book-outline" size={44} color="#FFF" />}
           label="Guide"
           color={Colors.guideButton}
           onPress={() => router.push("/guide")}
@@ -85,13 +87,13 @@ export default function MenuScreen() {
       </View>
 
       <View style={styles.bottomBar}>
-        <View style={styles.micContainer}>
-          <Ionicons name="mic" size={22} color={Colors.primary} />
-        </View>
+        <Pressable style={styles.micContainer} accessibilityLabel="Microphone, listening">
+          <Ionicons name="mic" size={32} color={Colors.primary} />
+        </Pressable>
         <Text style={styles.listeningText}>Listening...</Text>
-        <View style={styles.helpButton}>
-          <Ionicons name="help-circle" size={28} color={Colors.historyButton} />
-        </View>
+        <Pressable style={styles.helpButton} accessibilityLabel="Help">
+          <Ionicons name="help-circle" size={44} color={Colors.historyButton} />
+        </Pressable>
       </View>
     </View>
   );
@@ -101,13 +103,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.surface,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
   headerLeft: {
     flexDirection: "row",
@@ -115,75 +117,76 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerLogoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.background,
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 20,
+    fontSize: 26,
     color: Colors.primary,
   },
   settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
   },
   menuContainer: {
     flex: 1,
     justifyContent: "center",
-    gap: 16,
-    paddingVertical: 20,
+    gap: 14,
+    paddingVertical: 8,
   },
   menuButton: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 14,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 14,
+    borderRadius: 20,
+    paddingVertical: 26,
+    paddingHorizontal: 28,
+    gap: 20,
+    minHeight: 96,
   },
   menuIconContainer: {
-    width: 32,
+    width: 50,
     alignItems: "center",
   },
   menuButtonText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    fontSize: 28,
     color: "#FFFFFF",
   },
   bottomBar: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    gap: 10,
+    paddingVertical: 12,
+    gap: 12,
   },
   micContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.background,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   listeningText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },
   helpButton: {
-    width: 36,
-    height: 36,
+    width: 56,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
   },
