@@ -28,6 +28,12 @@ export default function InstitutionUploadScreen() {
   const [author, setAuthor] = useState("");
   const [isbn, setIsbn] = useState("");
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Upload book. Fill in the book details and upload a file."
+    );
+  }, []);
+
   const handleUpload = () => {
     if (!title.trim() || !author.trim()) {
       AccessibilityInfo.announceForAccessibility(

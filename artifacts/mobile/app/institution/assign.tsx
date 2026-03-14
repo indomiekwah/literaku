@@ -92,6 +92,12 @@ export default function InstitutionAssignScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      `Assign books. ${sampleStudents.length} students. Tap a student to manage book assignments.`
+    );
+  }, []);
+
   const [assignmentMap, setAssignmentMap] = useState<Record<string, string[]>>(() => {
     const map: Record<string, string[]> = {};
     sampleStudents.forEach(s => {

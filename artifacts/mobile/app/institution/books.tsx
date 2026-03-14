@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   FlatList,
   Platform,
   Pressable,
@@ -76,6 +77,12 @@ export default function InstitutionBooksScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      `Book catalog. ${sampleBooks.length} books in your collection.`
+    );
+  }, []);
 
   return (
     <SwipeVoiceWrapper>
