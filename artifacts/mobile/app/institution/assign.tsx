@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     marginBottom: 14,
     lineHeight: 24,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   studentId: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   countBadge: {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 18,
     color: "#FFFFFF",
   },
   booksList: {
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   bookToggleTitle: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
   },

@@ -137,9 +137,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.institutionPrimary,
     alignItems: "center",
     justifyContent: "center",
@@ -172,13 +172,13 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 17,
+    fontSize: 18,
     color: Colors.text,
     lineHeight: 24,
   },
   bookAuthor: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   bookMeta: {
@@ -194,11 +194,11 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 12,
+    fontSize: 18,
   },
   assignedText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 13,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
 });

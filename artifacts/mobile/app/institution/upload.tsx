@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   uploadSubtext: {
     fontFamily: "Inter_500Medium",
-    fontSize: 15,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   form: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.text,
   },
   input: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   pipelineText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 15,
+    fontSize: 18,
     color: Colors.textSecondary,
     flex: 1,
     lineHeight: 22,

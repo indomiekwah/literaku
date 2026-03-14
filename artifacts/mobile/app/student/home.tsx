@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   logoutButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.errorLight,
     alignItems: "center",
     justifyContent: "center",
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   voicePromptSubtext: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 24,
@@ -244,12 +244,12 @@ const styles = StyleSheet.create({
   },
   continueProgress: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.studentPrimary,
   },
   continueTime: {
     fontFamily: "Inter_500Medium",
-    fontSize: 13,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   playCircle: {
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   actionSubtitle: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 18,
     color: "rgba(255,255,255,0.8)",
   },
 });

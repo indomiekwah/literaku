@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: "Inter_500Medium",
-    fontSize: 17,
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
   },
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.text,
   },
   input: {

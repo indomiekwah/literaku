@@ -68,12 +68,12 @@ const styles = StyleSheet.create({
   },
   hintsLabel: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   hintText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 15,
+    fontSize: 18,
     color: Colors.primary,
     flex: 1,
   },

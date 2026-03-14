@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
   },
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   promptSubtext: {
     fontFamily: "Inter_500Medium",
-    fontSize: 17,
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 26,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   roleSubtitle: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: "rgba(255,255,255,0.85)",
   },
 });

@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   illustrationText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 24,
@@ -174,9 +174,9 @@ const styles = StyleSheet.create({
     minHeight: 64,
   },
   commandNumberCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.studentPrimary,
     alignItems: "center",
     justifyContent: "center",
@@ -184,12 +184,12 @@ const styles = StyleSheet.create({
   },
   commandNumber: {
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 18,
     color: "#FFFFFF",
   },
   commandText: {
     fontFamily: "Inter_400Regular",
-    fontSize: 17,
+    fontSize: 18,
     color: Colors.text,
     lineHeight: 26,
     flex: 1,

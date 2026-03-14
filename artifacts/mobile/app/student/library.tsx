@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   bookCount: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
     marginBottom: 12,
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   bookAuthor: {
     fontFamily: "Inter_500Medium",
-    fontSize: 15,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   notReadyBadge: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   notReadyText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 12,
+    fontSize: 18,
     color: Colors.warning,
   },
   playCircle: {
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
 });
