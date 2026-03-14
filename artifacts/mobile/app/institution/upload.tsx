@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
+import { voiceCommands } from "@/constants/data";
 
 export default function InstitutionUploadScreen() {
   const insets = useSafeAreaInsets();
@@ -106,7 +107,7 @@ export default function InstitutionUploadScreen() {
         </View>
       </ScrollView>
 
-      <VoiceCommandBar showHelpButton={false} />
+      <VoiceCommandBar hints={voiceCommands.institutionUpload} showHelpButton={false} />
     </View>
   );
 }

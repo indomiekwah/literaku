@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
+import { voiceCommands } from "@/constants/data";
 
 export default function StudentLoginScreen() {
   const insets = useSafeAreaInsets();
@@ -89,7 +90,7 @@ export default function StudentLoginScreen() {
         </View>
       </View>
 
-      <VoiceCommandBar showHelpButton={false} />
+      <VoiceCommandBar hints={voiceCommands.studentLogin} showHelpButton={false} />
     </View>
   );
 }

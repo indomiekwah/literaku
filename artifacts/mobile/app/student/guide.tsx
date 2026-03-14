@@ -81,7 +81,7 @@ export default function StudentGuideScreen() {
         <CommandSection title="While Reading" commands={voiceCommands.reader} />
       </ScrollView>
 
-      <VoiceCommandBar showHelpButton={false} />
+      <VoiceCommandBar hints={voiceCommands.studentGuide} showHelpButton={false} />
     </View>
   );
 }

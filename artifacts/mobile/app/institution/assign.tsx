@@ -14,9 +14,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, sampleStudents, type Student } from "@/constants/data";
+import { sampleBooks, sampleStudents, voiceCommands, type Student } from "@/constants/data";
 
-function StudentRow({ student }: { student: Student }) {
+interface StudentRowProps {
+  student: Student;
+  assignments: string[];
+  onToggle: (bookId: string) => void;
+}
+
+function StudentRow({ student, assignments, onToggle }: StudentRowProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -25,7 +31,7 @@ function StudentRow({ student }: { student: Student }) {
         style={({ pressed }) => [styles.studentRow, { opacity: pressed ? 0.9 : 1 }]}
         onPress={() => setExpanded(!expanded)}
         accessibilityRole="button"
-        accessibilityLabel={`${student.name}, Student ID: ${student.studentId}. ${student.assignedBooks.length} books assigned. ${expanded ? "Tap to collapse" : "Tap to expand"}`}
+        accessibilityLabel={`${student.name}, Student ID: ${student.studentId}. ${assignments.length} books assigned. ${expanded ? "Tap to collapse" : "Tap to expand"}`}
       >
         <View style={styles.studentAvatar}>
           <Ionicons name="person" size={28} color={Colors.institutionPrimary} />
@@ -35,7 +41,7 @@ function StudentRow({ student }: { student: Student }) {
           <Text style={styles.studentId}>ID: {student.studentId}</Text>
         </View>
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>{student.assignedBooks.length}</Text>
+          <Text style={styles.countText}>{assignments.length}</Text>
         </View>
         <Feather name={expanded ? "chevron-up" : "chevron-down"} size={24} color={Colors.textSecondary} />
       </Pressable>
@@ -43,15 +49,15 @@ function StudentRow({ student }: { student: Student }) {
       {expanded && (
         <View style={styles.booksList}>
           {sampleBooks.map((book) => {
-            const isAssigned = student.assignedBooks.includes(book.id);
+            const isAssigned = assignments.includes(book.id);
             return (
               <Pressable
                 key={book.id}
                 style={[styles.bookToggle, isAssigned && styles.bookToggleActive]}
-                onPress={() => {}}
+                onPress={() => onToggle(book.id)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isAssigned }}
-                accessibilityLabel={`${book.title}. ${isAssigned ? "Assigned" : "Not assigned"}`}
+                accessibilityLabel={`${book.title}. ${isAssigned ? "Assigned. Tap to unassign" : "Not assigned. Tap to assign"}`}
               >
                 <Ionicons
                   name={isAssigned ? "checkmark-circle" : "ellipse-outline"}
@@ -76,6 +82,27 @@ export default function InstitutionAssignScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
 
+  const [assignmentMap, setAssignmentMap] = useState<Record<string, string[]>>(() => {
+    const map: Record<string, string[]> = {};
+    sampleStudents.forEach(s => {
+      map[s.id] = [...s.assignedBooks];
+    });
+    return map;
+  });
+
+  const handleToggle = (studentId: string, bookId: string) => {
+    setAssignmentMap(prev => {
+      const current = prev[studentId] || [];
+      const isAssigned = current.includes(bookId);
+      return {
+        ...prev,
+        [studentId]: isAssigned
+          ? current.filter(id => id !== bookId)
+          : [...current, bookId],
+      };
+    });
+  };
+
   return (
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
       <StatusBar style="dark" />
@@ -95,13 +122,25 @@ export default function InstitutionAssignScreen() {
       <FlatList
         data={sampleStudents}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <StudentRow student={item} />}
+        renderItem={({ item }) => (
+          <StudentRow
+            student={item}
+            assignments={assignmentMap[item.id] || []}
+            onToggle={(bookId) => handleToggle(item.id, bookId)}
+          />
+        )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         scrollEnabled={sampleStudents.length > 0}
       />
 
-      <VoiceCommandBar showHelpButton={false} />
+      <VoiceCommandBar
+        hints={[
+          { command: "Assign [book] to [student]", description: "to assign a book" },
+          { command: "Go back", description: "to return to dashboard" },
+        ]}
+        showHelpButton={false}
+      />
     </View>
   );
 }

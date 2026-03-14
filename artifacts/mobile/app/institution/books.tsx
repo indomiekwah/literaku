@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, type CatalogBook, type DaisyStatus } from "@/constants/data";
+import { sampleBooks, voiceCommands, type CatalogBook, type DaisyStatus } from "@/constants/data";
 
 function getStatusColor(status: DaisyStatus) {
   switch (status) {
@@ -103,7 +103,7 @@ export default function InstitutionBooksScreen() {
         scrollEnabled={sampleBooks.length > 0}
       />
 
-      <VoiceCommandBar showHelpButton={false} />
+      <VoiceCommandBar hints={voiceCommands.institutionBooks} showHelpButton={false} />
     </View>
   );
 }

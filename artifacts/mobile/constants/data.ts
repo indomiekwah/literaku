@@ -143,6 +143,32 @@ export const voiceCommands: Record<string, VoiceCommand[]> = {
     { command: "I am a student", description: "to open student login" },
     { command: "I am an administrator", description: "to open institution login" },
   ],
+  institutionLogin: [
+    { command: "Sign in", description: "to submit your credentials" },
+    { command: "Go back", description: "to return to role selection" },
+  ],
+  institutionDashboard: [
+    { command: "Upload book", description: "to add a new book" },
+    { command: "Assign books", description: "to manage student assignments" },
+    { command: "View catalog", description: "to see all books" },
+    { command: "Log out", description: "to sign out" },
+  ],
+  institutionBooks: [
+    { command: "Upload book", description: "to add a new book" },
+    { command: "Go back", description: "to return to dashboard" },
+  ],
+  institutionUpload: [
+    { command: "Upload", description: "to submit the book" },
+    { command: "Go back", description: "to return to previous screen" },
+  ],
+  institutionAssign: [
+    { command: "Assign [book] to [student]", description: "to assign a book" },
+    { command: "Go back", description: "to return to dashboard" },
+  ],
+  studentLogin: [
+    { command: "Sign in", description: "to enter the app" },
+    { command: "Go back", description: "to return to role selection" },
+  ],
   studentHome: [
     { command: "Read [book title]", description: "to start reading a book" },
     { command: "Continue reading", description: "to resume your last book" },
@@ -159,12 +185,11 @@ export const voiceCommands: Record<string, VoiceCommand[]> = {
     { command: "Pause", description: "to pause narration" },
     { command: "Resume", description: "to continue narration" },
     { command: "Summarize this page", description: "to hear an AI summary" },
+    { command: "Change voice", description: "to switch narration voice" },
     { command: "Go back", description: "to return to library" },
   ],
-  institutionDashboard: [
-    { command: "Upload book", description: "to add a new book" },
-    { command: "Assign books", description: "to manage student assignments" },
-    { command: "View students", description: "to see student list" },
-    { command: "Log out", description: "to sign out" },
+  studentGuide: [
+    { command: "Go back", description: "to return to home" },
+    { command: "Read [book title]", description: "to start reading" },
   ],
 };

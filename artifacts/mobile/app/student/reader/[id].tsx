@@ -16,6 +16,13 @@ import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
 import { sampleBooks, voiceCommands } from "@/constants/data";
 
+const VOICE_OPTIONS = [
+  { id: "v1", label: "Sari (Female)", lang: "id-ID" },
+  { id: "v2", label: "Budi (Male)", lang: "id-ID" },
+  { id: "v3", label: "Emma (Female)", lang: "en-US" },
+  { id: "v4", label: "James (Male)", lang: "en-US" },
+];
+
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,6 +34,8 @@ export default function StudentReaderScreen() {
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [selectedVoice, setSelectedVoice] = useState("v1");
+  const [showVoicePicker, setShowVoicePicker] = useState(false);
 
   if (!book) {
     return (
@@ -38,6 +47,7 @@ export default function StudentReaderScreen() {
 
   const totalPages = book.content.length;
   const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+  const currentVoiceLabel = VOICE_OPTIONS.find(v => v.id === selectedVoice)?.label || "Sari (Female)";
 
   const goToPage = (page: number) => {
     if (page >= 0 && page < totalPages) setCurrentPage(page);
@@ -116,16 +126,57 @@ export default function StudentReaderScreen() {
         </Pressable>
 
         <Pressable
+          style={styles.voiceSelector}
+          onPress={() => setShowVoicePicker(!showVoicePicker)}
+          accessibilityRole="button"
+          accessibilityLabel={`Narration voice: ${currentVoiceLabel}. Tap to change voice`}
+        >
+          <Ionicons name="mic" size={20} color={Colors.studentPrimary} />
+          <Text style={styles.voiceSelectorText} numberOfLines={1}>{currentVoiceLabel}</Text>
+          <Feather name={showVoicePicker ? "chevron-up" : "chevron-down"} size={18} color={Colors.textSecondary} />
+        </Pressable>
+
+        <Pressable
           style={styles.summarizeButton}
           onPress={() => {}}
           accessibilityRole="button"
           accessibilityLabel="Summarize this page with AI"
           accessibilityHint="Double tap to hear an AI-generated summary of the current page"
         >
-          <Ionicons name="sparkles" size={22} color="#FFFFFF" />
+          <Ionicons name="sparkles" size={20} color="#FFFFFF" />
           <Text style={styles.summarizeText}>Summarize</Text>
         </Pressable>
       </View>
+
+      {showVoicePicker && (
+        <View style={styles.voicePickerDropdown}>
+          {VOICE_OPTIONS.map((voice) => {
+            const isSelected = voice.id === selectedVoice;
+            return (
+              <Pressable
+                key={voice.id}
+                style={[styles.voiceOption, isSelected && styles.voiceOptionSelected]}
+                onPress={() => { setSelectedVoice(voice.id); setShowVoicePicker(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`${voice.label}. ${voice.lang}. ${isSelected ? "Currently selected" : "Tap to select"}`}
+              >
+                <Ionicons
+                  name={isSelected ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={isSelected ? Colors.studentPrimary : Colors.borderStrong}
+                />
+                <View style={styles.voiceOptionInfo}>
+                  <Text style={[styles.voiceOptionLabel, isSelected && styles.voiceOptionLabelSelected]}>
+                    {voice.label}
+                  </Text>
+                  <Text style={styles.voiceOptionLang}>{voice.lang}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       <VoiceCommandBar hints={voiceCommands.reader} showHelpButton={false} />
     </View>
@@ -221,41 +272,98 @@ const styles = StyleSheet.create({
   extraControls: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 12,
+    gap: 8,
     paddingVertical: 6,
   },
   speedButton: {
     backgroundColor: Colors.voiceBarBg,
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderWidth: 2,
     borderColor: Colors.primaryLight,
-    minWidth: 72,
+    minWidth: 60,
     alignItems: "center",
-    minHeight: 52,
+    minHeight: 46,
     justifyContent: "center",
   },
   speedText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.primary,
+  },
+  voiceSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.successLight,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 2,
+    borderColor: Colors.studentPrimary,
+    gap: 6,
+    minHeight: 46,
+    maxWidth: 160,
+  },
+  voiceSelectorText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: Colors.text,
+    flex: 1,
   },
   summarizeButton: {
     flexDirection: "row",
     backgroundColor: Colors.primaryLight,
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 6,
     alignItems: "center",
-    minHeight: 52,
+    minHeight: 46,
     justifyContent: "center",
   },
   summarizeText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 17,
+    fontSize: 15,
     color: "#FFFFFF",
+  },
+  voicePickerDropdown: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    padding: 8,
+    gap: 4,
+  },
+  voiceOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    minHeight: 52,
+  },
+  voiceOptionSelected: {
+    backgroundColor: Colors.successLight,
+  },
+  voiceOptionInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  voiceOptionLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.text,
+  },
+  voiceOptionLabelSelected: {
+    fontFamily: "Inter_700Bold",
+    color: Colors.studentPrimary,
+  },
+  voiceOptionLang: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: Colors.textSecondary,
   },
   errorText: {
     fontFamily: "Inter_700Bold",
