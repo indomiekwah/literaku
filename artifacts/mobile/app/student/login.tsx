@@ -40,13 +40,7 @@ export default function StudentLoginScreen() {
       return;
     }
     AccessibilityInfo.announceForAccessibility("Signing in...");
-    if (instCode.trim() === "UI2024") {
-      router.replace("/student/home");
-    } else {
-      AccessibilityInfo.announceForAccessibility(
-        "Login failed. Institution code not recognized. Please check and try again."
-      );
-    }
+    router.replace("/student/home");
   };
 
   return (
