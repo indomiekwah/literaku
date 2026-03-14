@@ -108,7 +108,7 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - Font sizes: minimum 18px throughout, primary headers 22-30px
 - Touch targets: minimum 48px (header buttons), 56px+ (secondary), 72px+ (primary actions)
 - Voice commands match button actions: "Rewind 10 seconds" and "Forward 10 seconds" in data.ts match reader button labels
-- No competitor references (DAISY) remain in any user-facing text, code types, or documentation
+- No competitor references remain in any user-facing text, code types, or documentation
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
