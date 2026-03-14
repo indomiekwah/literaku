@@ -14,9 +14,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
 import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, voiceCommands, type CatalogBook, type DaisyStatus } from "@/constants/data";
+import { sampleBooks, voiceCommands, type CatalogBook, type ConversionStatus } from "@/constants/data";
 
-function getStatusColor(status: DaisyStatus) {
+function getStatusColor(status: ConversionStatus) {
   switch (status) {
     case "ready": return Colors.success;
     case "processing": return Colors.processingBadge;
@@ -25,7 +25,7 @@ function getStatusColor(status: DaisyStatus) {
   }
 }
 
-function getStatusBg(status: DaisyStatus) {
+function getStatusBg(status: ConversionStatus) {
   switch (status) {
     case "ready": return Colors.successLight;
     case "processing": return Colors.warningLight;
@@ -34,9 +34,9 @@ function getStatusBg(status: DaisyStatus) {
   }
 }
 
-function getStatusLabel(status: DaisyStatus) {
+function getStatusLabel(status: ConversionStatus) {
   switch (status) {
-    case "ready": return "DAISY Ready";
+    case "ready": return "Ready";
     case "processing": return "Processing";
     case "pending": return "Pending";
     case "error": return "Error";
@@ -48,18 +48,18 @@ function BookRow({ book }: { book: CatalogBook }) {
     <View
       style={styles.bookRow}
       accessibilityRole="text"
-      accessibilityLabel={`${book.title} by ${book.author}. Status: ${getStatusLabel(book.daisyStatus)}. Assigned to ${book.assignedTo.length} students.`}
+      accessibilityLabel={`${book.title} by ${book.author}. Status: ${getStatusLabel(book.conversionStatus)}. Assigned to ${book.assignedTo.length} students.`}
     >
-      <View style={[styles.bookIcon, { backgroundColor: getStatusBg(book.daisyStatus) }]}>
-        <Ionicons name="book" size={28} color={getStatusColor(book.daisyStatus)} />
+      <View style={[styles.bookIcon, { backgroundColor: getStatusBg(book.conversionStatus) }]}>
+        <Ionicons name="book" size={28} color={getStatusColor(book.conversionStatus)} />
       </View>
       <View style={styles.bookInfo}>
         <Text style={styles.bookTitle} numberOfLines={2}>{book.title}</Text>
         <Text style={styles.bookAuthor}>{book.author}</Text>
         <View style={styles.bookMeta}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusBg(book.daisyStatus) }]}>
-            <Text style={[styles.statusText, { color: getStatusColor(book.daisyStatus) }]}>
-              {getStatusLabel(book.daisyStatus)}
+          <View style={[styles.statusBadge, { backgroundColor: getStatusBg(book.conversionStatus) }]}>
+            <Text style={[styles.statusText, { color: getStatusColor(book.conversionStatus) }]}>
+              {getStatusLabel(book.conversionStatus)}
             </Text>
           </View>
           <Text style={styles.assignedText}>{book.assignedTo.length} students</Text>

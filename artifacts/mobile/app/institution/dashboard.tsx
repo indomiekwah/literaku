@@ -25,12 +25,12 @@ export default function InstitutionDashboardScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Institution dashboard. Manage your book catalog, DAISY conversions, and student assignments."
+      "Institution dashboard. Manage your book catalog, conversions, and student assignments."
     );
   }, []);
 
-  const readyCount = sampleBooks.filter(b => b.daisyStatus === "ready").length;
-  const processingCount = sampleBooks.filter(b => b.daisyStatus === "processing" || b.daisyStatus === "pending").length;
+  const readyCount = sampleBooks.filter(b => b.conversionStatus === "ready").length;
+  const processingCount = sampleBooks.filter(b => b.conversionStatus === "processing" || b.conversionStatus === "pending").length;
 
   return (
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
@@ -66,7 +66,7 @@ export default function InstitutionDashboardScreen() {
           <View style={[styles.statCard, { backgroundColor: Colors.successLight }]}>
             <Ionicons name="checkmark-circle" size={32} color={Colors.success} />
             <Text style={styles.statNumber}>{readyCount}</Text>
-            <Text style={styles.statLabel}>DAISY Ready</Text>
+            <Text style={styles.statLabel}>Converted</Text>
           </View>
         </View>
 

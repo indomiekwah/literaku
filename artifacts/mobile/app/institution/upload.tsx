@@ -91,7 +91,7 @@ export default function InstitutionUploadScreen() {
           <View style={styles.pipelineInfo}>
             <Ionicons name="information-circle" size={24} color={Colors.primaryLight} />
             <Text style={styles.pipelineText}>
-              After upload, the book will be automatically converted to DAISY format for accessible reading.
+              After upload, the book will be automatically converted to accessible format for voice-first reading.
             </Text>
           </View>
 
@@ -99,7 +99,7 @@ export default function InstitutionUploadScreen() {
             style={({ pressed }) => [styles.submitButton, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
             onPress={handleUpload}
             accessibilityRole="button"
-            accessibilityLabel="Upload book and start DAISY conversion"
+            accessibilityLabel="Upload book and start conversion"
           >
             <Ionicons name="cloud-upload" size={28} color="#FFFFFF" />
             <Text style={styles.submitText}>Upload & Convert</Text>

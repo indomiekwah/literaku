@@ -20,7 +20,7 @@ const bookColors = ["#E3F2FD", "#E8F5E9", "#FFF3E0", "#F3E5F5", "#FFEBEE"];
 
 function BookCard({ book, index }: { book: CatalogBook; index: number }) {
   const bgColor = bookColors[index % bookColors.length];
-  const isReady = book.daisyStatus === "ready";
+  const isReady = book.conversionStatus === "ready";
 
   return (
     <Pressable
@@ -35,7 +35,7 @@ function BookCard({ book, index }: { book: CatalogBook; index: number }) {
       }}
       disabled={!isReady}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} by ${book.author}. ${isReady ? "Ready to read. Double tap to open" : "Not yet available. DAISY conversion in progress"}`}
+      accessibilityLabel={`${book.title} by ${book.author}. ${isReady ? "Ready to read. Double tap to open" : "Not yet available. Conversion in progress"}`}
     >
       <View style={[styles.bookCover, { backgroundColor: bgColor }]}>
         <Ionicons name="book" size={36} color={isReady ? Colors.studentPrimary : Colors.borderStrong} />

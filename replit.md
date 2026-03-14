@@ -56,29 +56,32 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 Expo React Native app — **Literaku**: a B2B voice-first accessible reading platform for visually impaired students (similar to Bookshare).
 
 **Architecture**: Two user types with separate flows:
-1. **Institution administrators** — upload book catalogs, manage DAISY conversion pipeline, assign books to students
+1. **Institution administrators** — upload book catalogs, manage accessible format conversion pipeline, assign books to students
 2. **Students** — voice-activated reading with AI narration controls, voice commands like "Read [title]", "Summarize", "Pause"
 
 **Design principles**:
 - Voice-first, not sighted-first
-- Large touch targets (52-78px buttons, 62px inputs)
-- 17-28px bold text throughout
+- Large touch targets (48-78px buttons, 58px+ inputs)
+- 18-28px bold text throughout
 - High contrast colors (WCAG AAA)
 - Screen reader accessible with `accessibilityRole`, `accessibilityLabel`, `accessibilityHint` on all interactive elements
 - VoiceCommandBar on every screen with contextual hints
+- AccessibilityInfo.announceForAccessibility on key screens (role select, student home, institution dashboard, reader)
 
 **Screens**:
 - `index.tsx` — Role selection ("Who are you?" — Institution or Student)
 - `institution/login.tsx` — Admin email/password login
-- `institution/dashboard.tsx` — Stats (books, DAISY ready, processing, students) + quick actions
-- `institution/books.tsx` — Book catalog with DAISY status badges
-- `institution/upload.tsx` — Upload form with DAISY pipeline info
+- `institution/dashboard.tsx` — Stats (books, converted, processing, students) + quick actions
+- `institution/books.tsx` — Book catalog with conversion status badges (Ready, Processing, Pending, Error)
+- `institution/upload.tsx` — Upload form with conversion pipeline info
 - `institution/assign.tsx` — Expandable student rows with book assignment toggles
 - `student/login.tsx` — Institution code + student ID login
 - `student/home.tsx` — Voice prompt "What would you like to read?" + continue reading card
 - `student/library.tsx` — Assigned books with play buttons
-- `student/reader/[id].tsx` — Play/pause, speed control, Summarize button, page navigation
+- `student/reader/[id].tsx` — Redesigned reader with: progress bar, rewind/forward 10s buttons flanking play/pause, separate page navigation row (Previous/Next), speed and voice selector chips, AI summarize button in header
 - `student/guide.tsx` — Voice commands grouped by context (home, library, reader)
+
+**Reader voice commands**: Play, Pause, Resume, Next page, Previous page, Rewind (10s back), Forward (10s ahead), Summarize, Change voice, Go back
 
 **Theme**:
 - Institution: Blue (#0D47A1)
@@ -86,7 +89,7 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - High contrast text (#0A0A0A on white)
 
 **Key files**:
-- `constants/data.ts` — Types (CatalogBook, Student, Institution, DaisyStatus) + sample data + voice commands per context
+- `constants/data.ts` — Types (CatalogBook, Student, Institution, ConversionStatus) + sample data + voice commands per context
 - `constants/colors.ts` — High-contrast accessible color palette
 - `components/VoiceCommandBar.tsx` — Shared voice command bar with mic button, listening status, contextual hints, help button
 - `app/_layout.tsx` — Stack navigation (headerShown: false) with all 11 routes

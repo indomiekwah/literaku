@@ -1,11 +1,11 @@
-export type DaisyStatus = "pending" | "processing" | "ready" | "error";
+export type ConversionStatus = "pending" | "processing" | "ready" | "error";
 
 export interface CatalogBook {
   id: string;
   title: string;
   author: string;
   isbn: string;
-  daisyStatus: DaisyStatus;
+  conversionStatus: ConversionStatus;
   pages: number;
   content: string[];
   assignedTo: string[];
@@ -59,7 +59,7 @@ export const sampleBooks: CatalogBook[] = [
     title: "Building Educational Strategies",
     author: "Prof. Dr. Achmad Sanusi",
     isbn: "978-602-1234-01-1",
-    daisyStatus: "ready",
+    conversionStatus: "ready",
     pages: 30,
     assignedTo: ["s1", "s2", "s4"],
     content: [
@@ -75,7 +75,7 @@ export const sampleBooks: CatalogBook[] = [
     title: "The Art of Speaking",
     author: "Oh Su Hyang",
     isbn: "978-602-1234-02-8",
-    daisyStatus: "ready",
+    conversionStatus: "ready",
     pages: 25,
     assignedTo: ["s1", "s3", "s4"],
     content: [
@@ -91,7 +91,7 @@ export const sampleBooks: CatalogBook[] = [
     title: "The Miracle of Limitations",
     author: "Jihad Al-Malki",
     isbn: "978-602-1234-03-5",
-    daisyStatus: "ready",
+    conversionStatus: "ready",
     pages: 20,
     assignedTo: ["s1", "s3"],
     content: [
@@ -106,7 +106,7 @@ export const sampleBooks: CatalogBook[] = [
     title: "Seeing the World Without Eyes",
     author: "Poppy Oleh",
     isbn: "978-602-1234-04-2",
-    daisyStatus: "processing",
+    conversionStatus: "processing",
     pages: 22,
     assignedTo: ["s2", "s4"],
     content: [
@@ -121,7 +121,7 @@ export const sampleBooks: CatalogBook[] = [
     title: "World Without Light",
     author: "Dunya Cahaya",
     isbn: "978-602-1234-05-9",
-    daisyStatus: "pending",
+    conversionStatus: "pending",
     pages: 18,
     assignedTo: ["s2", "s3"],
     content: [
@@ -182,9 +182,11 @@ export const voiceCommands: Record<string, VoiceCommand[]> = {
   reader: [
     { command: "Next page", description: "to go to the next page" },
     { command: "Previous page", description: "to go back one page" },
+    { command: "Rewind", description: "to go back 10 seconds" },
+    { command: "Forward", description: "to skip ahead 10 seconds" },
     { command: "Pause", description: "to pause narration" },
     { command: "Resume", description: "to continue narration" },
-    { command: "Summarize this page", description: "to hear an AI summary" },
+    { command: "Summarize", description: "to hear an AI summary" },
     { command: "Change voice", description: "to switch narration voice" },
     { command: "Go back", description: "to return to library" },
   ],
