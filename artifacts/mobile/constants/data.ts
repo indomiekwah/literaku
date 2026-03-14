@@ -182,8 +182,8 @@ export const voiceCommands: Record<string, VoiceCommand[]> = {
   reader: [
     { command: "Next page", description: "to go to the next page" },
     { command: "Previous page", description: "to go back one page" },
-    { command: "Rewind", description: "to go back 10 seconds" },
-    { command: "Forward", description: "to skip ahead 10 seconds" },
+    { command: "Rewind 10 seconds", description: "to go back 10 seconds" },
+    { command: "Forward 10 seconds", description: "to skip ahead 10 seconds" },
     { command: "Pause", description: "to pause narration" },
     { command: "Resume", description: "to continue narration" },
     { command: "Summarize", description: "to hear an AI summary" },

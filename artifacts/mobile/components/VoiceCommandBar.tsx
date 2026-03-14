@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import Colors from "@/constants/colors";
@@ -12,13 +12,25 @@ interface VoiceCommandBarProps {
 }
 
 export default function VoiceCommandBar({ hints, showHelpButton = true, onHelpPress }: VoiceCommandBarProps) {
+  const [hintIndex, setHintIndex] = useState(0);
+
+  useEffect(() => {
+    if (!hints || hints.length <= 1) return;
+    const interval = setInterval(() => {
+      setHintIndex((prev) => (prev + 1) % hints.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [hints]);
+
+  const currentHint = hints && hints.length > 0 ? hints[hintIndex % hints.length] : null;
+
   return (
-    <View style={styles.container}>
-      {hints && hints.length > 0 && (
+    <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel="Voice command bar">
+      {currentHint && (
         <View style={styles.hintsRow}>
-          <Text style={styles.hintsLabel} accessibilityRole="header">Try saying:</Text>
-          <Text style={styles.hintText} numberOfLines={1} accessibilityLabel={`Voice command hint: ${hints[0].command}`}>
-            "{hints[0].command}"
+          <Text style={styles.hintsLabel}>Try saying:</Text>
+          <Text style={styles.hintText} numberOfLines={1} accessibilityLabel={`Voice command hint: ${currentHint.command}`} accessibilityLiveRegion="polite">
+            "{currentHint.command}"
           </Text>
         </View>
       )}
@@ -41,7 +53,7 @@ export default function VoiceCommandBar({ hints, showHelpButton = true, onHelpPr
             onPress={onHelpPress}
             accessibilityRole="button"
             accessibilityLabel="Voice command help"
-            accessibilityHint="Shows all available voice commands"
+            accessibilityHint="Opens the full list of available voice commands"
           >
             <Ionicons name="help-circle" size={44} color={Colors.primaryLight} />
           </Pressable>

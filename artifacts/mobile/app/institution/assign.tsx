@@ -32,6 +32,7 @@ function StudentRow({ student, assignments, onToggle }: StudentRowProps) {
         onPress={() => setExpanded(!expanded)}
         accessibilityRole="button"
         accessibilityLabel={`${student.name}, Student ID: ${student.studentId}. ${assignments.length} books assigned. ${expanded ? "Tap to collapse" : "Tap to expand"}`}
+        accessibilityHint={expanded ? "Double tap to collapse the book list" : "Double tap to expand and see assigned books"}
       >
         <View style={styles.studentAvatar}>
           <Ionicons name="person" size={28} color={Colors.institutionPrimary} />
@@ -58,6 +59,7 @@ function StudentRow({ student, assignments, onToggle }: StudentRowProps) {
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isAssigned }}
                 accessibilityLabel={`${book.title}. ${isAssigned ? "Assigned. Tap to unassign" : "Not assigned. Tap to assign"}`}
+                accessibilityHint={isAssigned ? "Double tap to remove this book assignment" : "Double tap to assign this book"}
               >
                 <Ionicons
                   name={isAssigned ? "checkmark-circle" : "ellipse-outline"}
@@ -108,7 +110,7 @@ export default function InstitutionAssignScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard" accessibilityHint="Double tap to return to institution dashboard">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} accessibilityRole="header">Assign Books</Text>

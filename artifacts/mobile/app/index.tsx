@@ -65,7 +65,7 @@ export default function RoleSelectScreen() {
           onPress={() => router.push("/institution/login")}
           accessibilityRole="button"
           accessibilityLabel="I am an Institution Administrator"
-          accessibilityHint="Opens institution administrator login"
+          accessibilityHint="Double tap to open institution administrator login"
         >
           <View style={styles.roleIconCircle}>
             <Ionicons name="business" size={40} color={Colors.institutionPrimary} />
@@ -86,7 +86,7 @@ export default function RoleSelectScreen() {
           onPress={() => router.push("/student/login")}
           accessibilityRole="button"
           accessibilityLabel="I am a Student"
-          accessibilityHint="Opens student login"
+          accessibilityHint="Double tap to open student login"
         >
           <View style={styles.roleIconCircle}>
             <Ionicons name="person" size={40} color={Colors.studentPrimary} />

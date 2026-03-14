@@ -98,6 +98,18 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 **Data**: Sample data in constants/data.ts (no backend needed)
 **Logged-in student**: Hardcoded as student "s1" (Andi Pratama) for library filtering
 
+**Voice-First Accessibility Audit (completed)**:
+- All 11 screens audited for voice-first compliance
+- Every interactive `Pressable` and `TextInput` has `accessibilityRole`, `accessibilityLabel`, and `accessibilityHint`
+- All `accessibilityHint` values use "Double tap to..." phrasing for screen reader consistency
+- Key screens (role select, student home, institution dashboard, reader) use `AccessibilityInfo.announceForAccessibility` on mount
+- Progress bar in reader uses `accessibilityRole="progressbar"` with `accessibilityValue` for min/max/now
+- VoiceCommandBar rotates through all hints every 4 seconds (not just first hint) with `accessibilityLiveRegion="polite"`
+- Font sizes: minimum 18px throughout, primary headers 22-30px
+- Touch targets: minimum 48px (header buttons), 56px+ (secondary), 72px+ (primary actions)
+- Voice commands match button actions: "Rewind 10 seconds" and "Forward 10 seconds" in data.ts match reader button labels
+- No competitor references (DAISY) remain in any user-facing text, code types, or documentation
+
 ### `artifacts/api-server` (`@workspace/api-server`)
 
 Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.

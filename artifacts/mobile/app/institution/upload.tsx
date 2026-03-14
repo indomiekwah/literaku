@@ -35,7 +35,7 @@ export default function InstitutionUploadScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" accessibilityHint="Double tap to return to previous screen">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} accessibilityRole="header">Upload Book</Text>
@@ -43,7 +43,7 @@ export default function InstitutionUploadScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Pressable style={styles.uploadArea} onPress={() => {}} accessibilityRole="button" accessibilityLabel="Tap to select book file for upload">
+        <Pressable style={styles.uploadArea} onPress={() => {}} accessibilityRole="button" accessibilityLabel="Tap to select book file for upload" accessibilityHint="Double tap to open file picker and choose a book file">
           <View style={styles.uploadIconCircle}>
             <Ionicons name="cloud-upload" size={48} color={Colors.institutionPrimary} />
           </View>
@@ -61,6 +61,7 @@ export default function InstitutionUploadScreen() {
               value={title}
               onChangeText={setTitle}
               accessibilityLabel="Book title"
+              accessibilityHint="Type the title of the book here"
             />
           </View>
 
@@ -73,6 +74,7 @@ export default function InstitutionUploadScreen() {
               value={author}
               onChangeText={setAuthor}
               accessibilityLabel="Author name"
+              accessibilityHint="Type the author's name here"
             />
           </View>
 
@@ -85,6 +87,7 @@ export default function InstitutionUploadScreen() {
               value={isbn}
               onChangeText={setIsbn}
               accessibilityLabel="ISBN number"
+              accessibilityHint="Type the ISBN number if available"
             />
           </View>
 
@@ -100,6 +103,7 @@ export default function InstitutionUploadScreen() {
             onPress={handleUpload}
             accessibilityRole="button"
             accessibilityLabel="Upload book and start conversion"
+            accessibilityHint="Double tap to upload the book and begin accessible format conversion"
           >
             <Ionicons name="cloud-upload" size={28} color="#FFFFFF" />
             <Text style={styles.submitText}>Upload & Convert</Text>

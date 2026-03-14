@@ -33,7 +33,7 @@ export default function StudentLoginScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection" accessibilityHint="Double tap to return to role selection screen">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
       </View>
@@ -58,7 +58,7 @@ export default function StudentLoginScreen() {
               onChangeText={setInstCode}
               autoCapitalize="characters"
               accessibilityLabel="Institution code"
-              accessibilityHint="Enter the code provided by your institution"
+              accessibilityHint="Type the code provided by your institution"
             />
           </View>
 
@@ -72,7 +72,7 @@ export default function StudentLoginScreen() {
               onChangeText={setStudentId}
               autoCapitalize="characters"
               accessibilityLabel="Student ID"
-              accessibilityHint="Enter your student ID number"
+              accessibilityHint="Type your student ID number here"
             />
           </View>
 
@@ -84,6 +84,7 @@ export default function StudentLoginScreen() {
             onPress={handleLogin}
             accessibilityRole="button"
             accessibilityLabel="Sign in to start reading"
+            accessibilityHint="Double tap to sign in with your credentials"
           >
             <Text style={styles.loginButtonText}>Start Reading</Text>
           </Pressable>

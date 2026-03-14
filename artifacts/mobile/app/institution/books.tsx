@@ -80,7 +80,7 @@ export default function InstitutionBooksScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard" accessibilityHint="Double tap to return to institution dashboard">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} accessibilityRole="header">Book Catalog</Text>
@@ -89,6 +89,7 @@ export default function InstitutionBooksScreen() {
           onPress={() => router.push("/institution/upload")}
           accessibilityRole="button"
           accessibilityLabel="Upload new book"
+          accessibilityHint="Double tap to open the book upload form"
         >
           <Ionicons name="add" size={30} color="#FFFFFF" />
         </Pressable>

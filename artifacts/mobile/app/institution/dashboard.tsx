@@ -51,6 +51,7 @@ export default function InstitutionDashboardScreen() {
           onPress={() => router.replace("/")}
           accessibilityRole="button"
           accessibilityLabel="Log out"
+          accessibilityHint="Double tap to sign out and return to role selection"
         >
           <Feather name="log-out" size={24} color={Colors.error} />
         </Pressable>
@@ -90,6 +91,7 @@ export default function InstitutionDashboardScreen() {
           onPress={() => router.push("/institution/upload")}
           accessibilityRole="button"
           accessibilityLabel="Upload new book to catalog"
+          accessibilityHint="Double tap to open the book upload form"
         >
           <Ionicons name="cloud-upload" size={36} color="#FFFFFF" />
           <Text style={styles.actionText}>Upload New Book</Text>
@@ -101,6 +103,7 @@ export default function InstitutionDashboardScreen() {
           onPress={() => router.push("/institution/books")}
           accessibilityRole="button"
           accessibilityLabel="View and manage book catalog"
+          accessibilityHint="Double tap to browse all books and their conversion status"
         >
           <Ionicons name="library" size={36} color="#FFFFFF" />
           <Text style={styles.actionText}>Book Catalog</Text>
@@ -112,6 +115,7 @@ export default function InstitutionDashboardScreen() {
           onPress={() => router.push("/institution/assign")}
           accessibilityRole="button"
           accessibilityLabel="Assign books to students"
+          accessibilityHint="Double tap to manage which books are assigned to which students"
         >
           <Ionicons name="people" size={36} color="#FFFFFF" />
           <Text style={styles.actionText}>Assign to Students</Text>

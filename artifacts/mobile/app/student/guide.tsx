@@ -58,7 +58,7 @@ export default function StudentGuideScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" accessibilityHint="Double tap to return to previous screen">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} accessibilityRole="header">Voice Guide</Text>

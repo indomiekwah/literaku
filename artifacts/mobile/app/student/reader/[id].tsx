@@ -73,7 +73,7 @@ export default function StudentReaderScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to library">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to library" accessibilityHint="Double tap to return to your library">
           <Feather name="arrow-left" size={28} color={Colors.text} />
         </Pressable>
         <View style={styles.headerCenter}>
@@ -89,7 +89,7 @@ export default function StudentReaderScreen() {
           onPress={() => {}}
           accessibilityRole="button"
           accessibilityLabel="Summarize this page with AI"
-          accessibilityHint="Double tap to hear an AI-generated summary of the current page"
+          accessibilityHint="Double tap to generate and hear an AI summary of the current page"
         >
           <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
         </Pressable>
@@ -118,6 +118,7 @@ export default function StudentReaderScreen() {
             onPress={() => {}}
             accessibilityRole="button"
             accessibilityLabel="Rewind 10 seconds"
+            accessibilityHint="Double tap to go back 10 seconds in the narration"
           >
             <MaterialIcons name="replay-10" size={32} color={Colors.text} />
           </Pressable>
@@ -127,6 +128,7 @@ export default function StudentReaderScreen() {
             onPress={() => setIsPlaying(!isPlaying)}
             accessibilityRole="button"
             accessibilityLabel={isPlaying ? "Pause narration" : "Play narration"}
+            accessibilityHint={isPlaying ? "Double tap to pause the narration" : "Double tap to start reading aloud"}
           >
             <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
           </Pressable>
@@ -136,6 +138,7 @@ export default function StudentReaderScreen() {
             onPress={() => {}}
             accessibilityRole="button"
             accessibilityLabel="Forward 10 seconds"
+            accessibilityHint="Double tap to skip ahead 10 seconds in the narration"
           >
             <MaterialIcons name="forward-10" size={32} color={Colors.text} />
           </Pressable>
@@ -148,6 +151,7 @@ export default function StudentReaderScreen() {
             disabled={currentPage === 0}
             accessibilityRole="button"
             accessibilityLabel="Previous page"
+            accessibilityHint="Double tap to go to the previous page"
           >
             <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
             <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Previous</Text>
@@ -163,6 +167,7 @@ export default function StudentReaderScreen() {
             disabled={currentPage === totalPages - 1}
             accessibilityRole="button"
             accessibilityLabel="Next page"
+            accessibilityHint="Double tap to go to the next page"
           >
             <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Next</Text>
             <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
@@ -175,6 +180,7 @@ export default function StudentReaderScreen() {
             onPress={cycleSpeed}
             accessibilityRole="button"
             accessibilityLabel={`Reading speed ${speed}x. Tap to change`}
+            accessibilityHint="Double tap to cycle through available reading speeds"
           >
             <Ionicons name="speedometer-outline" size={20} color={Colors.primary} />
             <Text style={styles.speedChipText}>{speed}x</Text>
@@ -185,6 +191,7 @@ export default function StudentReaderScreen() {
             onPress={() => setShowVoicePicker(!showVoicePicker)}
             accessibilityRole="button"
             accessibilityLabel={`Narration voice: ${currentVoiceLabel}. Tap to change voice`}
+            accessibilityHint="Double tap to open the voice selector"
           >
             <Ionicons name="mic" size={20} color={Colors.studentPrimary} />
             <Text style={styles.voiceChipText} numberOfLines={1}>{currentVoiceLabel}</Text>
@@ -205,6 +212,7 @@ export default function StudentReaderScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ selected: isSelected }}
                 accessibilityLabel={`${voice.label}. ${voice.lang}. ${isSelected ? "Currently selected" : "Tap to select"}`}
+                accessibilityHint={isSelected ? "This voice is currently selected" : "Double tap to switch to this voice"}
               >
                 <Ionicons
                   name={isSelected ? "radio-button-on" : "radio-button-off"}

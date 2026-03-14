@@ -35,7 +35,8 @@ function BookCard({ book, index }: { book: CatalogBook; index: number }) {
       }}
       disabled={!isReady}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} by ${book.author}. ${isReady ? "Ready to read. Double tap to open" : "Not yet available. Conversion in progress"}`}
+      accessibilityLabel={`${book.title} by ${book.author}. ${isReady ? "Ready to read" : "Not yet available. Conversion in progress"}`}
+      accessibilityHint={isReady ? "Double tap to start reading this book" : "This book is still being converted and cannot be opened yet"}
     >
       <View style={[styles.bookCover, { backgroundColor: bgColor }]}>
         <Ionicons name="book" size={36} color={isReady ? Colors.studentPrimary : Colors.borderStrong} />
@@ -73,7 +74,7 @@ export default function StudentLibraryScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to home">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to home" accessibilityHint="Double tap to return to home screen">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} accessibilityRole="header">My Library</Text>

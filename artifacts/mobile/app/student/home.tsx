@@ -50,6 +50,7 @@ export default function StudentHomeScreen() {
           onPress={() => router.replace("/")}
           accessibilityRole="button"
           accessibilityLabel="Log out"
+          accessibilityHint="Double tap to sign out and return to role selection"
         >
           <Feather name="log-out" size={24} color={Colors.error} />
         </Pressable>
@@ -74,6 +75,7 @@ export default function StudentHomeScreen() {
               onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: lastRead.bookId } })}
               accessibilityRole="button"
               accessibilityLabel={`Continue reading ${lastRead.title}. Page ${lastRead.lastPage} of ${lastRead.totalPages}. Last read ${lastRead.timestamp}`}
+              accessibilityHint="Double tap to resume reading this book"
             >
               <View style={styles.continueIcon}>
                 <Ionicons name="book" size={32} color={Colors.studentPrimary} />
@@ -97,6 +99,7 @@ export default function StudentHomeScreen() {
           onPress={() => router.push("/student/library")}
           accessibilityRole="button"
           accessibilityLabel="Open my library. View all your assigned books"
+          accessibilityHint="Double tap to browse all your assigned books"
         >
           <Ionicons name="library" size={36} color="#FFFFFF" />
           <View style={styles.actionInfo}>
@@ -111,6 +114,7 @@ export default function StudentHomeScreen() {
           onPress={() => router.push("/student/guide")}
           accessibilityRole="button"
           accessibilityLabel="Voice command help. Learn all available voice commands"
+          accessibilityHint="Double tap to see the complete list of voice commands"
         >
           <Ionicons name="help-circle" size={36} color="#FFFFFF" />
           <View style={styles.actionInfo}>

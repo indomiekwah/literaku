@@ -33,7 +33,7 @@ export default function InstitutionLoginScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection" accessibilityHint="Double tap to return to role selection screen">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
       </View>
@@ -59,8 +59,8 @@ export default function InstitutionLoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              accessibilityLabel="Email address input"
-              accessibilityHint="Enter your institution email address"
+              accessibilityLabel="Email address"
+              accessibilityHint="Type your institution email address here"
             />
           </View>
 
@@ -86,6 +86,7 @@ export default function InstitutionLoginScreen() {
             onPress={handleLogin}
             accessibilityRole="button"
             accessibilityLabel="Sign in to institution dashboard"
+            accessibilityHint="Double tap to sign in with your credentials"
           >
             <Text style={styles.loginButtonText}>Sign In</Text>
           </Pressable>
