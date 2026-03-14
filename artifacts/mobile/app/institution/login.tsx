@@ -40,7 +40,13 @@ export default function InstitutionLoginScreen() {
       return;
     }
     AccessibilityInfo.announceForAccessibility("Signing in...");
-    router.replace("/institution/dashboard");
+    if (email.trim().includes("@")) {
+      router.replace("/institution/dashboard");
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        "Login failed. Invalid email address. Please check and try again."
+      );
+    }
   };
 
   return (

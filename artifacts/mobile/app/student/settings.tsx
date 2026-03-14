@@ -188,7 +188,7 @@ export default function StudentSettingsScreen() {
                 <Text style={styles.toggleDesc}>AI will detect if you speak Indonesian or English</Text>
               </View>
               <Pressable
-                style={[styles.toggleSwitch, autoDetectLanguage && styles.toggleSwitchActive]}
+                style={styles.toggleHitArea}
                 onPress={() => {
                   setAutoDetectLanguage(!autoDetectLanguage);
                   AccessibilityInfo.announceForAccessibility(
@@ -200,7 +200,9 @@ export default function StudentSettingsScreen() {
                 accessibilityLabel="Auto-detect voice language"
                 accessibilityHint="Double tap to toggle automatic language detection"
               >
-                <View style={[styles.toggleKnob, autoDetectLanguage && styles.toggleKnobActive]} />
+                <View style={[styles.toggleSwitch, autoDetectLanguage && styles.toggleSwitchActive]}>
+                  <View style={[styles.toggleKnob, autoDetectLanguage && styles.toggleKnobActive]} />
+                </View>
               </Pressable>
             </View>
           </View>
@@ -429,6 +431,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
     lineHeight: 22,
+  },
+  toggleHitArea: {
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    justifyContent: "center",
   },
   toggleSwitch: {
     width: 56,
