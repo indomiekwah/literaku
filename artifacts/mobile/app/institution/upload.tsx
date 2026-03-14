@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -14,8 +15,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { voiceHints } from "@/constants/data";
 
 export default function InstitutionUploadScreen() {
   const insets = useSafeAreaInsets();
@@ -27,92 +29,128 @@ export default function InstitutionUploadScreen() {
   const [isbn, setIsbn] = useState("");
 
   const handleUpload = () => {
-    router.back();
+    if (!title.trim() || !author.trim()) {
+      AccessibilityInfo.announceForAccessibility(
+        "Please fill in both book title and author name"
+      );
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility("Uploading book. Please wait...");
+    setTimeout(() => {
+      AccessibilityInfo.announceForAccessibility("Upload complete. Book added to catalog.");
+      router.back();
+    }, 500);
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" accessibilityHint="Double tap to return to previous screen">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">Upload Book</Text>
-        <View style={{ width: 56 }} />
-      </View>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Pressable style={styles.uploadArea} onPress={() => {}} accessibilityRole="button" accessibilityLabel="Tap to select book file for upload" accessibilityHint="Double tap to open file picker and choose a book file">
-          <View style={styles.uploadIconCircle}>
-            <Ionicons name="cloud-upload" size={48} color={Colors.institutionPrimary} />
-          </View>
-          <Text style={styles.uploadTitle}>Tap to upload book file</Text>
-          <Text style={styles.uploadSubtext}>Supports PDF, EPUB, DOCX</Text>
-        </Pressable>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Book Title</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter book title"
-              placeholderTextColor={Colors.borderStrong}
-              value={title}
-              onChangeText={setTitle}
-              accessibilityLabel="Book title"
-              accessibilityHint="Type the title of the book here"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Author</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter author name"
-              placeholderTextColor={Colors.borderStrong}
-              value={author}
-              onChangeText={setAuthor}
-              accessibilityLabel="Author name"
-              accessibilityHint="Type the author's name here"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>ISBN (optional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="978-xxx-xxxx-xx-x"
-              placeholderTextColor={Colors.borderStrong}
-              value={isbn}
-              onChangeText={setIsbn}
-              accessibilityLabel="ISBN number"
-              accessibilityHint="Type the ISBN number if available"
-            />
-          </View>
-
-          <View style={styles.pipelineInfo}>
-            <Ionicons name="information-circle" size={24} color={Colors.primaryLight} />
-            <Text style={styles.pipelineText}>
-              After upload, the book will be automatically converted to accessible format for voice-first reading.
-            </Text>
-          </View>
-
+        <View style={styles.header}>
           <Pressable
-            style={({ pressed }) => [styles.submitButton, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-            onPress={handleUpload}
+            style={styles.backButton}
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Upload book and start conversion"
-            accessibilityHint="Double tap to upload the book and begin accessible format conversion"
+            accessibilityLabel="Go back"
+            accessibilityHint="Double tap to return to previous screen"
           >
-            <Ionicons name="cloud-upload" size={28} color="#FFFFFF" />
-            <Text style={styles.submitText}>Upload & Convert</Text>
+            <Feather name="arrow-left" size={32} color={Colors.text} />
           </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">Upload Book</Text>
+          <View style={{ width: 56 }} />
         </View>
-      </ScrollView>
 
-      <VoiceCommandBar hints={voiceCommands.institutionUpload} showHelpButton={false} />
-    </View>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <Pressable
+            style={styles.uploadArea}
+            onPress={() => {}}
+            accessibilityRole="button"
+            accessibilityLabel="Tap to select book file for upload"
+            accessibilityHint="Double tap to open file picker and choose a book file"
+          >
+            <View style={styles.uploadIconCircle}>
+              <Ionicons name="cloud-upload" size={48} color={Colors.institutionPrimary} />
+            </View>
+            <Text style={styles.uploadTitle}>Tap to upload book file</Text>
+            <Text style={styles.uploadSubtext}>Supports PDF, EPUB, DOCX</Text>
+          </Pressable>
+
+          <View style={styles.form}>
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Book title input field"
+            >
+              <Text style={styles.inputLabel}>Book Title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter book title"
+                placeholderTextColor={Colors.borderStrong}
+                value={title}
+                onChangeText={setTitle}
+                accessibilityLabel="Book title"
+                accessibilityHint="Type the title of the book here"
+              />
+            </View>
+
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Author name input field"
+            >
+              <Text style={styles.inputLabel}>Author</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter author name"
+                placeholderTextColor={Colors.borderStrong}
+                value={author}
+                onChangeText={setAuthor}
+                accessibilityLabel="Author name"
+                accessibilityHint="Type the author's name here"
+              />
+            </View>
+
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="ISBN input field, optional"
+            >
+              <Text style={styles.inputLabel}>ISBN (optional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="978-xxx-xxxx-xx-x"
+                placeholderTextColor={Colors.borderStrong}
+                value={isbn}
+                onChangeText={setIsbn}
+                accessibilityLabel="ISBN number"
+                accessibilityHint="Type the ISBN number if available"
+              />
+            </View>
+
+            <View style={styles.pipelineInfo}>
+              <Ionicons name="information-circle" size={24} color={Colors.primaryLight} />
+              <Text style={styles.pipelineText}>
+                After upload, the book will be automatically converted to accessible format for voice-first reading.
+              </Text>
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [styles.submitButton, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+              onPress={handleUpload}
+              accessibilityRole="button"
+              accessibilityLabel="Upload book and start conversion"
+              accessibilityHint="Double tap to upload the book and begin accessible format conversion"
+            >
+              <Ionicons name="cloud-upload" size={28} color="#FFFFFF" />
+              <Text style={styles.submitText}>Upload & Convert</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+
+        <SwipeHintBar hints={voiceHints.institutionUpload} />
+      </View>
+    </SwipeVoiceWrapper>
   );
 }
 

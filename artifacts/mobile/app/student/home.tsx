@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
@@ -14,8 +14,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleHistory, voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { sampleHistory, voiceHints } from "@/constants/data";
 
 export default function StudentHomeScreen() {
   const insets = useSafeAreaInsets();
@@ -25,111 +26,130 @@ export default function StudentHomeScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Student home. Say Read followed by a book title, or tap to continue reading."
+      "Student home. Swipe left for voice commands, or tap a button below."
     );
   }, []);
 
   const lastRead = sampleHistory.length > 0 ? sampleHistory[0] : null;
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="book" size={22} color={Colors.studentPrimary} />
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.logoCircle}>
+              <Ionicons name="book" size={22} color={Colors.studentPrimary} />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Literaku</Text>
+              <Text style={styles.headerSubtitle}>Hi, Andi</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.headerTitle}>Literaku</Text>
-            <Text style={styles.headerSubtitle}>Hi, Andi</Text>
-          </View>
+          <Pressable
+            style={styles.settingsButton}
+            onPress={() => router.push("/student/settings")}
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
+            accessibilityHint="Double tap to open settings for voice, language, and display preferences"
+          >
+            <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
+          </Pressable>
         </View>
-        <Pressable
-          style={styles.logoutButton}
-          onPress={() => router.replace("/")}
-          accessibilityRole="button"
-          accessibilityLabel="Log out"
-          accessibilityHint="Double tap to sign out and return to role selection"
-        >
-          <Feather name="log-out" size={24} color={Colors.error} />
-        </Pressable>
+
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.voicePromptSection}>
+            <View style={styles.voicePromptIcon}>
+              <Ionicons name="chevron-back" size={24} color={Colors.studentPrimary} />
+              <Ionicons name="mic" size={36} color={Colors.studentPrimary} />
+            </View>
+            <Text style={styles.voicePromptTitle}>What would you like to read?</Text>
+            <Text style={styles.voicePromptSubtext}>
+              Swipe left and speak naturally, or tap below
+            </Text>
+          </View>
+
+          {lastRead && (
+            <View>
+              <Text style={styles.sectionTitle} accessibilityRole="header">Continue Reading</Text>
+              <Pressable
+                style={({ pressed }) => [styles.continueCard, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+                onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: lastRead.bookId } })}
+                accessibilityRole="button"
+                accessibilityLabel={`Continue reading ${lastRead.title}. Page ${lastRead.lastPage} of ${lastRead.totalPages}. Last read ${lastRead.timestamp}`}
+                accessibilityHint="Double tap to resume reading this book"
+              >
+                <View style={styles.continueIcon}>
+                  <Ionicons name="book" size={32} color={Colors.studentPrimary} />
+                </View>
+                <View style={styles.continueInfo}>
+                  <Text style={styles.continueTitle} numberOfLines={1}>{lastRead.title}</Text>
+                  <Text style={styles.continueProgress}>Page {lastRead.lastPage} of {lastRead.totalPages}</Text>
+                  <Text style={styles.continueTime}>{lastRead.timestamp}</Text>
+                </View>
+                <View style={styles.playCircle}>
+                  <Ionicons name="play" size={28} color="#FFFFFF" />
+                </View>
+              </Pressable>
+            </View>
+          )}
+
+          <Text style={styles.sectionTitle} accessibilityRole="header">Quick Actions</Text>
+
+          <Pressable
+            style={({ pressed }) => [styles.actionButton, styles.libraryAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+            onPress={() => router.push("/student/library")}
+            accessibilityRole="button"
+            accessibilityLabel="Open my library. View all your assigned books"
+            accessibilityHint="Double tap to browse all your assigned books"
+          >
+            <Ionicons name="library" size={36} color="#FFFFFF" />
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>My Library</Text>
+              <Text style={styles.actionSubtitle}>View all your books</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.actionButton, styles.guideAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+            onPress={() => router.push("/student/guide")}
+            accessibilityRole="button"
+            accessibilityLabel="Voice guide. Learn how to use voice commands with AI"
+            accessibilityHint="Double tap to see how to use voice commands"
+          >
+            <Ionicons name="mic" size={36} color="#FFFFFF" />
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Voice Guide</Text>
+              <Text style={styles.actionSubtitle}>AI-powered voice help</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.actionButton, styles.settingsAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
+            onPress={() => router.push("/student/settings")}
+            accessibilityRole="button"
+            accessibilityLabel="Settings. Adjust voice, speed, language, and display preferences"
+            accessibilityHint="Double tap to open settings"
+          >
+            <Ionicons name="settings" size={36} color="#FFFFFF" />
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Settings</Text>
+              <Text style={styles.actionSubtitle}>Voice, speed & display</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
+          </Pressable>
+        </ScrollView>
+
+        <SwipeHintBar
+          hints={voiceHints.studentHome}
+          showHelpButton
+          onHelpPress={() => router.push("/student/guide")}
+        />
       </View>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.voicePromptSection} accessibilityRole="header">
-          <View style={styles.voicePromptIcon}>
-            <Ionicons name="mic" size={44} color={Colors.studentPrimary} />
-          </View>
-          <Text style={styles.voicePromptTitle}>What would you like to read?</Text>
-          <Text style={styles.voicePromptSubtext}>
-            Say "Read [book title]" or tap a button below
-          </Text>
-        </View>
-
-        {lastRead && (
-          <View>
-            <Text style={styles.sectionTitle} accessibilityRole="header">Continue Reading</Text>
-            <Pressable
-              style={({ pressed }) => [styles.continueCard, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-              onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: lastRead.bookId } })}
-              accessibilityRole="button"
-              accessibilityLabel={`Continue reading ${lastRead.title}. Page ${lastRead.lastPage} of ${lastRead.totalPages}. Last read ${lastRead.timestamp}`}
-              accessibilityHint="Double tap to resume reading this book"
-            >
-              <View style={styles.continueIcon}>
-                <Ionicons name="book" size={32} color={Colors.studentPrimary} />
-              </View>
-              <View style={styles.continueInfo}>
-                <Text style={styles.continueTitle} numberOfLines={1}>{lastRead.title}</Text>
-                <Text style={styles.continueProgress}>Page {lastRead.lastPage} of {lastRead.totalPages}</Text>
-                <Text style={styles.continueTime}>{lastRead.timestamp}</Text>
-              </View>
-              <View style={styles.playCircle}>
-                <Ionicons name="play" size={28} color="#FFFFFF" />
-              </View>
-            </Pressable>
-          </View>
-        )}
-
-        <Text style={styles.sectionTitle} accessibilityRole="header">Quick Actions</Text>
-
-        <Pressable
-          style={({ pressed }) => [styles.actionButton, styles.libraryAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-          onPress={() => router.push("/student/library")}
-          accessibilityRole="button"
-          accessibilityLabel="Open my library. View all your assigned books"
-          accessibilityHint="Double tap to browse all your assigned books"
-        >
-          <Ionicons name="library" size={36} color="#FFFFFF" />
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionTitle}>My Library</Text>
-            <Text style={styles.actionSubtitle}>View all your books</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [styles.actionButton, styles.guideAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-          onPress={() => router.push("/student/guide")}
-          accessibilityRole="button"
-          accessibilityLabel="Voice command help. Learn all available voice commands"
-          accessibilityHint="Double tap to see the complete list of voice commands"
-        >
-          <Ionicons name="help-circle" size={36} color="#FFFFFF" />
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionTitle}>Voice Guide</Text>
-            <Text style={styles.actionSubtitle}>Learn voice commands</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
-        </Pressable>
-      </ScrollView>
-
-      <VoiceCommandBar
-        hints={voiceCommands.studentHome}
-        onHelpPress={() => router.push("/student/guide")}
-      />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 
@@ -171,11 +191,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
   },
-  logoutButton: {
+  settingsButton: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.errorLight,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -196,6 +218,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.studentPrimary,
   },
   voicePromptIcon: {
+    flexDirection: "row",
     width: 80,
     height: 80,
     borderRadius: 40,
@@ -204,6 +227,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: Colors.studentPrimary,
+    gap: -6,
   },
   voicePromptTitle: {
     fontFamily: "Inter_700Bold",
@@ -285,6 +309,9 @@ const styles = StyleSheet.create({
   },
   guideAction: {
     backgroundColor: Colors.primaryLight,
+  },
+  settingsAction: {
+    backgroundColor: "#5C6BC0",
   },
   actionInfo: {
     flex: 1,

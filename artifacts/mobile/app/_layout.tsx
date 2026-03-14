@@ -14,6 +14,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ReadingPreferencesProvider } from "@/contexts/ReadingPreferences";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,6 +34,7 @@ function RootLayoutNav() {
       <Stack.Screen name="student/library" />
       <Stack.Screen name="student/reader/[id]" />
       <Stack.Screen name="student/guide" />
+      <Stack.Screen name="student/settings" />
     </Stack>
   );
 }
@@ -57,11 +59,13 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <RootLayoutNav />
-            </KeyboardProvider>
-          </GestureHandlerRootView>
+          <ReadingPreferencesProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <RootLayoutNav />
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </ReadingPreferencesProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

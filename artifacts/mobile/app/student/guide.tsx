@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -13,33 +14,40 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { voiceHints } from "@/constants/data";
 
-interface CommandSectionProps {
+interface ExampleGroupProps {
   title: string;
-  commands: { command: string; description: string }[];
+  icon: keyof typeof Ionicons.glyphMap;
+  examples: { phrase: string; result: string }[];
 }
 
-function CommandSection({ title, commands }: CommandSectionProps) {
+function ExampleGroup({ title, icon, examples }: ExampleGroupProps) {
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle} accessibilityRole="header">{title}</Text>
-      <View style={styles.commandList}>
-        {commands.map((item, index) => (
+    <View style={styles.exampleSection}>
+      <View style={styles.exampleHeader}>
+        <Ionicons name={icon} size={24} color={Colors.studentPrimary} />
+        <Text style={styles.exampleTitle} accessibilityRole="header">{title}</Text>
+      </View>
+      <View style={styles.exampleList}>
+        {examples.map((item, index) => (
           <View
             key={index}
-            style={styles.commandCard}
+            style={styles.exampleCard}
+            accessible
             accessibilityRole="text"
-            accessibilityLabel={`Command: ${item.command}. ${item.description}`}
+            accessibilityLabel={`Example: say "${item.phrase}" to ${item.result}`}
           >
-            <View style={styles.commandNumberCircle}>
-              <Text style={styles.commandNumber}>{index + 1}</Text>
+            <View style={styles.speechBubble}>
+              <Ionicons name="chatbubble-ellipses" size={18} color={Colors.studentPrimary} />
+              <Text style={styles.phraseText}>"{item.phrase}"</Text>
             </View>
-            <Text style={styles.commandText}>
-              <Text style={styles.commandBold}>"{item.command}"</Text>{" "}
-              {item.description}
-            </Text>
+            <View style={styles.resultRow}>
+              <Ionicons name="arrow-forward" size={16} color={Colors.textSecondary} />
+              <Text style={styles.resultText}>{item.result}</Text>
+            </View>
           </View>
         ))}
       </View>
@@ -53,36 +61,112 @@ export default function StudentGuideScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Voice guide. Learn how to use AI-powered voice commands. Swipe left anywhere to start speaking."
+    );
+  }, []);
+
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" accessibilityHint="Double tap to return to previous screen">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">Voice Guide</Text>
-        <View style={{ width: 56 }} />
-      </View>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.illustrationContainer}>
-          <View style={styles.illustrationCircle}>
-            <Ionicons name="mic" size={56} color={Colors.studentPrimary} />
-          </View>
-          <Text style={styles.illustrationTitle}>Voice Commands</Text>
-          <Text style={styles.illustrationText}>
-            Literaku is designed for voice control. Use these commands to navigate and read.
-          </Text>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Double tap to return to previous screen"
+          >
+            <Feather name="arrow-left" size={32} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">Voice Guide</Text>
+          <View style={{ width: 56 }} />
         </View>
 
-        <CommandSection title="Home Screen" commands={voiceCommands.studentHome} />
-        <CommandSection title="Library" commands={voiceCommands.studentLibrary} />
-        <CommandSection title="While Reading" commands={voiceCommands.reader} />
-      </ScrollView>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.heroSection}>
+            <View style={styles.heroCircle}>
+              <Ionicons name="chevron-back" size={28} color={Colors.studentPrimary} />
+              <Ionicons name="mic" size={48} color={Colors.studentPrimary} />
+            </View>
+            <Text style={styles.heroTitle}>Swipe kiri untuk{"\n"}mulai bicara</Text>
+            <Text style={styles.heroSubtext}>
+              Swipe ke kiri dari layar mana saja untuk mengaktifkan perintah suara
+            </Text>
+          </View>
 
-      <VoiceCommandBar hints={voiceCommands.studentGuide} showHelpButton={false} />
-    </View>
+          <View style={styles.aiSection}>
+            <View style={styles.aiHeader}>
+              <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
+              <Text style={styles.aiTitle} accessibilityRole="header">Bicara saja secara alami</Text>
+            </View>
+            <Text style={styles.aiText}>
+              Literaku menggunakan Azure AI untuk memahami maksud Anda. Tidak perlu menghafal perintah khusus — cukup bicara seperti biasa, dalam Bahasa Indonesia atau English.
+            </Text>
+            <View style={styles.aiExample}>
+              <Text style={styles.aiExampleLabel}>Contoh:</Text>
+              <Text style={styles.aiExampleText}>"Tolong bacakan halaman selanjutnya"</Text>
+              <Text style={styles.aiExampleText}>"Read the next page please"</Text>
+              <Text style={styles.aiExampleText}>"Ringkasin buku ini dong"</Text>
+            </View>
+          </View>
+
+          <ExampleGroup
+            title="Navigasi"
+            icon="compass"
+            examples={[
+              { phrase: "Buka perpustakaan saya", result: "Opens your library" },
+              { phrase: "Kembali ke beranda", result: "Goes back to home screen" },
+              { phrase: "Buka pengaturan", result: "Opens settings page" },
+            ]}
+          />
+
+          <ExampleGroup
+            title="Membaca"
+            icon="book"
+            examples={[
+              { phrase: "Bacakan buku The Art of Speaking", result: "Opens and starts reading the book" },
+              { phrase: "Halaman selanjutnya", result: "Goes to next page" },
+              { phrase: "Mundur 10 detik", result: "Rewinds narration" },
+              { phrase: "Berhenti dulu", result: "Pauses narration" },
+              { phrase: "Lanjutkan", result: "Resumes narration" },
+            ]}
+          />
+
+          <ExampleGroup
+            title="Pencarian & Lainnya"
+            icon="search"
+            examples={[
+              { phrase: "Tolong ringkasin halaman ini", result: "AI generates a summary" },
+              { phrase: "Lanjutkan membaca", result: "Continues your last book" },
+            ]}
+          />
+
+          <View style={styles.langSection}>
+            <View style={styles.langHeader}>
+              <Ionicons name="language" size={24} color={Colors.primaryLight} />
+              <Text style={styles.langTitle} accessibilityRole="header">Deteksi Bahasa Otomatis</Text>
+            </View>
+            <Text style={styles.langText}>
+              Azure AI secara otomatis mendeteksi apakah Anda berbicara dalam Bahasa Indonesia atau English. Anda bisa beralih bahasa kapan saja — cukup bicara saja.
+            </Text>
+          </View>
+
+          <View style={styles.azureBadge}>
+            <Ionicons name="cloud" size={24} color={Colors.primaryLight} />
+            <View>
+              <Text style={styles.azureBadgeTitle}>Powered by Azure AI</Text>
+              <Text style={styles.azureBadgeText}>Speech-to-Text & Natural Language Understanding</Text>
+            </View>
+          </View>
+        </ScrollView>
+
+        <SwipeHintBar hints={voiceHints.studentGuide} />
+      </View>
+    </SwipeVoiceWrapper>
   );
 }
 
@@ -120,14 +204,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 16,
-    gap: 24,
+    gap: 20,
   },
-  illustrationContainer: {
+  heroSection: {
     alignItems: "center",
     gap: 14,
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
-  illustrationCircle: {
+  heroCircle: {
+    flexDirection: "row",
     width: 110,
     height: 110,
     borderRadius: 55,
@@ -136,14 +221,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: Colors.studentPrimary,
+    gap: -8,
   },
-  illustrationTitle: {
+  heroTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 28,
+    fontSize: 26,
     color: Colors.studentPrimary,
     textAlign: "center",
+    lineHeight: 34,
   },
-  illustrationText: {
+  heroSubtext: {
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
@@ -151,51 +238,135 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 8,
   },
-  section: {
+  aiSection: {
+    backgroundColor: Colors.voiceBarBg,
+    borderRadius: 18,
+    padding: 20,
     gap: 12,
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
   },
-  sectionTitle: {
+  aiHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  aiTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: Colors.text,
   },
-  commandList: {
-    gap: 10,
-  },
-  commandCard: {
-    flexDirection: "row",
-    gap: 14,
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    alignItems: "flex-start",
-    minHeight: 64,
-  },
-  commandNumberCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.studentPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 2,
-  },
-  commandNumber: {
-    fontFamily: "Inter_700Bold",
+  aiText: {
+    fontFamily: "Inter_500Medium",
     fontSize: 18,
-    color: "#FFFFFF",
+    color: Colors.textSecondary,
+    lineHeight: 26,
   },
-  commandText: {
-    fontFamily: "Inter_400Regular",
+  aiExample: {
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 12,
+    padding: 14,
+    gap: 6,
+  },
+  aiExampleLabel: {
+    fontFamily: "Inter_700Bold",
     fontSize: 18,
     color: Colors.text,
-    lineHeight: 26,
+  },
+  aiExampleText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.studentPrimary,
+    fontStyle: "italic",
+  },
+  exampleSection: {
+    gap: 10,
+  },
+  exampleHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  exampleTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: Colors.text,
+  },
+  exampleList: {
+    gap: 8,
+  },
+  exampleCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  speechBubble: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  phraseText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.studentPrimary,
     flex: 1,
   },
-  commandBold: {
+  resultRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingLeft: 26,
+  },
+  resultText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
+  },
+  langSection: {
+    backgroundColor: Colors.successLight,
+    borderRadius: 16,
+    padding: 18,
+    gap: 10,
+    borderWidth: 2,
+    borderColor: Colors.studentPrimary,
+  },
+  langHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  langTitle: {
     fontFamily: "Inter_700Bold",
-    color: Colors.studentPrimary,
+    fontSize: 20,
+    color: Colors.text,
+  },
+  langText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
+    lineHeight: 26,
+  },
+  azureBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: Colors.voiceBarBg,
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+  },
+  azureBadgeTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.primaryLight,
+  },
+  azureBadgeText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
   },
 });

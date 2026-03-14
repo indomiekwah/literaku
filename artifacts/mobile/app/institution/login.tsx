@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   StyleSheet,
@@ -13,8 +14,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { voiceHints } from "@/constants/data";
 
 export default function InstitutionLoginScreen() {
   const insets = useSafeAreaInsets();
@@ -24,77 +26,106 @@ export default function InstitutionLoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Institution login. Enter your email and password to continue."
+    );
+  }, []);
+
   const handleLogin = () => {
+    if (!email.trim() || !password.trim()) {
+      AccessibilityInfo.announceForAccessibility(
+        "Please fill in both email and password"
+      );
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility("Signing in...");
     router.replace("/institution/dashboard");
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection" accessibilityHint="Double tap to return to role selection screen">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.iconSection}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="business" size={48} color={Colors.institutionPrimary} />
-          </View>
-          <Text style={styles.title} accessibilityRole="header">Institution Login</Text>
-          <Text style={styles.subtitle}>Sign in as administrator</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel} accessibilityRole="text">Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="admin@institution.edu"
-              placeholderTextColor={Colors.borderStrong}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              accessibilityLabel="Email address"
-              accessibilityHint="Type your institution email address here"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel} accessibilityRole="text">Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter password"
-              placeholderTextColor={Colors.borderStrong}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              accessibilityLabel="Password input"
-              accessibilityHint="Enter your password"
-            />
-          </View>
-
+        <View style={styles.header}>
           <Pressable
-            style={({ pressed }) => [
-              styles.loginButton,
-              { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-            ]}
-            onPress={handleLogin}
+            style={styles.backButton}
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Sign in to institution dashboard"
-            accessibilityHint="Double tap to sign in with your credentials"
+            accessibilityLabel="Go back to role selection"
+            accessibilityHint="Double tap to return to role selection screen"
           >
-            <Text style={styles.loginButtonText}>Sign In</Text>
+            <Feather name="arrow-left" size={32} color={Colors.text} />
           </Pressable>
         </View>
-      </View>
 
-      <VoiceCommandBar hints={voiceCommands.institutionLogin} showHelpButton={false} />
-    </View>
+        <View style={styles.content}>
+          <View style={styles.iconSection}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="business" size={48} color={Colors.institutionPrimary} />
+            </View>
+            <Text style={styles.title} accessibilityRole="header">Institution Login</Text>
+            <Text style={styles.subtitle}>Sign in as administrator</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Email address input field"
+            >
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="admin@institution.edu"
+                placeholderTextColor={Colors.borderStrong}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                accessibilityLabel="Email address"
+                accessibilityHint="Type your institution email address here"
+              />
+            </View>
+
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Password input field"
+            >
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter password"
+                placeholderTextColor={Colors.borderStrong}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                accessibilityLabel="Password"
+                accessibilityHint="Enter your password"
+              />
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.loginButton,
+                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+              ]}
+              onPress={handleLogin}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in to institution dashboard"
+              accessibilityHint="Double tap to sign in with your credentials"
+            >
+              <Text style={styles.loginButtonText}>Sign In</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <SwipeHintBar hints={voiceHints.institutionLogin} />
+      </View>
+    </SwipeVoiceWrapper>
   );
 }
 

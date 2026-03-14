@@ -57,7 +57,7 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 
 **Architecture**: Two user types with separate flows:
 1. **Institution administrators** — upload book catalogs, manage accessible format conversion pipeline, assign books to students
-2. **Students** — voice-activated reading with AI narration controls, voice commands like "Read [title]", "Summarize", "Pause"
+2. **Students** — voice-activated reading with AI narration controls, swipe-left voice activation, natural language commands (Azure AI)
 
 **Design principles**:
 - Voice-first, not sighted-first
@@ -65,10 +65,32 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - 18-28px bold text throughout
 - High contrast colors (WCAG AAA)
 - Screen reader accessible with `accessibilityRole`, `accessibilityLabel`, `accessibilityHint` on all interactive elements
-- VoiceCommandBar on every screen with contextual hints
-- AccessibilityInfo.announceForAccessibility on key screens (role select, student home, institution dashboard, reader)
+- SwipeHintBar on every screen with contextual natural language examples (tap to cycle, no auto-rotation)
+- SwipeVoiceWrapper on every screen for swipe-left → voice overlay activation
+- AccessibilityInfo.announceForAccessibility on all screens (mount, errors, form feedback, toggle results)
 
-**Screens**:
+**Voice System (Azure AI)**:
+- **Activation**: Swipe left anywhere on screen → `SwipeVoiceOverlay` (full-screen pulsing mic, dark overlay)
+- **Dismiss**: Swipe right or tap anywhere to dismiss overlay
+- **SwipeHintBar**: Persistent bottom bar on every screen showing "Swipe kiri untuk perintah suara" + one natural language example. Tap cycles through examples. No auto-rotating live region.
+- **SwipeVoiceWrapper**: Wraps every screen, uses `react-native-gesture-handler` Gesture.Fling (direction 2=left, 1=right)
+- **Natural language**: Users speak freely in Indonesian or English; Azure AI detects language and intent
+- **Voice hints**: `voiceHints` in data.ts — `Record<string, NaturalVoiceHint[]>` with `{ example: string; intent: string }` per screen context
+
+**Settings (student/settings.tsx)**:
+- Voice selector (4 voices: Sari/Budi id-ID, Emma/James en-US)
+- Speed (0.5x–2x, tap to cycle)
+- Language (Indonesian/English toggle + auto-detect switch)
+- Text size (16-28pt, +/- controls with preview)
+- Logout
+- All managed via `ReadingPreferencesContext`
+
+**ReadingPreferencesContext** (`contexts/ReadingPreferences.tsx`):
+- Exports: `selectedVoice`, `speed` (SpeedValue), `textSize` (number 16-28), `language` ("id"|"en"), `autoDetectLanguage`
+- Wrapped at root in `_layout.tsx`
+- Used by reader (speed, textSize) and settings screen
+
+**Screens (12 total)**:
 - `index.tsx` — Role selection ("Who are you?" — Institution or Student)
 - `institution/login.tsx` — Admin email/password login
 - `institution/dashboard.tsx` — Stats (books, converted, processing, students) + quick actions
@@ -76,12 +98,22 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - `institution/upload.tsx` — Upload form with conversion pipeline info
 - `institution/assign.tsx` — Expandable student rows with book assignment toggles
 - `student/login.tsx` — Institution code + student ID login
-- `student/home.tsx` — Voice prompt "What would you like to read?" + continue reading card
+- `student/home.tsx` — Voice prompt "What would you like to read?" + continue reading card + settings gear (replaces logout)
 - `student/library.tsx` — Assigned books with play buttons
-- `student/reader/[id].tsx` — Redesigned reader with: progress bar, rewind/forward 10s buttons flanking play/pause, separate page navigation row (Previous/Next), speed and voice selector chips, AI summarize button in header
-- `student/guide.tsx` — Voice commands grouped by context (home, library, reader)
+- `student/reader/[id].tsx` — Reader with progress bar, rewind/forward 10s, play/pause, page nav, reads speed/textSize from context
+- `student/guide.tsx` — AI-powered voice guide with swipe-left illustration, natural language examples grouped by intent, Azure AI branding, bilingual content
+- `student/settings.tsx` — Consolidated settings (voice, speed, language, display, account)
 
-**Reader voice commands**: Play, Pause, Resume, Next page, Previous page, Rewind (10s back), Forward (10s ahead), Summarize, Change voice, Go back
+**Blind UX Audit (completed)**:
+- All 12 screens have `AccessibilityInfo.announceForAccessibility` on mount
+- Error announcements on form submission (login, upload screens)
+- Stat cards wrapped as single focusable units with `accessible` + `accessibilityRole="text"`
+- Input groups use `accessible` prop for logical grouping
+- Assignment toggles announce result ("assigned to" / "unassigned from")
+- All `accessibilityHint` values use "Double tap to..." phrasing
+- Progress bar uses `accessibilityRole="progressbar"` with `accessibilityValue`
+- Font sizes: minimum 18px throughout, primary headers 22-30px
+- Touch targets: minimum 48px (header buttons), 56px+ (secondary), 72px+ (primary actions)
 
 **Theme**:
 - Institution: Blue (#0D47A1)
@@ -89,26 +121,17 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - High contrast text (#0A0A0A on white)
 
 **Key files**:
-- `constants/data.ts` — Types (CatalogBook, Student, Institution, ConversionStatus) + sample data + voice commands per context
+- `constants/data.ts` — Types (CatalogBook, Student, Institution, NaturalVoiceHint, ConversionStatus) + sample data + voiceHints per screen
 - `constants/colors.ts` — High-contrast accessible color palette
-- `components/VoiceCommandBar.tsx` — Shared voice command bar with mic button, listening status, contextual hints, help button
-- `app/_layout.tsx` — Stack navigation (headerShown: false) with all 11 routes
+- `contexts/ReadingPreferences.tsx` — Voice, speed, textSize, language context + VOICE_OPTIONS + SPEED_OPTIONS
+- `components/SwipeVoiceOverlay.tsx` — Full-screen voice listening overlay (pulsing mic animation)
+- `components/SwipeHintBar.tsx` — Bottom hint bar with tap-to-cycle examples
+- `components/SwipeVoiceWrapper.tsx` — Gesture wrapper for swipe-left/right voice activation
+- `app/_layout.tsx` — Stack navigation (headerShown: false) with all 12 routes, ReadingPreferencesProvider
 
 **Navigation**: Stack-based, headerShown: false
 **Data**: Sample data in constants/data.ts (no backend needed)
 **Logged-in student**: Hardcoded as student "s1" (Andi Pratama) for library filtering
-
-**Voice-First Accessibility Audit (completed)**:
-- All 11 screens audited for voice-first compliance
-- Every interactive `Pressable` and `TextInput` has `accessibilityRole`, `accessibilityLabel`, and `accessibilityHint`
-- All `accessibilityHint` values use "Double tap to..." phrasing for screen reader consistency
-- Key screens (role select, student home, institution dashboard, reader) use `AccessibilityInfo.announceForAccessibility` on mount
-- Progress bar in reader uses `accessibilityRole="progressbar"` with `accessibilityValue` for min/max/now
-- VoiceCommandBar rotates through all hints every 4 seconds (not just first hint) with `accessibilityLiveRegion="polite"`
-- Font sizes: minimum 18px throughout, primary headers 22-30px
-- Touch targets: minimum 48px (header buttons), 56px+ (secondary), 72px+ (primary actions)
-- Voice commands match button actions: "Rewind 10 seconds" and "Forward 10 seconds" in data.ts match reader button labels
-- No competitor references remain in any user-facing text, code types, or documentation
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 

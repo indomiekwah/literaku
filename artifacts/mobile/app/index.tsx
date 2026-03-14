@@ -13,8 +13,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { voiceHints } from "@/constants/data";
 
 export default function RoleSelectScreen() {
   const insets = useSafeAreaInsets();
@@ -24,83 +25,84 @@ export default function RoleSelectScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Welcome to Literaku. Say I am a student or I am an administrator, or tap a button below."
+      "Welcome to Literaku. Swipe left to speak, or tap a button below to choose your role."
     );
   }, []);
 
   return (
-    <View
-      style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
-      accessibilityRole="summary"
-      accessibilityLabel="Literaku. Voice-first accessible reading platform. Choose your role to continue."
-    >
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View
+        style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
+        accessibilityLabel="Literaku. Voice-first accessible reading platform. Choose your role to continue."
+      >
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <View style={styles.logoRow}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="book" size={36} color={Colors.primary} />
+        <View style={styles.header}>
+          <View style={styles.logoRow}>
+            <View style={styles.logoCircle}>
+              <Ionicons name="book" size={36} color={Colors.primary} />
+            </View>
+            <Text style={styles.logoText}>Literaku</Text>
           </View>
-          <Text style={styles.logoText}>Literaku</Text>
+          <Text style={styles.tagline}>Accessible Reading for Everyone</Text>
         </View>
-        <Text style={styles.tagline}>Accessible Reading for Everyone</Text>
+
+        <View style={styles.promptSection}>
+          <Text style={styles.promptText} accessibilityRole="header">
+            Who are you?
+          </Text>
+          <Text style={styles.promptSubtext}>
+            Swipe left and say your role, or tap below
+          </Text>
+        </View>
+
+        <View style={styles.buttonSection}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.roleButton,
+              styles.institutionButton,
+              { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+            ]}
+            onPress={() => router.push("/institution/login")}
+            accessibilityRole="button"
+            accessibilityLabel="I am an Institution Administrator"
+            accessibilityHint="Double tap to open institution administrator login"
+          >
+            <View style={styles.roleIconCircle}>
+              <Ionicons name="business" size={40} color={Colors.institutionPrimary} />
+            </View>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleTitle}>Institution</Text>
+              <Text style={styles.roleSubtitle}>Administrator</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={32} color="#FFFFFF" />
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.roleButton,
+              styles.studentButton,
+              { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+            ]}
+            onPress={() => router.push("/student/login")}
+            accessibilityRole="button"
+            accessibilityLabel="I am a Student"
+            accessibilityHint="Double tap to open student login"
+          >
+            <View style={styles.roleIconCircle}>
+              <Ionicons name="person" size={40} color={Colors.studentPrimary} />
+            </View>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleTitle}>Student</Text>
+              <Text style={styles.roleSubtitle}>Start Reading</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={32} color="#FFFFFF" />
+          </Pressable>
+        </View>
+
+        <SwipeHintBar hints={voiceHints.roleSelect} />
       </View>
-
-      <View style={styles.promptSection}>
-        <Text style={styles.promptText} accessibilityRole="header">
-          Who are you?
-        </Text>
-        <Text style={styles.promptSubtext}>
-          Say "I am a student" or "I am an administrator", or tap below.
-        </Text>
-      </View>
-
-      <View style={styles.buttonSection}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.roleButton,
-            styles.institutionButton,
-            { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-          ]}
-          onPress={() => router.push("/institution/login")}
-          accessibilityRole="button"
-          accessibilityLabel="I am an Institution Administrator"
-          accessibilityHint="Double tap to open institution administrator login"
-        >
-          <View style={styles.roleIconCircle}>
-            <Ionicons name="business" size={40} color={Colors.institutionPrimary} />
-          </View>
-          <View style={styles.roleInfo}>
-            <Text style={styles.roleTitle}>Institution</Text>
-            <Text style={styles.roleSubtitle}>Administrator</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={32} color="#FFFFFF" />
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.roleButton,
-            styles.studentButton,
-            { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-          ]}
-          onPress={() => router.push("/student/login")}
-          accessibilityRole="button"
-          accessibilityLabel="I am a Student"
-          accessibilityHint="Double tap to open student login"
-        >
-          <View style={styles.roleIconCircle}>
-            <Ionicons name="person" size={40} color={Colors.studentPrimary} />
-          </View>
-          <View style={styles.roleInfo}>
-            <Text style={styles.roleTitle}>Student</Text>
-            <Text style={styles.roleSubtitle}>Start Reading</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={32} color="#FFFFFF" />
-        </Pressable>
-      </View>
-
-      <VoiceCommandBar hints={voiceCommands.roleSelect} showHelpButton={false} />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 

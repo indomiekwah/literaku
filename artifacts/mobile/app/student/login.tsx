@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   StyleSheet,
@@ -13,8 +14,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { voiceCommands } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { voiceHints } from "@/constants/data";
 
 export default function StudentLoginScreen() {
   const insets = useSafeAreaInsets();
@@ -24,75 +26,104 @@ export default function StudentLoginScreen() {
   const [instCode, setInstCode] = useState("");
   const [studentId, setStudentId] = useState("");
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Student login. Enter your institution code and student ID to continue."
+    );
+  }, []);
+
   const handleLogin = () => {
+    if (!instCode.trim() || !studentId.trim()) {
+      AccessibilityInfo.announceForAccessibility(
+        "Please fill in both institution code and student ID"
+      );
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility("Signing in...");
     router.replace("/student/home");
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to role selection" accessibilityHint="Double tap to return to role selection screen">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.iconSection}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="person" size={48} color={Colors.studentPrimary} />
-          </View>
-          <Text style={styles.title} accessibilityRole="header">Student Login</Text>
-          <Text style={styles.subtitle}>Enter your institution code and student ID</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Institution Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. UI2024"
-              placeholderTextColor={Colors.borderStrong}
-              value={instCode}
-              onChangeText={setInstCode}
-              autoCapitalize="characters"
-              accessibilityLabel="Institution code"
-              accessibilityHint="Type the code provided by your institution"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Student ID</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. STU001"
-              placeholderTextColor={Colors.borderStrong}
-              value={studentId}
-              onChangeText={setStudentId}
-              autoCapitalize="characters"
-              accessibilityLabel="Student ID"
-              accessibilityHint="Type your student ID number here"
-            />
-          </View>
-
+        <View style={styles.header}>
           <Pressable
-            style={({ pressed }) => [
-              styles.loginButton,
-              { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-            ]}
-            onPress={handleLogin}
+            style={styles.backButton}
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Sign in to start reading"
-            accessibilityHint="Double tap to sign in with your credentials"
+            accessibilityLabel="Go back to role selection"
+            accessibilityHint="Double tap to return to role selection screen"
           >
-            <Text style={styles.loginButtonText}>Start Reading</Text>
+            <Feather name="arrow-left" size={32} color={Colors.text} />
           </Pressable>
         </View>
-      </View>
 
-      <VoiceCommandBar hints={voiceCommands.studentLogin} showHelpButton={false} />
-    </View>
+        <View style={styles.content}>
+          <View style={styles.iconSection}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="person" size={48} color={Colors.studentPrimary} />
+            </View>
+            <Text style={styles.title} accessibilityRole="header">Student Login</Text>
+            <Text style={styles.subtitle}>Enter your institution code and student ID</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Institution code input field"
+            >
+              <Text style={styles.inputLabel}>Institution Code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. UI2024"
+                placeholderTextColor={Colors.borderStrong}
+                value={instCode}
+                onChangeText={setInstCode}
+                autoCapitalize="characters"
+                accessibilityLabel="Institution code"
+                accessibilityHint="Type the code provided by your institution"
+              />
+            </View>
+
+            <View
+              style={styles.inputGroup}
+              accessible
+              accessibilityLabel="Student ID input field"
+            >
+              <Text style={styles.inputLabel}>Student ID</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. STU001"
+                placeholderTextColor={Colors.borderStrong}
+                value={studentId}
+                onChangeText={setStudentId}
+                autoCapitalize="characters"
+                accessibilityLabel="Student ID"
+                accessibilityHint="Type your student ID number here"
+              />
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.loginButton,
+                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+              ]}
+              onPress={handleLogin}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in to start reading"
+              accessibilityHint="Double tap to sign in with your credentials"
+            >
+              <Text style={styles.loginButtonText}>Start Reading</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <SwipeHintBar hints={voiceHints.studentLogin} />
+      </View>
+    </SwipeVoiceWrapper>
   );
 }
 

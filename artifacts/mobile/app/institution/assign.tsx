@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  AccessibilityInfo,
   FlatList,
   Platform,
   Pressable,
@@ -13,8 +14,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, sampleStudents, voiceCommands, type Student } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { sampleBooks, sampleStudents, voiceHints, type Student } from "@/constants/data";
 
 interface StudentRowProps {
   student: Student;
@@ -55,7 +57,13 @@ function StudentRow({ student, assignments, onToggle }: StudentRowProps) {
               <Pressable
                 key={book.id}
                 style={[styles.bookToggle, isAssigned && styles.bookToggleActive]}
-                onPress={() => onToggle(book.id)}
+                onPress={() => {
+                  onToggle(book.id);
+                  const action = isAssigned ? "unassigned from" : "assigned to";
+                  AccessibilityInfo.announceForAccessibility(
+                    `${book.title} ${action} ${student.name}`
+                  );
+                }}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: isAssigned }}
                 accessibilityLabel={`${book.title}. ${isAssigned ? "Assigned. Tap to unassign" : "Not assigned. Tap to assign"}`}
@@ -106,41 +114,46 @@ export default function InstitutionAssignScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard" accessibilityHint="Double tap to return to institution dashboard">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">Assign Books</Text>
-        <View style={{ width: 56 }} />
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back to dashboard"
+            accessibilityHint="Double tap to return to institution dashboard"
+          >
+            <Feather name="arrow-left" size={32} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">Assign Books</Text>
+          <View style={{ width: 56 }} />
+        </View>
+
+        <Text style={styles.description}>
+          Tap a student to expand and toggle book assignments.
+        </Text>
+
+        <FlatList
+          data={sampleStudents}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <StudentRow
+              student={item}
+              assignments={assignmentMap[item.id] || []}
+              onToggle={(bookId) => handleToggle(item.id, bookId)}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={sampleStudents.length > 0}
+        />
+
+        <SwipeHintBar hints={voiceHints.institutionAssign} />
       </View>
-
-      <Text style={styles.description}>
-        Tap a student to expand and toggle book assignments.
-      </Text>
-
-      <FlatList
-        data={sampleStudents}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <StudentRow
-            student={item}
-            assignments={assignmentMap[item.id] || []}
-            onToggle={(bookId) => handleToggle(item.id, bookId)}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={sampleStudents.length > 0}
-      />
-
-      <VoiceCommandBar
-        hints={voiceCommands.institutionAssign}
-        showHelpButton={false}
-      />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 

@@ -14,15 +14,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, voiceCommands } from "@/constants/data";
-
-const VOICE_OPTIONS = [
-  { id: "v1", label: "Sari (Female)", lang: "id-ID" },
-  { id: "v2", label: "Budi (Male)", lang: "id-ID" },
-  { id: "v3", label: "Emma (Female)", lang: "en-US" },
-  { id: "v4", label: "James (Male)", lang: "en-US" },
-];
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { sampleBooks, voiceHints } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
@@ -30,209 +25,199 @@ export default function StudentReaderScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { speed, textSize } = useReadingPreferences();
 
   const book = sampleBooks.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [selectedVoice, setSelectedVoice] = useState("v1");
-  const [showVoicePicker, setShowVoicePicker] = useState(false);
 
   React.useEffect(() => {
     if (book) {
       AccessibilityInfo.announceForAccessibility(
-        `Now reading ${book.title}. Say Play to start, or use Next page and Previous page to navigate.`
+        `Now reading ${book.title}. Swipe left for voice commands, or use the controls below.`
       );
     }
   }, [book?.title]);
 
   if (!book) {
     return (
-      <View style={[styles.container, { paddingTop: topPadding }]}>
-        <Text style={styles.errorText}>Book not found</Text>
-      </View>
+      <SwipeVoiceWrapper>
+        <View style={[styles.container, { paddingTop: topPadding }]}>
+          <Text
+            style={styles.errorText}
+            accessibilityRole="alert"
+            accessibilityLabel="Error: Book not found"
+          >
+            Book not found
+          </Text>
+        </View>
+      </SwipeVoiceWrapper>
     );
   }
 
   const totalPages = book.content.length;
-  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
-  const currentVoiceLabel = VOICE_OPTIONS.find(v => v.id === selectedVoice)?.label || "Sari (Female)";
   const progress = ((currentPage + 1) / totalPages) * 100;
 
   const goToPage = (page: number) => {
-    if (page >= 0 && page < totalPages) setCurrentPage(page);
+    if (page >= 0 && page < totalPages) {
+      setCurrentPage(page);
+      AccessibilityInfo.announceForAccessibility(`Page ${page + 1} of ${totalPages}`);
+    }
   };
 
-  const cycleSpeed = () => {
-    const idx = speeds.indexOf(speed);
-    setSpeed(speeds[(idx + 1) % speeds.length]);
+  const handleRewind = () => {
+    AccessibilityInfo.announceForAccessibility("Rewound 10 seconds");
+  };
+
+  const handleForward = () => {
+    AccessibilityInfo.announceForAccessibility("Forwarded 10 seconds");
+  };
+
+  const handlePlayPause = () => {
+    const newState = !isPlaying;
+    setIsPlaying(newState);
+    AccessibilityInfo.announceForAccessibility(newState ? "Playing" : "Paused");
   };
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to library" accessibilityHint="Double tap to return to your library">
-          <Feather name="arrow-left" size={28} color={Colors.text} />
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
-            {book.title}
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            Page {currentPage + 1} of {totalPages}
-          </Text>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back to library"
+            accessibilityHint="Double tap to return to your library"
+          >
+            <Feather name="arrow-left" size={28} color={Colors.text} />
+          </Pressable>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
+              {book.title}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              Page {currentPage + 1} of {totalPages}
+            </Text>
+          </View>
+          <Pressable
+            style={styles.summarizeHeaderButton}
+            onPress={() => {
+              AccessibilityInfo.announceForAccessibility("Generating AI summary of this page");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Summarize this page with AI"
+            accessibilityHint="Double tap to generate and hear an AI summary of the current page"
+          >
+            <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
+          </Pressable>
         </View>
-        <Pressable
-          style={styles.summarizeHeaderButton}
-          onPress={() => {}}
-          accessibilityRole="button"
-          accessibilityLabel="Summarize this page with AI"
-          accessibilityHint="Double tap to generate and hear an AI summary of the current page"
+
+        <View
+          style={styles.progressBarContainer}
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel="Reading progress"
+          accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
         >
-          <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
-        </Pressable>
+          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View
+            style={styles.readerCard}
+            accessibilityRole="text"
+            accessibilityLabel={`Page ${currentPage + 1} of ${totalPages}. ${book.content[currentPage]}`}
+          >
+            <Text style={[styles.pageContent, { fontSize: textSize, lineHeight: textSize * 1.7 }]}>
+              {book.content[currentPage]}
+            </Text>
+          </View>
+        </ScrollView>
+
+        <View style={styles.controlsSection}>
+          <View style={styles.narrationRow}>
+            <Pressable
+              style={styles.rewindButton}
+              onPress={handleRewind}
+              accessibilityRole="button"
+              accessibilityLabel="Rewind 10 seconds"
+              accessibilityHint="Double tap to go back 10 seconds in the narration"
+            >
+              <MaterialIcons name="replay-10" size={32} color={Colors.text} />
+            </Pressable>
+
+            <Pressable
+              style={styles.playButton}
+              onPress={handlePlayPause}
+              accessibilityRole="button"
+              accessibilityLabel={isPlaying ? "Pause narration" : "Play narration"}
+              accessibilityHint={isPlaying ? "Double tap to pause the narration" : "Double tap to start reading aloud"}
+            >
+              <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
+            </Pressable>
+
+            <Pressable
+              style={styles.forwardButton}
+              onPress={handleForward}
+              accessibilityRole="button"
+              accessibilityLabel="Forward 10 seconds"
+              accessibilityHint="Double tap to skip ahead 10 seconds in the narration"
+            >
+              <MaterialIcons name="forward-10" size={32} color={Colors.text} />
+            </Pressable>
+          </View>
+
+          <View style={styles.pageNavRow}>
+            <Pressable
+              style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
+              onPress={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 0}
+              accessibilityRole="button"
+              accessibilityLabel="Previous page"
+              accessibilityHint="Double tap to go to the previous page"
+              accessibilityState={{ disabled: currentPage === 0 }}
+            >
+              <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
+              <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Previous</Text>
+            </Pressable>
+
+            <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
+              {currentPage + 1} / {totalPages}
+            </Text>
+
+            <Pressable
+              style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
+              onPress={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages - 1}
+              accessibilityRole="button"
+              accessibilityLabel="Next page"
+              accessibilityHint="Double tap to go to the next page"
+              accessibilityState={{ disabled: currentPage === totalPages - 1 }}
+            >
+              <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Next</Text>
+              <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
+            </Pressable>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Ionicons name="speedometer-outline" size={18} color={Colors.textSecondary} />
+            <Text style={styles.infoText}>{speed}x speed</Text>
+            <Text style={styles.infoDot}>·</Text>
+            <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
+            <Text style={styles.infoText}>Change in Settings</Text>
+          </View>
+        </View>
+
+        <SwipeHintBar hints={voiceHints.reader} />
       </View>
-
-      <View
-        style={styles.progressBarContainer}
-        accessible
-        accessibilityRole="progressbar"
-        accessibilityLabel="Reading progress"
-        accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
-      >
-        <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
-      </View>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.readerCard} accessibilityRole="text" accessibilityLabel={`Page ${currentPage + 1} of ${totalPages}. ${book.content[currentPage]}`}>
-          <Text style={styles.pageContent}>{book.content[currentPage]}</Text>
-        </View>
-      </ScrollView>
-
-      <View style={styles.controlsSection}>
-        <View style={styles.narrationRow}>
-          <Pressable
-            style={styles.rewindButton}
-            onPress={() => {}}
-            accessibilityRole="button"
-            accessibilityLabel="Rewind 10 seconds"
-            accessibilityHint="Double tap to go back 10 seconds in the narration"
-          >
-            <MaterialIcons name="replay-10" size={32} color={Colors.text} />
-          </Pressable>
-
-          <Pressable
-            style={styles.playButton}
-            onPress={() => setIsPlaying(!isPlaying)}
-            accessibilityRole="button"
-            accessibilityLabel={isPlaying ? "Pause narration" : "Play narration"}
-            accessibilityHint={isPlaying ? "Double tap to pause the narration" : "Double tap to start reading aloud"}
-          >
-            <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
-          </Pressable>
-
-          <Pressable
-            style={styles.forwardButton}
-            onPress={() => {}}
-            accessibilityRole="button"
-            accessibilityLabel="Forward 10 seconds"
-            accessibilityHint="Double tap to skip ahead 10 seconds in the narration"
-          >
-            <MaterialIcons name="forward-10" size={32} color={Colors.text} />
-          </Pressable>
-        </View>
-
-        <View style={styles.pageNavRow}>
-          <Pressable
-            style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
-            onPress={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 0}
-            accessibilityRole="button"
-            accessibilityLabel="Previous page"
-            accessibilityHint="Double tap to go to the previous page"
-          >
-            <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
-            <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Previous</Text>
-          </Pressable>
-
-          <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
-            {currentPage + 1} / {totalPages}
-          </Text>
-
-          <Pressable
-            style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
-            onPress={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages - 1}
-            accessibilityRole="button"
-            accessibilityLabel="Next page"
-            accessibilityHint="Double tap to go to the next page"
-          >
-            <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Next</Text>
-            <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
-          </Pressable>
-        </View>
-
-        <View style={styles.settingsRow}>
-          <Pressable
-            style={styles.speedChip}
-            onPress={cycleSpeed}
-            accessibilityRole="button"
-            accessibilityLabel={`Reading speed ${speed}x. Tap to change`}
-            accessibilityHint="Double tap to cycle through available reading speeds"
-          >
-            <Ionicons name="speedometer-outline" size={20} color={Colors.primary} />
-            <Text style={styles.speedChipText}>{speed}x</Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.voiceChip}
-            onPress={() => setShowVoicePicker(!showVoicePicker)}
-            accessibilityRole="button"
-            accessibilityLabel={`Narration voice: ${currentVoiceLabel}. Tap to change voice`}
-            accessibilityHint="Double tap to open the voice selector"
-          >
-            <Ionicons name="mic" size={20} color={Colors.studentPrimary} />
-            <Text style={styles.voiceChipText} numberOfLines={1}>{currentVoiceLabel}</Text>
-            <Feather name={showVoicePicker ? "chevron-up" : "chevron-down"} size={16} color={Colors.textSecondary} />
-          </Pressable>
-        </View>
-      </View>
-
-      {showVoicePicker && (
-        <View style={styles.voicePickerDropdown}>
-          {VOICE_OPTIONS.map((voice) => {
-            const isSelected = voice.id === selectedVoice;
-            return (
-              <Pressable
-                key={voice.id}
-                style={[styles.voiceOption, isSelected && styles.voiceOptionSelected]}
-                onPress={() => { setSelectedVoice(voice.id); setShowVoicePicker(false); }}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                accessibilityLabel={`${voice.label}. ${voice.lang}. ${isSelected ? "Currently selected" : "Tap to select"}`}
-                accessibilityHint={isSelected ? "This voice is currently selected" : "Double tap to switch to this voice"}
-              >
-                <Ionicons
-                  name={isSelected ? "radio-button-on" : "radio-button-off"}
-                  size={24}
-                  color={isSelected ? Colors.studentPrimary : Colors.borderStrong}
-                />
-                <View style={styles.voiceOptionInfo}>
-                  <Text style={[styles.voiceOptionLabel, isSelected && styles.voiceOptionLabelSelected]}>
-                    {voice.label}
-                  </Text>
-                  <Text style={styles.voiceOptionLang}>{voice.lang}</Text>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-
-      <VoiceCommandBar hints={voiceCommands.reader} showHelpButton={false} />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 
@@ -310,9 +295,7 @@ const styles = StyleSheet.create({
   },
   pageContent: {
     fontFamily: "Inter_400Regular",
-    fontSize: 19,
     color: Colors.text,
-    lineHeight: 32,
   },
   controlsSection: {
     paddingTop: 8,
@@ -386,84 +369,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
   },
-  settingsRow: {
+  infoRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-  },
-  speedChip: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: 6,
-    backgroundColor: Colors.voiceBarBg,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: Colors.primaryLight,
-    minHeight: 48,
+    paddingVertical: 4,
   },
-  speedChipText: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.primary,
-  },
-  voiceChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: Colors.successLight,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 2,
-    borderColor: Colors.studentPrimary,
-    minHeight: 48,
-    maxWidth: 200,
-  },
-  voiceChipText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.text,
-    flex: 1,
-  },
-  voicePickerDropdown: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    padding: 8,
-    gap: 4,
-  },
-  voiceOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    minHeight: 52,
-  },
-  voiceOptionSelected: {
-    backgroundColor: Colors.successLight,
-  },
-  voiceOptionInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  voiceOptionLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.text,
-  },
-  voiceOptionLabelSelected: {
-    fontFamily: "Inter_700Bold",
-    color: Colors.studentPrimary,
-  },
-  voiceOptionLang: {
+  infoText: {
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  infoDot: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.borderStrong,
   },
   errorText: {
     fontFamily: "Inter_700Bold",

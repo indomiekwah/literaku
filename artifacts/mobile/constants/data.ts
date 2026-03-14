@@ -36,7 +36,13 @@ export interface ReadingHistory {
 
 export interface VoiceCommand {
   command: string;
+  commandId?: string;
   description: string;
+}
+
+export interface NaturalVoiceHint {
+  example: string;
+  intent: string;
 }
 
 export const sampleInstitution: Institution = {
@@ -138,60 +144,68 @@ export const sampleHistory: ReadingHistory[] = [
   { id: "h3", bookId: "3", title: "The Miracle of Limitations", lastPage: 1, totalPages: 4, timestamp: "1 day ago" },
 ];
 
-export const voiceCommands: Record<string, VoiceCommand[]> = {
+export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   roleSelect: [
-    { command: "I am a student", description: "to open student login" },
-    { command: "I am an administrator", description: "to open institution login" },
+    { example: "Saya seorang siswa", intent: "Open student login" },
+    { example: "I'm an administrator", intent: "Open institution login" },
+    { example: "Buka login admin", intent: "Open institution login" },
   ],
   institutionLogin: [
-    { command: "Sign in", description: "to submit your credentials" },
-    { command: "Go back", description: "to return to role selection" },
+    { example: "Masuk ke akun saya", intent: "Sign in" },
+    { example: "Sign me in", intent: "Sign in" },
+    { example: "Kembali ke awal", intent: "Go back" },
   ],
   institutionDashboard: [
-    { command: "Upload book", description: "to add a new book" },
-    { command: "Assign books", description: "to manage student assignments" },
-    { command: "View catalog", description: "to see all books" },
-    { command: "Log out", description: "to sign out" },
+    { example: "Upload buku baru", intent: "Open upload form" },
+    { example: "I want to assign books", intent: "Open assignments" },
+    { example: "Lihat semua buku", intent: "Open book catalog" },
+    { example: "Keluar dari akun", intent: "Log out" },
   ],
   institutionBooks: [
-    { command: "Upload book", description: "to add a new book" },
-    { command: "Go back", description: "to return to dashboard" },
+    { example: "Tambah buku baru", intent: "Upload new book" },
+    { example: "Go back to dashboard", intent: "Return to dashboard" },
   ],
   institutionUpload: [
-    { command: "Upload", description: "to submit the book" },
-    { command: "Go back", description: "to return to previous screen" },
+    { example: "Upload bukunya", intent: "Submit the book" },
+    { example: "Kembali", intent: "Go back" },
   ],
   institutionAssign: [
-    { command: "Assign [book] to [student]", description: "to assign a book" },
-    { command: "Go back", description: "to return to dashboard" },
+    { example: "Assign buku ini ke Andi", intent: "Assign a book" },
+    { example: "Give this book to Siti", intent: "Assign a book" },
+    { example: "Kembali ke dashboard", intent: "Return to dashboard" },
   ],
   studentLogin: [
-    { command: "Sign in", description: "to enter the app" },
-    { command: "Go back", description: "to return to role selection" },
+    { example: "Masuk", intent: "Sign in" },
+    { example: "Let me in", intent: "Sign in" },
+    { example: "Kembali", intent: "Go back" },
   ],
   studentHome: [
-    { command: "Read [book title]", description: "to start reading a book" },
-    { command: "Continue reading", description: "to resume your last book" },
-    { command: "Open my library", description: "to see all your books" },
-    { command: "Open help", description: "to hear available commands" },
+    { example: "Bacakan buku The Art of Speaking", intent: "Open a specific book" },
+    { example: "Lanjutkan membaca", intent: "Continue last book" },
+    { example: "Buka perpustakaan saya", intent: "Open library" },
+    { example: "Buka pengaturan", intent: "Open settings" },
   ],
   studentLibrary: [
-    { command: "Read [book title]", description: "to start reading" },
-    { command: "Go back", description: "to return to home" },
+    { example: "Baca buku yang pertama", intent: "Open a book" },
+    { example: "Read The Miracle of Limitations", intent: "Open a specific book" },
+    { example: "Kembali ke beranda", intent: "Go back to home" },
   ],
   reader: [
-    { command: "Next page", description: "to go to the next page" },
-    { command: "Previous page", description: "to go back one page" },
-    { command: "Rewind 10 seconds", description: "to go back 10 seconds" },
-    { command: "Forward 10 seconds", description: "to skip ahead 10 seconds" },
-    { command: "Pause", description: "to pause narration" },
-    { command: "Resume", description: "to continue narration" },
-    { command: "Summarize", description: "to hear an AI summary" },
-    { command: "Change voice", description: "to switch narration voice" },
-    { command: "Go back", description: "to return to library" },
+    { example: "Halaman selanjutnya", intent: "Go to next page" },
+    { example: "Go back one page", intent: "Previous page" },
+    { example: "Mundur 10 detik", intent: "Rewind narration" },
+    { example: "Skip ahead", intent: "Forward narration" },
+    { example: "Berhenti dulu", intent: "Pause narration" },
+    { example: "Lanjutkan", intent: "Resume narration" },
+    { example: "Tolong ringkasin halaman ini", intent: "AI summarize" },
+    { example: "Kembali ke perpustakaan", intent: "Go back to library" },
   ],
   studentGuide: [
-    { command: "Go back", description: "to return to home" },
-    { command: "Read [book title]", description: "to start reading" },
+    { example: "Kembali ke beranda", intent: "Go back to home" },
+    { example: "Bacakan buku", intent: "Start reading a book" },
+  ],
+  studentSettings: [
+    { example: "Kembali", intent: "Go back to home" },
+    { example: "Ganti suara ke Budi", intent: "Change voice" },
   ],
 };

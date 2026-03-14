@@ -13,8 +13,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, voiceCommands, type CatalogBook, type ConversionStatus } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { sampleBooks, voiceHints, type CatalogBook, type ConversionStatus } from "@/constants/data";
 
 function getStatusColor(status: ConversionStatus) {
   switch (status) {
@@ -47,6 +48,7 @@ function BookRow({ book }: { book: CatalogBook }) {
   return (
     <View
       style={styles.bookRow}
+      accessible
       accessibilityRole="text"
       accessibilityLabel={`${book.title} by ${book.author}. Status: ${getStatusLabel(book.conversionStatus)}. Assigned to ${book.assignedTo.length} students.`}
     >
@@ -76,36 +78,44 @@ export default function InstitutionBooksScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to dashboard" accessibilityHint="Double tap to return to institution dashboard">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">Book Catalog</Text>
-        <Pressable
-          style={styles.addButton}
-          onPress={() => router.push("/institution/upload")}
-          accessibilityRole="button"
-          accessibilityLabel="Upload new book"
-          accessibilityHint="Double tap to open the book upload form"
-        >
-          <Ionicons name="add" size={30} color="#FFFFFF" />
-        </Pressable>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back to dashboard"
+            accessibilityHint="Double tap to return to institution dashboard"
+          >
+            <Feather name="arrow-left" size={32} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">Book Catalog</Text>
+          <Pressable
+            style={styles.addButton}
+            onPress={() => router.push("/institution/upload")}
+            accessibilityRole="button"
+            accessibilityLabel="Upload new book"
+            accessibilityHint="Double tap to open the book upload form"
+          >
+            <Ionicons name="add" size={30} color="#FFFFFF" />
+          </Pressable>
+        </View>
+
+        <FlatList
+          data={sampleBooks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <BookRow book={item} />}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={sampleBooks.length > 0}
+        />
+
+        <SwipeHintBar hints={voiceHints.institutionBooks} />
       </View>
-
-      <FlatList
-        data={sampleBooks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BookRow book={item} />}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={sampleBooks.length > 0}
-      />
-
-      <VoiceCommandBar hints={voiceCommands.institutionBooks} showHelpButton={false} />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 

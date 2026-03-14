@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   FlatList,
   Platform,
   Pressable,
@@ -13,8 +14,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import VoiceCommandBar from "@/components/VoiceCommandBar";
-import { sampleBooks, voiceCommands, type CatalogBook } from "@/constants/data";
+import SwipeHintBar from "@/components/SwipeHintBar";
+import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
+import { sampleBooks, voiceHints, type CatalogBook } from "@/constants/data";
 
 const bookColors = ["#E3F2FD", "#E8F5E9", "#FFF3E0", "#F3E5F5", "#FFEBEE"];
 
@@ -69,43 +71,58 @@ export default function StudentLibraryScreen() {
 
   const assignedBooks = sampleBooks.filter(b => b.assignedTo.includes("s1"));
 
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      `Your library. ${assignedBooks.length} books available. Swipe left for voice commands.`
+    );
+  }, [assignedBooks.length]);
+
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-      <StatusBar style="dark" />
+    <SwipeVoiceWrapper>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
+        <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to home" accessibilityHint="Double tap to return to home screen">
-          <Feather name="arrow-left" size={32} color={Colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">My Library</Text>
-        <View style={{ width: 56 }} />
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back to home"
+            accessibilityHint="Double tap to return to home screen"
+          >
+            <Feather name="arrow-left" size={32} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">My Library</Text>
+          <View style={{ width: 56 }} />
+        </View>
+
+        <Text style={styles.bookCount} accessibilityLabel={`${assignedBooks.length} books assigned to you`}>
+          {assignedBooks.length} books available
+        </Text>
+
+        <FlatList
+          data={assignedBooks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => <BookCard book={item} index={index} />}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={assignedBooks.length > 0}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="library-outline" size={64} color={Colors.textSecondary} />
+              <Text style={styles.emptyText}>No books assigned yet</Text>
+              <Text style={styles.emptySubtext}>Ask your institution to assign books</Text>
+            </View>
+          }
+        />
+
+        <SwipeHintBar
+          hints={voiceHints.studentLibrary}
+          showHelpButton
+          onHelpPress={() => router.push("/student/guide")}
+        />
       </View>
-
-      <Text style={styles.bookCount} accessibilityLabel={`${assignedBooks.length} books assigned to you`}>
-        {assignedBooks.length} books available
-      </Text>
-
-      <FlatList
-        data={assignedBooks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => <BookCard book={item} index={index} />}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        scrollEnabled={assignedBooks.length > 0}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="library-outline" size={64} color={Colors.textSecondary} />
-            <Text style={styles.emptyText}>No books assigned yet</Text>
-            <Text style={styles.emptySubtext}>Ask your institution to assign books</Text>
-          </View>
-        }
-      />
-
-      <VoiceCommandBar
-        hints={voiceCommands.studentLibrary}
-        onHelpPress={() => router.push("/student/guide")}
-      />
-    </View>
+    </SwipeVoiceWrapper>
   );
 }
 
