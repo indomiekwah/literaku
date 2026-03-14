@@ -21,7 +21,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── mobile/             # Expo React Native app (Literaku)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -52,13 +53,47 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ### `artifacts/mobile` (`@workspace/mobile`)
 
-Expo React Native reading/literature app (Literaku). A mobile app for browsing articles, reading books, and managing a reading collection.
+Expo React Native app — **Literaku**: a B2B voice-first accessible reading platform for visually impaired students (similar to Bookshare).
 
-- **Screens**: Splash (index.tsx) → Menu (menu.tsx) → Explorer (explorer.tsx) → Article Detail (article/[id].tsx) → History (history.tsx) → Collection (collection.tsx) → Book Reader (reader/[id].tsx) → Guide (guide.tsx)
-- **Theme**: Blue (#1565C0) primary with white background, colored menu buttons (blue/red/green/dark)
-- **Navigation**: Stack-based (no tabs), headerShown: false
-- **Data**: Sample articles and books in `constants/data.ts` (no backend needed)
-- **Features**: Article search, book reader with page navigation/playback controls, reading history, book collection, voice command guide
+**Architecture**: Two user types with separate flows:
+1. **Institution administrators** — upload book catalogs, manage DAISY conversion pipeline, assign books to students
+2. **Students** — voice-activated reading with AI narration controls, voice commands like "Read [title]", "Summarize", "Pause"
+
+**Design principles**:
+- Voice-first, not sighted-first
+- Large touch targets (52-78px buttons, 62px inputs)
+- 17-28px bold text throughout
+- High contrast colors (WCAG AAA)
+- Screen reader accessible with `accessibilityRole`, `accessibilityLabel`, `accessibilityHint` on all interactive elements
+- VoiceCommandBar on every screen with contextual hints
+
+**Screens**:
+- `index.tsx` — Role selection ("Who are you?" — Institution or Student)
+- `institution/login.tsx` — Admin email/password login
+- `institution/dashboard.tsx` — Stats (books, DAISY ready, processing, students) + quick actions
+- `institution/books.tsx` — Book catalog with DAISY status badges
+- `institution/upload.tsx` — Upload form with DAISY pipeline info
+- `institution/assign.tsx` — Expandable student rows with book assignment toggles
+- `student/login.tsx` — Institution code + student ID login
+- `student/home.tsx` — Voice prompt "What would you like to read?" + continue reading card
+- `student/library.tsx` — Assigned books with play buttons
+- `student/reader/[id].tsx` — Play/pause, speed control, Summarize button, page navigation
+- `student/guide.tsx` — Voice commands grouped by context (home, library, reader)
+
+**Theme**:
+- Institution: Blue (#0D47A1)
+- Student: Green (#2E7D32)
+- High contrast text (#0A0A0A on white)
+
+**Key files**:
+- `constants/data.ts` — Types (CatalogBook, Student, Institution, DaisyStatus) + sample data + voice commands per context
+- `constants/colors.ts` — High-contrast accessible color palette
+- `components/VoiceCommandBar.tsx` — Shared voice command bar with mic button, listening status, contextual hints, help button
+- `app/_layout.tsx` — Stack navigation (headerShown: false) with all 11 routes
+
+**Navigation**: Stack-based, headerShown: false
+**Data**: Sample data in constants/data.ts (no backend needed)
+**Logged-in student**: Hardcoded as student "s1" (Andi Pratama) for library filtering
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 

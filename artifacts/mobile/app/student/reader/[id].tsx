@@ -13,9 +13,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import { sampleBooks } from "@/constants/data";
+import VoiceCommandBar from "@/components/VoiceCommandBar";
+import { sampleBooks, voiceCommands } from "@/constants/data";
 
-export default function ReaderScreen() {
+export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isWeb = Platform.OS === "web";
@@ -24,6 +25,8 @@ export default function ReaderScreen() {
 
   const book = sampleBooks.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
 
   if (!book) {
     return (
@@ -34,11 +37,15 @@ export default function ReaderScreen() {
   }
 
   const totalPages = book.content.length;
+  const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   const goToPage = (page: number) => {
-    if (page >= 0 && page < totalPages) {
-      setCurrentPage(page);
-    }
+    if (page >= 0 && page < totalPages) setCurrentPage(page);
+  };
+
+  const cycleSpeed = () => {
+    const idx = speeds.indexOf(speed);
+    setSpeed(speeds[(idx + 1) % speeds.length]);
   };
 
   return (
@@ -46,27 +53,23 @@ export default function ReaderScreen() {
       <StatusBar style="dark" />
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityLabel="Go back">
+        <Pressable style={styles.backButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back to library">
           <Feather name="arrow-left" size={32} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
+        <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
           {book.title}
         </Text>
         <View style={{ width: 56 }} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.readerCard}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.readerCard} accessibilityRole="text" accessibilityLabel={`Page ${currentPage + 1} of ${totalPages}. ${book.content[currentPage]}`}>
           <Text style={styles.pageContent}>{book.content[currentPage]}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.pageInfo}>
-        <Text style={styles.pageText}>
+        <Text style={styles.pageText} accessibilityLiveRegion="polite">
           Page {currentPage + 1} of {totalPages}
         </Text>
       </View>
@@ -74,51 +77,57 @@ export default function ReaderScreen() {
       <View style={styles.controlsRow}>
         <Pressable
           style={[styles.controlButton, currentPage === 0 && styles.controlDisabled]}
-          onPress={() => goToPage(0)}
+          onPress={() => goToPage(currentPage - 1)}
           disabled={currentPage === 0}
-          accessibilityLabel="First page"
+          accessibilityRole="button"
+          accessibilityLabel="Previous page"
         >
-          <Ionicons name="play-skip-back" size={26} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-back" size={26} color={currentPage === 0 ? Colors.borderStrong : Colors.primary} />
         </Pressable>
 
         <Pressable
-          style={[styles.controlButton, currentPage === 0 && styles.controlDisabled]}
-          onPress={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 0}
-          accessibilityLabel="Previous page"
+          style={styles.playButton}
+          onPress={() => setIsPlaying(!isPlaying)}
+          accessibilityRole="button"
+          accessibilityLabel={isPlaying ? "Pause narration" : "Play narration"}
         >
-          <Ionicons name="play-back" size={26} color={currentPage === 0 ? Colors.textSecondary : Colors.primary} />
-        </Pressable>
-
-        <Pressable style={styles.playButton} accessibilityLabel="Play or pause">
-          <Ionicons name="pause" size={34} color="#FFF" />
+          <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
         </Pressable>
 
         <Pressable
           style={[styles.controlButton, currentPage === totalPages - 1 && styles.controlDisabled]}
           onPress={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages - 1}
+          accessibilityRole="button"
           accessibilityLabel="Next page"
         >
-          <Ionicons name="play-forward" size={26} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="play-forward" size={26} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.primary} />
+        </Pressable>
+      </View>
+
+      <View style={styles.extraControls}>
+        <Pressable
+          style={styles.speedButton}
+          onPress={cycleSpeed}
+          accessibilityRole="button"
+          accessibilityLabel={`Reading speed ${speed}x. Tap to change`}
+        >
+          <Text style={styles.speedText}>{speed}x</Text>
         </Pressable>
 
         <Pressable
-          style={[styles.controlButton, currentPage === totalPages - 1 && styles.controlDisabled]}
-          onPress={() => goToPage(totalPages - 1)}
-          disabled={currentPage === totalPages - 1}
-          accessibilityLabel="Last page"
+          style={styles.summarizeButton}
+          onPress={() => {}}
+          accessibilityRole="button"
+          accessibilityLabel="Summarize this page with AI"
+          accessibilityHint="Double tap to hear an AI-generated summary of the current page"
         >
-          <Ionicons name="play-skip-forward" size={26} color={currentPage === totalPages - 1 ? Colors.textSecondary : Colors.primary} />
+          <Ionicons name="sparkles" size={22} color="#FFFFFF" />
+          <Text style={styles.summarizeText}>Summarize</Text>
         </Pressable>
       </View>
 
-      <View style={styles.bottomBar}>
-        <Pressable style={styles.micContainer} accessibilityLabel="Microphone">
-          <Ionicons name="mic" size={32} color={Colors.primary} />
-        </Pressable>
-        <Text style={styles.listeningText}>Listening...</Text>
-      </View>
+      <VoiceCommandBar hints={voiceCommands.reader} showHelpButton={false} />
     </View>
   );
 }
@@ -132,8 +141,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    gap: 12,
+    paddingVertical: 8,
+    gap: 10,
   },
   backButton: {
     width: 56,
@@ -147,7 +156,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 20,
+    fontSize: 18,
     color: Colors.text,
     flex: 1,
     textAlign: "center",
@@ -156,15 +165,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   readerCard: {
     backgroundColor: Colors.background,
     borderRadius: 18,
-    padding: 24,
+    padding: 22,
     borderWidth: 2,
     borderColor: Colors.border,
-    minHeight: 240,
+    minHeight: 200,
   },
   pageContent: {
     fontFamily: "Inter_400Regular",
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
   },
   pageInfo: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   pageText: {
     fontFamily: "Inter_700Bold",
@@ -185,13 +194,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 6,
+    gap: 16,
+    paddingVertical: 4,
   },
   controlButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     backgroundColor: Colors.background,
     borderWidth: 2,
     borderColor: Colors.border,
@@ -202,34 +211,51 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   playButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.primary,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    backgroundColor: Colors.studentPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
-  bottomBar: {
+  extraControls: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
+    justifyContent: "center",
     gap: 12,
+    paddingVertical: 6,
   },
-  micContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.background,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+  speedButton: {
+    backgroundColor: Colors.voiceBarBg,
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+    minWidth: 72,
     alignItems: "center",
+    minHeight: 52,
     justifyContent: "center",
   },
-  listeningText: {
-    fontFamily: "Inter_600SemiBold",
+  speedText: {
+    fontFamily: "Inter_700Bold",
     fontSize: 18,
-    color: Colors.textSecondary,
-    flex: 1,
+    color: Colors.primary,
+  },
+  summarizeButton: {
+    flexDirection: "row",
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+    alignItems: "center",
+    minHeight: 52,
+    justifyContent: "center",
+  },
+  summarizeText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 17,
+    color: "#FFFFFF",
   },
   errorText: {
     fontFamily: "Inter_700Bold",
