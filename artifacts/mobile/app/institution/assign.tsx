@@ -137,10 +137,7 @@ export default function InstitutionAssignScreen() {
       />
 
       <VoiceCommandBar
-        hints={[
-          { command: "Assign [book] to [student]", description: "to assign a book" },
-          { command: "Go back", description: "to return to dashboard" },
-        ]}
+        hints={voiceCommands.institutionAssign}
         showHelpButton={false}
       />
     </View>
