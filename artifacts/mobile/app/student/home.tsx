@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +22,12 @@ export default function StudentHomeScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Student home. Say Read followed by a book title, or tap to continue reading."
+    );
+  }, []);
 
   const lastRead = sampleHistory.length > 0 ? sampleHistory[0] : null;
 

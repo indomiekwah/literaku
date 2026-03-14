@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -21,6 +22,12 @@ export default function InstitutionDashboardScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+
+  React.useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(
+      "Institution dashboard. Manage your book catalog, DAISY conversions, and student assignments."
+    );
+  }, []);
 
   const readyCount = sampleBooks.filter(b => b.daisyStatus === "ready").length;
   const processingCount = sampleBooks.filter(b => b.daisyStatus === "processing" || b.daisyStatus === "pending").length;

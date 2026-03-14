@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -36,6 +37,14 @@ export default function StudentReaderScreen() {
   const [speed, setSpeed] = useState(1);
   const [selectedVoice, setSelectedVoice] = useState("v1");
   const [showVoicePicker, setShowVoicePicker] = useState(false);
+
+  React.useEffect(() => {
+    if (book) {
+      AccessibilityInfo.announceForAccessibility(
+        `Now reading ${book.title}. Say Play to start, or use Next page and Previous page to navigate.`
+      );
+    }
+  }, [book?.title]);
 
   if (!book) {
     return (
