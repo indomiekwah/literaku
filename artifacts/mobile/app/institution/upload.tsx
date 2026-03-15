@@ -18,12 +18,14 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 export default function InstitutionUploadScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [isbn, setIsbn] = useState("");
@@ -53,6 +55,7 @@ export default function InstitutionUploadScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -153,6 +156,7 @@ export default function InstitutionUploadScreen() {
             </Pressable>
           </View>
         </ScrollView>
+        </View>
 
         <SwipeHintBar hints={voiceHints.institutionUpload} />
       </View>
@@ -279,5 +283,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: "#FFFFFF",
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

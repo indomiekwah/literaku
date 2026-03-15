@@ -36,11 +36,14 @@ export default function StudentSettingsScreen() {
     textSize,
     language,
     autoDetectLanguage,
+    interactionMode,
+    isVoiceOnly,
     setSelectedVoice,
     setSpeed,
     setTextSize,
     setLanguage,
     setAutoDetectLanguage,
+    setInteractionMode,
   } = useReadingPreferences();
 
   React.useEffect(() => {
@@ -67,6 +70,7 @@ export default function StudentSettingsScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -208,6 +212,43 @@ export default function StudentSettingsScreen() {
           </View>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
+            Interaction Mode
+          </Text>
+
+          <View style={styles.card}>
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleInfo}>
+                <Text style={styles.cardLabel}>Voice-Only Mode</Text>
+                <Text style={styles.toggleDesc}>
+                  {isVoiceOnly
+                    ? "Buttons frozen. Navigate with voice commands only."
+                    : "Touch mode active. All buttons can be tapped."}
+                </Text>
+              </View>
+              <Pressable
+                style={styles.toggleHitArea}
+                onPress={() => {
+                  const newMode = isVoiceOnly ? "touch" : "voice";
+                  setInteractionMode(newMode);
+                  AccessibilityInfo.announceForAccessibility(
+                    newMode === "voice"
+                      ? "Voice-only mode enabled. All buttons are now frozen."
+                      : "Touch mode enabled. All buttons are now active."
+                  );
+                }}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: isVoiceOnly }}
+                accessibilityLabel="Voice-only mode"
+                accessibilityHint="Double tap to toggle between voice-only and touch mode"
+              >
+                <View style={[styles.toggleSwitch, isVoiceOnly && styles.toggleSwitchActive]}>
+                  <View style={[styles.toggleKnob, isVoiceOnly && styles.toggleKnobActive]} />
+                </View>
+              </Pressable>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle} accessibilityRole="header">
             Display
           </Text>
 
@@ -270,6 +311,7 @@ export default function StudentSettingsScreen() {
             <Text style={styles.azureText}>Voice powered by Azure AI</Text>
           </View>
         </ScrollView>
+        </View>
 
         <SwipeHintBar hints={voiceHints.studentSettings} />
       </View>
@@ -519,5 +561,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

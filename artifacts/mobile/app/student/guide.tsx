@@ -17,6 +17,7 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 interface ExampleGroupProps {
   title: string;
@@ -60,6 +61,7 @@ export default function StudentGuideScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -72,6 +74,7 @@ export default function StudentGuideScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -163,6 +166,7 @@ export default function StudentGuideScreen() {
             </View>
           </View>
         </ScrollView>
+        </View>
 
         <SwipeHintBar hints={voiceHints.studentGuide} />
       </View>
@@ -368,5 +372,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

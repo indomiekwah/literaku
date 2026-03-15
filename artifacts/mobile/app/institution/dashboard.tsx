@@ -17,12 +17,14 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleStudents, sampleInstitution, voiceHints } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 export default function InstitutionDashboardScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -38,6 +40,7 @@ export default function InstitutionDashboardScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.logoCircle}>
@@ -144,6 +147,7 @@ export default function InstitutionDashboardScreen() {
             <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
           </Pressable>
         </ScrollView>
+        </View>
 
         <SwipeHintBar hints={voiceHints.institutionDashboard} />
       </View>
@@ -260,5 +264,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#FFFFFF",
     flex: 1,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

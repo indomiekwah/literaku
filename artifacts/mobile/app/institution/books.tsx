@@ -17,6 +17,7 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints, type CatalogBook, type ConversionStatus } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 function getStatusColor(status: ConversionStatus) {
   switch (status) {
@@ -77,6 +78,7 @@ export default function InstitutionBooksScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -89,6 +91,7 @@ export default function InstitutionBooksScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -119,6 +122,7 @@ export default function InstitutionBooksScreen() {
           showsVerticalScrollIndicator={false}
           scrollEnabled={sampleBooks.length > 0}
         />
+        </View>
 
         <SwipeHintBar hints={voiceHints.institutionBooks} />
       </View>
@@ -218,5 +222,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

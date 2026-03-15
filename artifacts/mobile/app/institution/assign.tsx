@@ -17,6 +17,7 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleStudents, voiceHints, type Student } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 interface StudentRowProps {
   student: Student;
@@ -91,6 +92,7 @@ export default function InstitutionAssignScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -124,6 +126,7 @@ export default function InstitutionAssignScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -156,6 +159,7 @@ export default function InstitutionAssignScreen() {
           showsVerticalScrollIndicator={false}
           scrollEnabled={sampleStudents.length > 0}
         />
+        </View>
 
         <SwipeHintBar hints={voiceHints.institutionAssign} />
       </View>
@@ -283,5 +287,11 @@ const styles = StyleSheet.create({
   bookToggleTitleActive: {
     fontFamily: "Inter_600SemiBold",
     color: Colors.text,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

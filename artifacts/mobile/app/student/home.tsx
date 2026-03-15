@@ -17,12 +17,14 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleHistory, voiceHints } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 export default function StudentHomeScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -37,6 +39,7 @@ export default function StudentHomeScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.logoCircle}>
@@ -142,6 +145,7 @@ export default function StudentHomeScreen() {
             <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
           </Pressable>
         </ScrollView>
+        </View>
 
         <SwipeHintBar
           hints={voiceHints.studentHome}
@@ -326,5 +330,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: "rgba(255,255,255,0.8)",
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

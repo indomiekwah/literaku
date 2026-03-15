@@ -25,7 +25,7 @@ export default function StudentReaderScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { speed, textSize } = useReadingPreferences();
+  const { speed, textSize, isVoiceOnly } = useReadingPreferences();
 
   const book = sampleBooks.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(0);
@@ -84,6 +84,7 @@ export default function StudentReaderScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -213,6 +214,7 @@ export default function StudentReaderScreen() {
             <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
             <Text style={styles.infoText}>Change in Settings</Text>
           </View>
+        </View>
         </View>
 
         <SwipeHintBar hints={voiceHints.reader} />
@@ -392,5 +394,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: "center",
     marginTop: 100,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

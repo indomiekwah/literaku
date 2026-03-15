@@ -17,6 +17,7 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints, type CatalogBook } from "@/constants/data";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 const bookColors = ["#E3F2FD", "#E8F5E9", "#FFF3E0", "#F3E5F5", "#FFEBEE"];
 
@@ -68,6 +69,7 @@ export default function StudentLibraryScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const { isVoiceOnly } = useReadingPreferences();
 
   const assignedBooks = sampleBooks.filter(b => b.assignedTo.includes("s1"));
 
@@ -82,6 +84,7 @@ export default function StudentLibraryScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
+        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -115,6 +118,7 @@ export default function StudentLibraryScreen() {
             </View>
           }
         />
+        </View>
 
         <SwipeHintBar
           hints={voiceHints.studentLibrary}
@@ -236,5 +240,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  freezeZone: {
+    flex: 1,
+  },
+  frozen: {
+    opacity: 0.5,
   },
 });

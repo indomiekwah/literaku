@@ -85,10 +85,21 @@ Expo React Native app — **Literaku**: a B2B voice-first accessible reading pla
 - Logout
 - All managed via `ReadingPreferencesContext`
 
+**Voice-Only Mode (Freeze UI)**:
+- Default mode is `"voice"` — all navigation buttons on post-login screens are frozen (pointer-events: none, opacity 0.5)
+- Users navigate purely via voice commands (swipe-left activation)
+- Toggle button in SwipeHintBar (lock/unlock icon, 48px, always interactive) switches between voice-only and touch mode
+- Login screens (index.tsx, student/login.tsx, institution/login.tsx) are exempt from freezing
+- Settings screen has a dedicated "Interaction Mode" section with Voice-Only Mode toggle
+- State managed via `interactionMode: "voice" | "touch"` in ReadingPreferencesContext
+- `isVoiceOnly` computed boolean exported from context
+- When voice-only: green banner "Mode suara — navigasi dengan perintah suara" shown above hint bar
+- Freeze implementation: `<View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>` wraps all interactive content except SwipeHintBar
+
 **ReadingPreferencesContext** (`contexts/ReadingPreferences.tsx`):
-- Exports: `selectedVoice`, `speed` (SpeedValue), `textSize` (number 16-28), `language` ("id"|"en"), `autoDetectLanguage`
+- Exports: `selectedVoice`, `speed` (SpeedValue), `textSize` (number 16-28), `language` ("id"|"en"), `autoDetectLanguage`, `interactionMode` ("voice"|"touch"), `isVoiceOnly`
 - Wrapped at root in `_layout.tsx`
-- Used by reader (speed, textSize) and settings screen
+- Used by reader (speed, textSize), settings screen, and all screens (interactionMode/isVoiceOnly for freeze)
 
 **Screens (12 total)**:
 - `index.tsx` — Role selection ("Who are you?" — Institution or Student)

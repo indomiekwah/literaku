@@ -15,6 +15,7 @@ export const VOICE_OPTIONS: VoiceOption[] = [
 
 export type AppLanguage = "id" | "en";
 export type SpeedValue = 0.5 | 0.75 | 1 | 1.25 | 1.5 | 2;
+export type InteractionMode = "voice" | "touch";
 
 export const SPEED_OPTIONS: SpeedValue[] = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -24,6 +25,7 @@ interface ReadingPreferencesState {
   textSize: number;
   language: AppLanguage;
   autoDetectLanguage: boolean;
+  interactionMode: InteractionMode;
 }
 
 interface ReadingPreferencesContextValue extends ReadingPreferencesState {
@@ -32,6 +34,8 @@ interface ReadingPreferencesContextValue extends ReadingPreferencesState {
   setTextSize: (size: number) => void;
   setLanguage: (lang: AppLanguage) => void;
   setAutoDetectLanguage: (enabled: boolean) => void;
+  setInteractionMode: (mode: InteractionMode) => void;
+  isVoiceOnly: boolean;
   currentVoiceLabel: string;
 }
 
@@ -43,8 +47,10 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
   const [textSize, setTextSize] = useState(19);
   const [language, setLanguage] = useState<AppLanguage>("id");
   const [autoDetectLanguage, setAutoDetectLanguage] = useState(true);
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");
 
   const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Sari (Female)";
+  const isVoiceOnly = interactionMode === "voice";
 
   return (
     <ReadingPreferencesContext.Provider
@@ -54,11 +60,14 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
         textSize,
         language,
         autoDetectLanguage,
+        interactionMode,
         setSelectedVoice,
         setSpeed,
         setTextSize,
         setLanguage,
         setAutoDetectLanguage,
+        setInteractionMode,
+        isVoiceOnly,
         currentVoiceLabel,
       }}
     >
