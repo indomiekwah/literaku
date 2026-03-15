@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useCallback } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 import Colors from "@/constants/colors";
 import type { NaturalVoiceHint } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 
 interface SwipeHintBarProps {
   hints?: NaturalVoiceHint[];
@@ -15,8 +16,33 @@ interface SwipeHintBarProps {
 export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = false }: SwipeHintBarProps) {
   const [hintIndex, setHintIndex] = useState(0);
   const { isVoiceOnly, setInteractionMode } = useReadingPreferences();
+  const { activateVoice } = useVoiceActivation();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const currentHint = hints && hints.length > 0 ? hints[hintIndex % hints.length] : null;
+
+  useEffect(() => {
+    if (isVoiceOnly) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.15,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isVoiceOnly, pulseAnim]);
 
   const cycleHint = useCallback(() => {
     if (hints && hints.length > 1) {
@@ -33,6 +59,11 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
         : "Mode sentuh aktif. Semua tombol bisa ditekan."
     );
   }, [isVoiceOnly, setInteractionMode]);
+
+  const handleMicPress = useCallback(() => {
+    activateVoice();
+    AccessibilityInfo.announceForAccessibility("Perintah suara aktif. Bicara sekarang.");
+  }, [activateVoice]);
 
   return (
     <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel="Voice command hint bar">
@@ -89,6 +120,18 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
             <Ionicons name="help-circle" size={36} color={Colors.primaryLight} />
           </Pressable>
         )}
+
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <Pressable
+            style={styles.micButton}
+            onPress={handleMicPress}
+            accessibilityRole="button"
+            accessibilityLabel="Activate voice command"
+            accessibilityHint="Double tap to open voice commands"
+          >
+            <Ionicons name="mic" size={28} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -164,5 +207,15 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  micButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.studentPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
+    borderColor: "#43A047",
   },
 });

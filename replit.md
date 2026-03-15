@@ -79,11 +79,14 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 
 **Voice System (Azure AI)**:
 - **Activation**: Swipe left anywhere on screen → `SwipeVoiceOverlay` (full-screen pulsing mic, dark overlay)
+- **Mic button**: Persistent 56px green (#2E7D32) circular button in SwipeHintBar, always tappable (even in voice-only freeze mode). Pulses (scale 1→1.15→1) when voice-only mode is active. Last in TalkBack focus order with `accessibilityLabel="Activate voice command"`.
+- **VoiceActivationContext**: Shared context (`contexts/VoiceActivation.tsx`) bridges SwipeHintBar mic button ↔ SwipeVoiceWrapper overlay. Provider wrapped at root `_layout.tsx`.
 - **Dismiss**: Swipe right or tap anywhere to dismiss overlay
-- **SwipeHintBar**: Persistent bottom bar with "Swipe kiri untuk perintah suara" + natural language example. Tap cycles examples.
-- **SwipeVoiceWrapper**: Wraps every screen, uses `react-native-gesture-handler` Gesture.Fling
+- **SwipeHintBar**: Persistent bottom bar with mode toggle, hint text, optional help button, and mic button. Always outside freeze zone.
+- **SwipeVoiceWrapper**: Wraps every screen, uses `react-native-gesture-handler` Gesture.Fling + VoiceActivationContext
 - **Natural language**: Users speak freely in Indonesian or English; Azure AI detects language and intent
 - **Voice hints**: `voiceHints` in data.ts — per-screen context with `{ example, intent }` pairs
+- **TalkBack guide**: Panduan screen has dedicated "Pengguna TalkBack / VoiceOver" section with 3-step instructions for screen reader users
 
 **Settings (student/settings.tsx)**:
 - Voice selector (4 voices: Sari/Budi id-ID, Emma/James en-US)
@@ -119,9 +122,10 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - `constants/data.ts` — Types (Book, ReadingProgress, BookmarkEntry, NaturalVoiceHint) + sample data + voiceHints + formatRupiah
 - `constants/colors.ts` — High-contrast accessible color palette
 - `contexts/ReadingPreferences.tsx` — Voice, speed, textSize, language context
+- `contexts/VoiceActivation.tsx` — Shared context for mic button ↔ voice overlay bridge
 - `components/SwipeVoiceOverlay.tsx` — Full-screen voice listening overlay
-- `components/SwipeHintBar.tsx` — Bottom hint bar with voice mode toggle
-- `components/SwipeVoiceWrapper.tsx` — Gesture wrapper for swipe activation
+- `components/SwipeHintBar.tsx` — Bottom hint bar with voice mode toggle + persistent mic button
+- `components/SwipeVoiceWrapper.tsx` — Gesture wrapper for swipe activation (uses VoiceActivationContext)
 - `app/_layout.tsx` — Stack navigation with 10 routes
 
 **Navigation**: Stack-based, headerShown: false, slide_from_right animation

@@ -1,23 +1,16 @@
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import SwipeVoiceOverlay from "./SwipeVoiceOverlay";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 
 interface SwipeVoiceWrapperProps {
   children: React.ReactNode;
 }
 
 export default function SwipeVoiceWrapper({ children }: SwipeVoiceWrapperProps) {
-  const [voiceActive, setVoiceActive] = useState(false);
-
-  const activateVoice = useCallback(() => {
-    setVoiceActive(true);
-  }, []);
-
-  const dismissVoice = useCallback(() => {
-    setVoiceActive(false);
-  }, []);
+  const { activateVoice, dismissVoice, isVoiceActive } = useVoiceActivation();
 
   const swipeLeft = Gesture.Fling()
     .direction(2)
@@ -39,7 +32,7 @@ export default function SwipeVoiceWrapper({ children }: SwipeVoiceWrapperProps) 
     <GestureDetector gesture={composed}>
       <View style={styles.wrapper}>
         {children}
-        <SwipeVoiceOverlay visible={voiceActive} onDismiss={dismissVoice} />
+        <SwipeVoiceOverlay visible={isVoiceActive} onDismiss={dismissVoice} />
       </View>
     </GestureDetector>
   );

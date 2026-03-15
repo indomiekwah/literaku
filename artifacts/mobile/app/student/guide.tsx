@@ -151,6 +151,42 @@ export default function StudentGuideScreen() {
               ]}
             />
 
+            <View style={styles.talkbackSection}>
+              <View style={styles.talkbackHeader}>
+                <Ionicons name="accessibility" size={28} color="#FFFFFF" />
+                <Text style={styles.talkbackTitle} accessibilityRole="header">Pengguna TalkBack / VoiceOver</Text>
+              </View>
+              <Text style={styles.talkbackText}>
+                Jika Anda menggunakan screen reader seperti TalkBack atau VoiceOver, swipe-kiri mungkin tidak berfungsi karena digunakan oleh screen reader.
+              </Text>
+              <View style={styles.talkbackSteps}>
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 1: Gunakan tombol mikrofon hijau yang selalu ada di pojok kanan bawah layar">
+                  <View style={styles.stepNumber}>
+                    <Text style={styles.stepNumberText}>1</Text>
+                  </View>
+                  <Text style={styles.stepText}>Cari tombol mikrofon hijau di pojok kanan bawah layar</Text>
+                </View>
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 2: Swipe ke kanan sampai mendengar 'Activate voice command'">
+                  <View style={styles.stepNumber}>
+                    <Text style={styles.stepNumberText}>2</Text>
+                  </View>
+                  <Text style={styles.stepText}>Swipe ke kanan sampai mendengar "Activate voice command"</Text>
+                </View>
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 3: Double tap untuk membuka perintah suara, lalu bicara">
+                  <View style={styles.stepNumber}>
+                    <Text style={styles.stepNumberText}>3</Text>
+                  </View>
+                  <Text style={styles.stepText}>Double tap untuk membuka perintah suara, lalu bicara seperti biasa</Text>
+                </View>
+              </View>
+              <View style={styles.talkbackMicDemo}>
+                <View style={styles.talkbackMicCircle}>
+                  <Ionicons name="mic" size={28} color="#FFFFFF" />
+                </View>
+                <Text style={styles.talkbackMicLabel}>Tombol ini selalu ada di setiap layar</Text>
+              </View>
+            </View>
+
             <View style={styles.langSection}>
               <View style={styles.langHeader}>
                 <Ionicons name="language" size={24} color={Colors.primaryLight} />
@@ -375,6 +411,84 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  talkbackSection: {
+    backgroundColor: "#263238",
+    borderRadius: 18,
+    padding: 20,
+    gap: 14,
+    borderWidth: 2,
+    borderColor: "#37474F",
+  },
+  talkbackHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  talkbackTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: "#FFFFFF",
+    flex: 1,
+  },
+  talkbackText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: 26,
+  },
+  talkbackSteps: {
+    gap: 10,
+  },
+  talkbackStep: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 12,
+    padding: 14,
+  },
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.studentPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepNumberText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: "#FFFFFF",
+  },
+  stepText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: "#FFFFFF",
+    flex: 1,
+    lineHeight: 24,
+  },
+  talkbackMicDemo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingTop: 4,
+  },
+  talkbackMicCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.studentPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
+    borderColor: "#43A047",
+  },
+  talkbackMicLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: "rgba(255,255,255,0.7)",
+    flex: 1,
   },
   freezeZone: {
     flex: 1,
