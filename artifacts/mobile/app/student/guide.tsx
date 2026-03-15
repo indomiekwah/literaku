@@ -39,7 +39,7 @@ function ExampleGroup({ title, icon, examples }: ExampleGroupProps) {
             style={styles.exampleCard}
             accessible
             accessibilityRole="text"
-            accessibilityLabel={`Example: say "${item.phrase}" to ${item.result}`}
+            accessibilityLabel={`Contoh: ucapkan "${item.phrase}" untuk ${item.result}`}
           >
             <View style={styles.speechBubble}>
               <Ionicons name="chatbubble-ellipses" size={18} color={Colors.studentPrimary} />
@@ -65,7 +65,7 @@ export default function StudentGuideScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Voice guide. Learn how to use AI-powered voice commands. Swipe left anywhere to start speaking."
+      "Panduan suara. Pelajari cara menggunakan perintah suara AI. Swipe kiri untuk mulai bicara."
     );
   }, []);
 
@@ -74,98 +74,101 @@ export default function StudentGuideScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
-        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
-        <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            accessibilityHint="Double tap to return to previous screen"
-          >
-            <Feather name="arrow-left" size={32} color={Colors.text} />
-          </Pressable>
-          <Text style={styles.headerTitle} accessibilityRole="header">Voice Guide</Text>
-          <View style={{ width: 56 }} />
-        </View>
-
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.heroSection}>
-            <View style={styles.heroCircle}>
-              <Ionicons name="chevron-back" size={28} color={Colors.studentPrimary} />
-              <Ionicons name="mic" size={48} color={Colors.studentPrimary} />
-            </View>
-            <Text style={styles.heroTitle}>Swipe kiri untuk{"\n"}mulai bicara</Text>
-            <Text style={styles.heroSubtext}>
-              Swipe ke kiri dari layar mana saja untuk mengaktifkan perintah suara
-            </Text>
+        <View style={[styles.freezeZone, isVoiceOnly && styles.frozen, { pointerEvents: isVoiceOnly ? 'none' : 'auto' }]}>
+          <View style={styles.header}>
+            <Pressable
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Kembali"
+              accessibilityHint="Double tap to go back"
+            >
+              <Feather name="arrow-left" size={32} color={Colors.text} />
+            </Pressable>
+            <Text style={styles.headerTitle} accessibilityRole="header">Panduan</Text>
+            <View style={{ width: 56 }} />
           </View>
 
-          <View style={styles.aiSection}>
-            <View style={styles.aiHeader}>
-              <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
-              <Text style={styles.aiTitle} accessibilityRole="header">Bicara saja secara alami</Text>
+          <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.heroSection}>
+              <View style={styles.heroCircle}>
+                <Ionicons name="chevron-back" size={28} color={Colors.studentPrimary} />
+                <Ionicons name="mic" size={48} color={Colors.studentPrimary} />
+              </View>
+              <Text style={styles.heroTitle}>Swipe kiri untuk{"\n"}mulai bicara</Text>
+              <Text style={styles.heroSubtext}>
+                Swipe ke kiri dari layar mana saja untuk mengaktifkan perintah suara
+              </Text>
             </View>
-            <Text style={styles.aiText}>
-              Literaku menggunakan Azure AI untuk memahami maksud Anda. Tidak perlu menghafal perintah khusus — cukup bicara seperti biasa, dalam Bahasa Indonesia atau English.
-            </Text>
-            <View style={styles.aiExample}>
-              <Text style={styles.aiExampleLabel}>Contoh:</Text>
-              <Text style={styles.aiExampleText}>"Tolong bacakan halaman selanjutnya"</Text>
-              <Text style={styles.aiExampleText}>"Read the next page please"</Text>
-              <Text style={styles.aiExampleText}>"Ringkasin buku ini dong"</Text>
+
+            <View style={styles.aiSection}>
+              <View style={styles.aiHeader}>
+                <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
+                <Text style={styles.aiTitle} accessibilityRole="header">Bicara saja secara alami</Text>
+              </View>
+              <Text style={styles.aiText}>
+                Literaku menggunakan Azure AI untuk memahami maksud Anda. Tidak perlu menghafal perintah khusus — cukup bicara seperti biasa, dalam Bahasa Indonesia atau English.
+              </Text>
+              <View style={styles.aiExample}>
+                <Text style={styles.aiExampleLabel}>Contoh:</Text>
+                <Text style={styles.aiExampleText}>"Buka penjelajah buku"</Text>
+                <Text style={styles.aiExampleText}>"Lihat koleksi saya"</Text>
+                <Text style={styles.aiExampleText}>"Read the next page please"</Text>
+              </View>
             </View>
-          </View>
 
-          <ExampleGroup
-            title="Navigasi"
-            icon="compass"
-            examples={[
-              { phrase: "Buka perpustakaan saya", result: "Opens your library" },
-              { phrase: "Kembali ke beranda", result: "Goes back to home screen" },
-              { phrase: "Buka pengaturan", result: "Opens settings page" },
-            ]}
-          />
+            <ExampleGroup
+              title="Navigasi"
+              icon="compass"
+              examples={[
+                { phrase: "Buka penjelajah", result: "Membuka halaman jelajah buku" },
+                { phrase: "Lihat koleksi saya", result: "Membuka koleksi buku Anda" },
+                { phrase: "Buka riwayat", result: "Membuka riwayat bacaan" },
+                { phrase: "Kembali ke beranda", result: "Kembali ke halaman utama" },
+                { phrase: "Buka pengaturan", result: "Membuka halaman pengaturan" },
+              ]}
+            />
 
-          <ExampleGroup
-            title="Membaca"
-            icon="book"
-            examples={[
-              { phrase: "Bacakan buku The Art of Speaking", result: "Opens and starts reading the book" },
-              { phrase: "Halaman selanjutnya", result: "Goes to next page" },
-              { phrase: "Mundur 10 detik", result: "Rewinds narration" },
-              { phrase: "Berhenti dulu", result: "Pauses narration" },
-              { phrase: "Lanjutkan", result: "Resumes narration" },
-            ]}
-          />
+            <ExampleGroup
+              title="Membaca"
+              icon="book"
+              examples={[
+                { phrase: "Baca buku Penance", result: "Membuka dan mulai membaca buku" },
+                { phrase: "Halaman selanjutnya", result: "Ke halaman berikutnya" },
+                { phrase: "Mundur 10 detik", result: "Mundurkan narasi" },
+                { phrase: "Berhenti dulu", result: "Jeda narasi" },
+                { phrase: "Lanjutkan", result: "Lanjutkan narasi" },
+              ]}
+            />
 
-          <ExampleGroup
-            title="Pencarian & Lainnya"
-            icon="search"
-            examples={[
-              { phrase: "Tolong ringkasin halaman ini", result: "AI generates a summary" },
-              { phrase: "Lanjutkan membaca", result: "Continues your last book" },
-            ]}
-          />
+            <ExampleGroup
+              title="Pembelian & Token"
+              icon="cart"
+              examples={[
+                { phrase: "Beli buku ini", result: "Membeli buku yang sedang dilihat" },
+                { phrase: "Preview buku", result: "Preview bab pertama" },
+                { phrase: "Redeem token saya", result: "Membuka halaman redeem token" },
+              ]}
+            />
 
-          <View style={styles.langSection}>
-            <View style={styles.langHeader}>
-              <Ionicons name="language" size={24} color={Colors.primaryLight} />
-              <Text style={styles.langTitle} accessibilityRole="header">Deteksi Bahasa Otomatis</Text>
+            <View style={styles.langSection}>
+              <View style={styles.langHeader}>
+                <Ionicons name="language" size={24} color={Colors.primaryLight} />
+                <Text style={styles.langTitle} accessibilityRole="header">Deteksi Bahasa Otomatis</Text>
+              </View>
+              <Text style={styles.langText}>
+                Azure AI secara otomatis mendeteksi apakah Anda berbicara dalam Bahasa Indonesia atau English. Anda bisa beralih bahasa kapan saja.
+              </Text>
             </View>
-            <Text style={styles.langText}>
-              Azure AI secara otomatis mendeteksi apakah Anda berbicara dalam Bahasa Indonesia atau English. Anda bisa beralih bahasa kapan saja — cukup bicara saja.
-            </Text>
-          </View>
 
-          <View style={styles.azureBadge}>
-            <Ionicons name="cloud" size={24} color={Colors.primaryLight} />
-            <View>
-              <Text style={styles.azureBadgeTitle}>Powered by Azure AI</Text>
-              <Text style={styles.azureBadgeText}>Speech-to-Text & Natural Language Understanding</Text>
+            <View style={styles.azureBadge}>
+              <Ionicons name="cloud" size={24} color={Colors.primaryLight} />
+              <View>
+                <Text style={styles.azureBadgeTitle}>Powered by Azure AI</Text>
+                <Text style={styles.azureBadgeText}>Speech-to-Text & Natural Language Understanding</Text>
+              </View>
             </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
         </View>
 
         <SwipeHintBar hints={voiceHints.studentGuide} />

@@ -24,14 +24,12 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="institution/login" />
-      <Stack.Screen name="institution/dashboard" />
-      <Stack.Screen name="institution/books" />
-      <Stack.Screen name="institution/upload" />
-      <Stack.Screen name="institution/assign" />
       <Stack.Screen name="student/login" />
       <Stack.Screen name="student/home" />
+      <Stack.Screen name="student/penjelajah" />
+      <Stack.Screen name="student/book/[id]" />
       <Stack.Screen name="student/library" />
+      <Stack.Screen name="student/riwayat" />
       <Stack.Screen name="student/reader/[id]" />
       <Stack.Screen name="student/guide" />
       <Stack.Screen name="student/settings" />

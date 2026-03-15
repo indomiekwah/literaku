@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
@@ -6,6 +6,7 @@ import {
   AccessibilityInfo,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -18,28 +19,34 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 
-export default function StudentLoginScreen() {
+export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const [instCode, setInstCode] = useState("");
-  const [studentId, setStudentId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Student login. Enter your institution code and student ID to continue."
+      "Login to Literaku. Enter your email and password, or sign in with Google or Microsoft."
     );
   }, []);
 
   const handleLogin = () => {
-    if (!instCode.trim() || !studentId.trim()) {
+    if (!email.trim() || !password.trim()) {
       AccessibilityInfo.announceForAccessibility(
-        "Please fill in both institution code and student ID"
+        "Please fill in both email and password"
       );
       return;
     }
     AccessibilityInfo.announceForAccessibility("Signing in...");
+    router.replace("/student/home");
+  };
+
+  const handleOAuth = (provider: string) => {
+    AccessibilityInfo.announceForAccessibility(`Signing in with ${provider}...`);
     router.replace("/student/home");
   };
 
@@ -48,62 +55,64 @@ export default function StudentLoginScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
-        <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back to role selection"
-            accessibilityHint="Double tap to return to role selection screen"
-          >
-            <Feather name="arrow-left" size={32} color={Colors.text} />
-          </Pressable>
-        </View>
-
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.iconSection}>
             <View style={styles.iconCircle}>
-              <Ionicons name="person" size={48} color={Colors.studentPrimary} />
+              <Ionicons name="headset" size={48} color={Colors.primaryLight} />
             </View>
-            <Text style={styles.title} accessibilityRole="header">Student Login</Text>
-            <Text style={styles.subtitle}>Enter your institution code and student ID</Text>
+            <Text style={styles.title} accessibilityRole="header">Literaku</Text>
+            <Text style={styles.subtitle}>Sign in to start reading</Text>
           </View>
 
           <View style={styles.form}>
-            <View
-              style={styles.inputGroup}
-              accessible
-              accessibilityLabel="Institution code input field"
-            >
-              <Text style={styles.inputLabel}>Institution Code</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. UI2024"
+                placeholder="your@email.com"
                 placeholderTextColor={Colors.borderStrong}
-                value={instCode}
-                onChangeText={setInstCode}
-                autoCapitalize="characters"
-                accessibilityLabel="Institution code"
-                accessibilityHint="Type the code provided by your institution"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                accessibilityLabel="Email address"
+                accessibilityHint="Type your email address here"
               />
             </View>
 
-            <View
-              style={styles.inputGroup}
-              accessible
-              accessibilityLabel="Student ID input field"
-            >
-              <Text style={styles.inputLabel}>Student ID</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. STU001"
-                placeholderTextColor={Colors.borderStrong}
-                value={studentId}
-                onChangeText={setStudentId}
-                autoCapitalize="characters"
-                accessibilityLabel="Student ID"
-                accessibilityHint="Type your student ID number here"
-              />
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="Enter password"
+                  placeholderTextColor={Colors.borderStrong}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoComplete="password"
+                  accessibilityLabel="Password"
+                  accessibilityHint="Enter your password"
+                />
+                <Pressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color={Colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
             </View>
 
             <Pressable
@@ -113,15 +122,65 @@ export default function StudentLoginScreen() {
               ]}
               onPress={handleLogin}
               accessibilityRole="button"
-              accessibilityLabel="Sign in to start reading"
-              accessibilityHint="Double tap to sign in with your credentials"
+              accessibilityLabel="Sign in with email and password"
+              accessibilityHint="Double tap to sign in"
             >
-              <Text style={styles.loginButtonText}>Start Reading</Text>
+              <Text style={styles.loginButtonText}>Sign In</Text>
             </Pressable>
           </View>
-        </View>
 
-        <SwipeHintBar hints={voiceHints.studentLogin} />
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>atau masuk dengan</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.oauthSection}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.oauthButton,
+                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+              ]}
+              onPress={() => handleOAuth("Google")}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in with Google"
+              accessibilityHint="Double tap to sign in using your Google account"
+            >
+              <Ionicons name="logo-google" size={28} color="#DB4437" />
+              <Text style={styles.oauthText}>Continue with Google</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.oauthButton,
+                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+              ]}
+              onPress={() => handleOAuth("Microsoft")}
+              accessibilityRole="button"
+              accessibilityLabel="Sign in with Microsoft"
+              accessibilityHint="Double tap to sign in using your Microsoft account"
+            >
+              <Ionicons name="logo-microsoft" size={28} color="#00A4EF" />
+              <Text style={styles.oauthText}>Continue with Microsoft</Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={styles.registerLink}
+            onPress={() => {
+              AccessibilityInfo.announceForAccessibility("Registration is not yet available");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Create a new account"
+            accessibilityHint="Double tap to register for a new Literaku account"
+          >
+            <Text style={styles.registerText}>
+              Belum punya akun? <Text style={styles.registerBold}>Daftar</Text>
+            </Text>
+          </Pressable>
+        </ScrollView>
+
+        <SwipeHintBar hints={voiceHints.login} />
       </View>
     </SwipeVoiceWrapper>
   );
@@ -133,43 +192,34 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: "row",
-    paddingVertical: 10,
-  },
-  backButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.surface,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 16,
     justifyContent: "center",
-    gap: 32,
+    flexGrow: 1,
+    gap: 24,
   },
   iconSection: {
     alignItems: "center",
     gap: 12,
+    paddingTop: 20,
   },
   iconCircle: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: Colors.successLight,
+    backgroundColor: Colors.voiceBarBg,
     borderWidth: 3,
-    borderColor: Colors.studentPrimary,
+    borderColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
     fontFamily: "Inter_700Bold",
-    fontSize: 28,
-    color: Colors.text,
+    fontSize: 32,
+    color: Colors.primaryLight,
     textAlign: "center",
   },
   subtitle: {
@@ -202,8 +252,23 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     minHeight: 62,
   },
+  passwordRow: {
+    position: "relative",
+  },
+  passwordInput: {
+    paddingRight: 56,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 14,
+    top: 0,
+    bottom: 0,
+    width: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   loginButton: {
-    backgroundColor: Colors.studentPrimary,
+    backgroundColor: Colors.primaryLight,
     borderRadius: 18,
     paddingVertical: 22,
     alignItems: "center",
@@ -215,5 +280,55 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 22,
     color: "#FFFFFF",
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1.5,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
+  },
+  oauthSection: {
+    gap: 14,
+  },
+  oauthButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    paddingVertical: 18,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    minHeight: 66,
+  },
+  oauthText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.text,
+  },
+  registerLink: {
+    alignItems: "center",
+    paddingVertical: 12,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  registerText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
+  },
+  registerBold: {
+    fontFamily: "Inter_700Bold",
+    color: Colors.primaryLight,
   },
 });

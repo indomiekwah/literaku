@@ -16,8 +16,42 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleHistory, voiceHints } from "@/constants/data";
+import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+
+interface NavButtonProps {
+  label: string;
+  subtitle: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  onPress: () => void;
+  accessibilityLabel: string;
+  accessibilityHint: string;
+}
+
+function NavButton({ label, subtitle, icon, color, onPress, accessibilityLabel, accessibilityHint }: NavButtonProps) {
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.navButton,
+        { backgroundColor: color, opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+      ]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+    >
+      <View style={styles.navIconCircle}>
+        <Ionicons name={icon} size={32} color={color} />
+      </View>
+      <View style={styles.navInfo}>
+        <Text style={styles.navTitle}>{label}</Text>
+        <Text style={styles.navSubtitle}>{subtitle}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
+    </Pressable>
+  );
+}
 
 export default function StudentHomeScreen() {
   const insets = useSafeAreaInsets();
@@ -28,123 +62,97 @@ export default function StudentHomeScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Student home. Swipe left for voice commands, or tap a button below."
+      "Beranda Literaku. Pilih menu: Penjelajah, Riwayat, Koleksi, atau Panduan. Swipe kiri untuk perintah suara."
     );
   }, []);
-
-  const lastRead = sampleHistory.length > 0 ? sampleHistory[0] : null;
 
   return (
     <SwipeVoiceWrapper>
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
-        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="book" size={22} color={Colors.studentPrimary} />
-            </View>
-            <View>
+        <View style={[styles.freezeZone, isVoiceOnly && styles.frozen, { pointerEvents: isVoiceOnly ? 'none' : 'auto' }]}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.logoCircle}>
+                <Ionicons name="headset" size={22} color={Colors.primaryLight} />
+              </View>
               <Text style={styles.headerTitle}>Literaku</Text>
-              <Text style={styles.headerSubtitle}>Hi, Andi</Text>
             </View>
-          </View>
-          <Pressable
-            style={styles.settingsButton}
-            onPress={() => router.push("/student/settings")}
-            accessibilityRole="button"
-            accessibilityLabel="Settings"
-            accessibilityHint="Double tap to open settings for voice, language, and display preferences"
-          >
-            <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
-          </Pressable>
-        </View>
-
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.voicePromptSection}>
-            <View style={styles.voicePromptIcon}>
-              <Ionicons name="chevron-back" size={24} color={Colors.studentPrimary} />
-              <Ionicons name="mic" size={36} color={Colors.studentPrimary} />
-            </View>
-            <Text style={styles.voicePromptTitle}>What would you like to read?</Text>
-            <Text style={styles.voicePromptSubtext}>
-              Swipe left and speak naturally, or tap below
-            </Text>
+            <Pressable
+              style={styles.settingsButton}
+              onPress={() => router.push("/student/settings")}
+              accessibilityRole="button"
+              accessibilityLabel="Settings"
+              accessibilityHint="Double tap to open settings"
+            >
+              <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
+            </Pressable>
           </View>
 
-          {lastRead && (
-            <View>
-              <Text style={styles.sectionTitle} accessibilityRole="header">Continue Reading</Text>
-              <Pressable
-                style={({ pressed }) => [styles.continueCard, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-                onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: lastRead.bookId } })}
-                accessibilityRole="button"
-                accessibilityLabel={`Continue reading ${lastRead.title}. Page ${lastRead.lastPage} of ${lastRead.totalPages}. Last read ${lastRead.timestamp}`}
-                accessibilityHint="Double tap to resume reading this book"
-              >
-                <View style={styles.continueIcon}>
-                  <Ionicons name="book" size={32} color={Colors.studentPrimary} />
-                </View>
-                <View style={styles.continueInfo}>
-                  <Text style={styles.continueTitle} numberOfLines={1}>{lastRead.title}</Text>
-                  <Text style={styles.continueProgress}>Page {lastRead.lastPage} of {lastRead.totalPages}</Text>
-                  <Text style={styles.continueTime}>{lastRead.timestamp}</Text>
-                </View>
-                <View style={styles.playCircle}>
-                  <Ionicons name="play" size={28} color="#FFFFFF" />
-                </View>
-              </Pressable>
-            </View>
-          )}
-
-          <Text style={styles.sectionTitle} accessibilityRole="header">Quick Actions</Text>
-
-          <Pressable
-            style={({ pressed }) => [styles.actionButton, styles.libraryAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-            onPress={() => router.push("/student/library")}
-            accessibilityRole="button"
-            accessibilityLabel="Open my library. View all your assigned books"
-            accessibilityHint="Double tap to browse all your assigned books"
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Ionicons name="library" size={36} color="#FFFFFF" />
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>My Library</Text>
-              <Text style={styles.actionSubtitle}>View all your books</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
-          </Pressable>
+            <NavButton
+              label="Penjelajah"
+              subtitle="Jelajahi & beli buku"
+              icon="compass"
+              color="#2E7D32"
+              onPress={() => router.push("/student/penjelajah")}
+              accessibilityLabel="Penjelajah. Jelajahi dan beli buku baru"
+              accessibilityHint="Double tap to browse and buy books"
+            />
 
-          <Pressable
-            style={({ pressed }) => [styles.actionButton, styles.guideAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-            onPress={() => router.push("/student/guide")}
-            accessibilityRole="button"
-            accessibilityLabel="Voice guide. Learn how to use voice commands with AI"
-            accessibilityHint="Double tap to see how to use voice commands"
-          >
-            <Ionicons name="mic" size={36} color="#FFFFFF" />
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>Voice Guide</Text>
-              <Text style={styles.actionSubtitle}>AI-powered voice help</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
-          </Pressable>
+            <NavButton
+              label="Riwayat"
+              subtitle="Riwayat bacaan & bookmark"
+              icon="time"
+              color="#C62828"
+              onPress={() => router.push("/student/riwayat")}
+              accessibilityLabel="Riwayat. Lihat riwayat bacaan dan bookmark"
+              accessibilityHint="Double tap to view reading history"
+            />
 
-          <Pressable
-            style={({ pressed }) => [styles.actionButton, styles.settingsAction, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
-            onPress={() => router.push("/student/settings")}
-            accessibilityRole="button"
-            accessibilityLabel="Settings. Adjust voice, speed, language, and display preferences"
-            accessibilityHint="Double tap to open settings"
-          >
-            <Ionicons name="settings" size={36} color="#FFFFFF" />
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>Settings</Text>
-              <Text style={styles.actionSubtitle}>Voice, speed & display</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
-          </Pressable>
-        </ScrollView>
+            <NavButton
+              label="Koleksi"
+              subtitle="Buku yang dimiliki"
+              icon="library"
+              color="#1565C0"
+              onPress={() => router.push("/student/library")}
+              accessibilityLabel="Koleksi. Buku yang sudah dibeli atau dimiliki"
+              accessibilityHint="Double tap to view your book collection"
+            />
+
+            <NavButton
+              label="Panduan"
+              subtitle="Panduan perintah suara"
+              icon="help-circle"
+              color="#37474F"
+              onPress={() => router.push("/student/guide")}
+              accessibilityLabel="Panduan. Pelajari perintah suara AI"
+              accessibilityHint="Double tap to open voice command guide"
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.redeemButton,
+                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+              ]}
+              onPress={() => router.push("/student/riwayat")}
+              accessibilityRole="button"
+              accessibilityLabel="Redeem Token. Masukkan kode dari institusi Anda"
+              accessibilityHint="Double tap to redeem an institution token for free books"
+            >
+              <Ionicons name="gift" size={28} color={Colors.primaryLight} />
+              <View style={styles.redeemInfo}>
+                <Text style={styles.redeemTitle}>Redeem Token</Text>
+                <Text style={styles.redeemSubtitle}>Punya kode dari institusi?</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={Colors.primaryLight} />
+            </Pressable>
+          </ScrollView>
         </View>
 
         <SwipeHintBar
@@ -179,21 +187,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.successLight,
+    backgroundColor: Colors.voiceBarBg,
     borderWidth: 2,
-    borderColor: Colors.studentPrimary,
+    borderColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 22,
-    color: Colors.text,
-  },
-  headerSubtitle: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
+    fontSize: 24,
+    color: Colors.primaryLight,
   },
   settingsButton: {
     width: 56,
@@ -210,126 +213,65 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 8,
-    gap: 16,
-  },
-  voicePromptSection: {
-    alignItems: "center",
-    backgroundColor: Colors.successLight,
-    borderRadius: 20,
-    padding: 28,
-    gap: 12,
-    borderWidth: 2,
-    borderColor: Colors.studentPrimary,
-  },
-  voicePromptIcon: {
-    flexDirection: "row",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(255,255,255,0.9)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: Colors.studentPrimary,
-    gap: -6,
-  },
-  voicePromptTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 24,
-    color: Colors.text,
-    textAlign: "center",
-    lineHeight: 32,
-  },
-  voicePromptSubtext: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  sectionTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: Colors.text,
-    marginTop: 4,
-  },
-  continueCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    padding: 18,
     gap: 14,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    minHeight: 100,
+    paddingTop: 8,
   },
-  continueIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 14,
-    backgroundColor: Colors.successLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  continueInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  continueTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.text,
-  },
-  continueProgress: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.studentPrimary,
-  },
-  continueTime: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-  },
-  playCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Colors.studentPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionButton: {
+  navButton: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 18,
+    borderRadius: 20,
     paddingVertical: 22,
     paddingHorizontal: 22,
     gap: 16,
-    minHeight: 84,
+    minHeight: 90,
   },
-  libraryAction: {
-    backgroundColor: Colors.studentPrimary,
+  navIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  guideAction: {
-    backgroundColor: Colors.primaryLight,
-  },
-  settingsAction: {
-    backgroundColor: "#5C6BC0",
-  },
-  actionInfo: {
+  navInfo: {
     flex: 1,
-    gap: 2,
+    gap: 4,
   },
-  actionTitle: {
+  navTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 20,
+    fontSize: 22,
     color: "#FFFFFF",
   },
-  actionSubtitle: {
+  navSubtitle: {
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: "rgba(255,255,255,0.8)",
+  },
+  redeemButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: Colors.voiceBarBg,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+    minHeight: 72,
+  },
+  redeemInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  redeemTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.primaryLight,
+  },
+  redeemSubtitle: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 18,
+    color: Colors.textSecondary,
   },
   freezeZone: {
     flex: 1,

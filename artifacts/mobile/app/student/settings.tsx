@@ -70,7 +70,7 @@ export default function StudentSettingsScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
-        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
+        <View style={[styles.freezeZone, isVoiceOnly && styles.frozen, { pointerEvents: isVoiceOnly ? 'none' : 'auto' }]}>
         <View style={styles.header}>
           <Pressable
             style={styles.backButton}
@@ -296,11 +296,11 @@ export default function StudentSettingsScreen() {
             style={styles.logoutButton}
             onPress={() => {
               AccessibilityInfo.announceForAccessibility("Signing out");
-              router.replace("/");
+              router.replace("/student/login");
             }}
             accessibilityRole="button"
             accessibilityLabel="Log out"
-            accessibilityHint="Double tap to sign out and return to role selection"
+            accessibilityHint="Double tap to sign out and return to login screen"
           >
             <Feather name="log-out" size={24} color={Colors.error} />
             <Text style={styles.logoutText}>Log Out</Text>

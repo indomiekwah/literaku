@@ -17,24 +17,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, sampleReadingProgress, voiceHints, type Book, type ReadingProgress } from "@/constants/data";
+import { sampleBooks, formatRupiah, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
-function KoleksiBookCard({ book, progress }: { book: Book; progress?: ReadingProgress }) {
-  const progressPercent = progress
-    ? Math.round((progress.currentPage / progress.totalPages) * 100)
-    : 0;
-
+function BookListItem({ book }: { book: Book }) {
   return (
     <Pressable
       style={({ pressed }) => [
         styles.bookCard,
         { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}
-      onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: book.id } })}
+      onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} oleh ${book.author}. ${book.genre}. ${progress ? `Progress: ${progressPercent}%. Terakhir dibaca ${progress.lastRead}` : "Belum dibaca"}`}
-      accessibilityHint="Double tap to start reading this book"
+      accessibilityLabel={`${book.title} oleh ${book.author}. ${book.genre}. ${formatRupiah(book.price)}${book.owned ? ". Sudah dimiliki" : ""}`}
+      accessibilityHint="Double tap to view book details"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
         <Ionicons name="book" size={28} color="#FFFFFF" />
@@ -43,25 +39,20 @@ function KoleksiBookCard({ book, progress }: { book: Book; progress?: ReadingPro
         <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>
         <Text style={styles.bookAuthor} numberOfLines={1}>{book.author}</Text>
         <Text style={styles.bookGenre}>{book.genre}</Text>
-        {progress ? (
-          <View style={styles.progressSection}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-            </View>
-            <Text style={styles.progressText}>{progressPercent}% · {progress.lastRead}</Text>
+        {book.owned ? (
+          <View style={styles.ownedBadge}>
+            <Text style={styles.ownedText}>Dimiliki</Text>
           </View>
         ) : (
-          <Text style={styles.notStarted}>Belum dibaca</Text>
+          <Text style={styles.bookPrice}>{formatRupiah(book.price)}</Text>
         )}
       </View>
-      <View style={styles.playCircle}>
-        <Ionicons name="play" size={22} color="#FFFFFF" />
-      </View>
+      <Ionicons name="chevron-forward" size={24} color={Colors.borderStrong} />
     </Pressable>
   );
 }
 
-export default function KoleksiScreen() {
+export default function PenjelajahScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
@@ -69,18 +60,21 @@ export default function KoleksiScreen() {
   const { isVoiceOnly } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const ownedBooks = sampleBooks.filter((b) => b.owned);
-  const filteredBooks = ownedBooks.filter((b) => {
+  const filteredBooks = sampleBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    return (
+      b.title.toLowerCase().includes(q) ||
+      b.author.toLowerCase().includes(q) ||
+      b.genre.toLowerCase().includes(q)
+    );
   });
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      `Koleksi Anda. ${ownedBooks.length} buku dimiliki. Swipe kiri untuk perintah suara.`
+      `Penjelajah buku. ${sampleBooks.length} buku tersedia. Gunakan pencarian atau pilih buku.`
     );
-  }, [ownedBooks.length]);
+  }, []);
 
   return (
     <SwipeVoiceWrapper>
@@ -98,7 +92,7 @@ export default function KoleksiScreen() {
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">Koleksi</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">Penjelajah</Text>
             <View style={{ width: 48 }} />
           </View>
 
@@ -106,12 +100,12 @@ export default function KoleksiScreen() {
             <Ionicons name="search" size={22} color={Colors.borderStrong} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Cari di koleksi..."
+              placeholder="Cari buku..."
               placeholderTextColor={Colors.borderStrong}
               value={searchQuery}
               onChangeText={setSearchQuery}
-              accessibilityLabel="Search collection"
-              accessibilityHint="Type to search your book collection"
+              accessibilityLabel="Search books"
+              accessibilityHint="Type to search books by title, author, or genre"
             />
             {searchQuery.length > 0 && (
               <Pressable
@@ -124,34 +118,22 @@ export default function KoleksiScreen() {
             )}
           </View>
 
-          <Text style={styles.bookCount} accessibilityLabel={`${filteredBooks.length} buku di koleksi`}>
-            {filteredBooks.length} buku
-          </Text>
-
           <FlatList
             data={filteredBooks}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const progress = sampleReadingProgress.find((p) => p.bookId === item.id);
-              return <KoleksiBookCard book={item} progress={progress} />;
-            }}
+            renderItem={({ item }) => <BookListItem book={item} />}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Ionicons name="library-outline" size={64} color={Colors.textSecondary} />
-                <Text style={styles.emptyText}>Koleksi masih kosong</Text>
-                <Text style={styles.emptySubtext}>Beli buku di Penjelajah atau redeem token</Text>
+                <Ionicons name="search-outline" size={64} color={Colors.textSecondary} />
+                <Text style={styles.emptyText}>Tidak ada buku ditemukan</Text>
               </View>
             }
           />
         </View>
 
-        <SwipeHintBar
-          hints={voiceHints.koleksi}
-          showHelpButton
-          onHelpPress={() => router.push("/student/guide")}
-        />
+        <SwipeHintBar hints={voiceHints.penjelajah} />
       </View>
     </SwipeVoiceWrapper>
   );
@@ -196,7 +178,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     minHeight: 56,
     gap: 10,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   searchInput: {
     flex: 1,
@@ -204,12 +186,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.text,
     paddingVertical: 14,
-  },
-  bookCount: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.textSecondary,
-    marginBottom: 8,
   },
   listContent: {
     paddingBottom: 8,
@@ -227,8 +203,8 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   bookCover: {
-    width: 60,
-    height: 78,
+    width: 64,
+    height: 80,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -244,63 +220,40 @@ const styles = StyleSheet.create({
   },
   bookAuthor: {
     fontFamily: "Inter_500Medium",
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.textSecondary,
   },
   bookGenre: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.primaryLight,
   },
-  progressSection: {
-    gap: 4,
-    marginTop: 2,
+  bookPrice: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.studentPrimary,
   },
-  progressBar: {
-    height: 6,
-    backgroundColor: Colors.border,
-    borderRadius: 3,
-    overflow: "hidden",
+  ownedBadge: {
+    backgroundColor: Colors.successLight,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: Colors.studentPrimary,
-    borderRadius: 3,
-  },
-  progressText: {
-    fontFamily: "Inter_500Medium",
+  ownedText: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: Colors.studentPrimary,
   },
-  notStarted: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 14,
-    color: Colors.borderStrong,
-  },
-  playCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.studentPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   emptyState: {
     alignItems: "center",
-    justifyContent: "center",
     paddingVertical: 60,
     gap: 12,
   },
   emptyText: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: Colors.textSecondary,
-  },
-  emptySubtext: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Inter_600SemiBold",
     fontSize: 18,
     color: Colors.textSecondary,
-    textAlign: "center",
   },
   freezeZone: {
     flex: 1,

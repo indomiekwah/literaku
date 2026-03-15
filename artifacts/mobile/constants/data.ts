@@ -1,28 +1,27 @@
-export type ConversionStatus = "pending" | "processing" | "ready" | "error";
-
-export interface CatalogBook {
+export interface Book {
   id: string;
   title: string;
   author: string;
-  isbn: string;
-  conversionStatus: ConversionStatus;
-  pages: number;
+  genre: string;
+  category: string;
+  price: number;
+  synopsis: string;
+  coverColor: string;
+  owned: boolean;
   content: string[];
-  assignedTo: string[];
 }
 
-export interface Student {
-  id: string;
-  name: string;
-  studentId: string;
-  assignedBooks: string[];
+export interface ReadingProgress {
+  bookId: string;
+  currentPage: number;
+  totalPages: number;
+  lastRead: string;
 }
 
-export interface Institution {
-  id: string;
-  name: string;
-  code: string;
-  adminEmail: string;
+export interface BookmarkEntry {
+  bookId: string;
+  page: number;
+  note?: string;
 }
 
 export interface ReadingHistory {
@@ -45,149 +44,162 @@ export interface NaturalVoiceHint {
   intent: string;
 }
 
-export const sampleInstitution: Institution = {
-  id: "inst-1",
-  name: "Universitas Indonesia",
-  code: "UI2024",
-  adminEmail: "admin@ui.ac.id",
-};
-
-export const sampleStudents: Student[] = [
-  { id: "s1", name: "Andi Pratama", studentId: "STU001", assignedBooks: ["1", "2", "3"] },
-  { id: "s2", name: "Siti Rahayu", studentId: "STU002", assignedBooks: ["1", "4", "5"] },
-  { id: "s3", name: "Budi Santoso", studentId: "STU003", assignedBooks: ["2", "3", "5"] },
-  { id: "s4", name: "Dewi Lestari", studentId: "STU004", assignedBooks: ["1", "2", "4"] },
-];
-
-export const sampleBooks: CatalogBook[] = [
+export const sampleBooks: Book[] = [
   {
     id: "1",
-    title: "Building Educational Strategies",
-    author: "Prof. Dr. Achmad Sanusi",
-    isbn: "978-602-1234-01-1",
-    conversionStatus: "ready",
-    pages: 30,
-    assignedTo: ["s1", "s2", "s4"],
+    title: "The Silent Patient",
+    author: "Alex Michaelides",
+    genre: "Psychological",
+    category: "Thriller",
+    price: 89000,
+    synopsis: "Alicia Berenson's life is seemingly perfect. A famous painter married to an in-demand fashion photographer, she lives in a grand house with big windows overlooking a park in one of London's most desirable areas. One evening her husband Gabriel returns home late from a fashion shoot, and Alicia shoots him five times in the face. And then she never speaks another word.\n\nAlicia's refusal to talk, or offer any defense, turns the trial into a media circus. She is found guilty and committed to a secure forensic unit in North London where she remains, silent.\n\nTheo Faber is a criminal psychotherapist who has waited a long time for the opportunity to work with Alicia. His determination to get her to talk and unravel the mystery of why she shot her husband takes him down a path more unexpected than he ever imagined.",
+    coverColor: "#1A237E",
+    owned: false,
     content: [
-      "Chapter 1: Foundations of Education\n\nEducation is the cornerstone of human civilization. Throughout history, societies have recognized the transformative power of learning and knowledge acquisition. This chapter explores the fundamental principles that underpin effective educational systems.\n\nThe purpose of education extends far beyond the mere transmission of facts and figures. At its core, education aims to develop critical thinking skills, foster creativity, and prepare individuals for active participation in society.",
-      "The development of educational theory has been shaped by numerous philosophers and thinkers. From Plato's Academy to modern constructivist approaches, each era has contributed unique insights into how people learn and how teaching can be optimized.\n\nKey principles include:\n- Student-centered learning\n- Active engagement with material\n- Collaborative knowledge construction\n- Continuous assessment and feedback",
-      "Chapter 2: Strategic Planning in Education\n\nStrategic planning is essential for educational institutions seeking to achieve their goals effectively. This process involves setting clear objectives, identifying resources, and developing action plans that align with the institution's mission.\n\nEffective strategic planning requires input from all stakeholders, including teachers, administrators, students, and community members.",
-      "The implementation of educational strategies requires careful consideration of local context, available resources, and the specific needs of the student population. No single approach works universally.\n\nSuccessful educational institutions continuously evaluate and adapt their strategies based on outcomes data and emerging research findings.",
-      "Chapter 3: Assessment and Evaluation\n\nAssessment plays a crucial role in the educational process. It provides valuable feedback to both teachers and students, helping to identify areas of strength and areas needing improvement.\n\nModern assessment approaches emphasize formative assessment, which is integrated into the learning process rather than being limited to end-of-unit tests.",
+      "Chapter 1: The Silent Patient\n\nAlicia Berenson was thirty-three years old when she killed her husband. She shot Gabriel in the face five times. She then made no attempt to escape. She waited for the police to arrive.\n\nThe murder was shocking — not just because of the brutality of the act, but because Alicia Berenson was famous. She was a painter, known for her work in figurative art.",
+      "She was also known for her silence. She didn't speak a single word after the murder. Not to the police, not to her lawyers, not to anyone. Her refusal to speak transformed the trial into a media frenzy.\n\nThe tabloids called her the Silent Patient. And this is where our story truly begins.",
+      "Chapter 2: Theo Faber\n\nMy name is Theo Faber. I'm a criminal psychotherapist. I've worked in forensic institutions for over ten years. I've seen all kinds of patients — murderers, arsonists, violent offenders.\n\nBut Alicia Berenson's case has fascinated me from the start. The mystery of her silence consumed me.",
+      "I wanted to understand why she stopped speaking. What drove her to kill the man she supposedly loved? I believed that if I could reach her, if I could get her to open up, I might find the answer.\n\nI applied for a position at the Grove — the secure forensic unit where Alicia was being held.",
+      "Chapter 3: The Grove\n\nThe Grove was a secure forensic psychiatric hospital in North London. It housed a mix of patients — some dangerous, some simply lost. Alicia was in the latter category, or so I believed.\n\nOn my first day, I walked through the heavy security doors with a mixture of excitement and apprehension.",
     ],
   },
   {
     id: "2",
-    title: "The Art of Speaking",
-    author: "Oh Su Hyang",
-    isbn: "978-602-1234-02-8",
-    conversionStatus: "ready",
-    pages: 25,
-    assignedTo: ["s1", "s3", "s4"],
+    title: "Penance",
+    author: "Miroku Kumar",
+    genre: "Psychological",
+    category: "Fiction",
+    price: 75000,
+    synopsis: "Emirs mother refused to accept the life of poverty she was condemned to. In a small village, surrounded by corruption, she chose to fight. Four girls watched everything unfold. They were only children, but they understood more than anyone believed. Even though they had tried to forget, the past would not release them.\n\nEmils mother refused to accept the burden her family carried, a burden that stretched back generations. Find the perpetrator. Find what they took. These became the words that defined her existence, and eventually, the existence of those four girls.",
+    coverColor: "#B71C1C",
+    owned: true,
     content: [
-      "Chapter 1: The Power of Words\n\nWords have the power to inspire, motivate, and transform. The way we communicate shapes our relationships, our careers, and our lives. This book explores the art of effective communication and provides practical strategies for becoming a more compelling speaker.",
-      "Effective communication begins with listening. Before we can speak well, we must learn to listen deeply and empathetically. Active listening involves paying attention not just to words, but to tone, body language, and the emotions behind the message.",
-      "Chapter 2: Building Confidence\n\nMany people struggle with public speaking due to fear and anxiety. However, confidence in speaking can be developed through practice, preparation, and a shift in mindset. Rather than focusing on perfection, focus on connection with your audience.",
-      "Tips for building speaking confidence:\n- Start with small groups and gradually increase audience size\n- Practice regularly in front of a mirror or recording device\n- Focus on your message rather than yourself\n- Remember that most audiences are supportive and want you to succeed",
-      "Chapter 3: Storytelling\n\nStories are one of the most powerful tools in a speaker's arsenal. They create emotional connections, make abstract concepts concrete, and are far more memorable than bare facts and statistics.",
+      "Chapter 1: The Beginning\n\nThe village was small, the kind of place where everyone knew everyone else's business. The houses were modest, built from weathered wood and corrugated iron. Rain collected in puddles along the unpaved roads.",
+      "In one of these modest houses lived a woman who refused to accept her fate. She had four daughters, each born with the same fierce determination that burned in their mother's eyes.\n\nThe girls grew up hearing stories of injustice.",
+      "Chapter 2: The Promise\n\nYears passed. The girls grew into young women, each carrying the weight of their mother's burden. They had made a promise — to find the truth, no matter the cost.\n\nThe search began in earnest on a cold morning in October.",
+      "They split up, each taking a different path. One went to the city, one stayed in the village, one traveled abroad, and one went underground. Together, they would piece together the puzzle that had haunted their family.",
     ],
   },
   {
     id: "3",
-    title: "The Miracle of Limitations",
-    author: "Jihad Al-Malki",
-    isbn: "978-602-1234-03-5",
-    conversionStatus: "ready",
-    pages: 20,
-    assignedTo: ["s1", "s3"],
+    title: "Confessions",
+    author: "Miroku Kumar",
+    genre: "Psychological",
+    category: "Mystery",
+    price: 82000,
+    synopsis: "A gripping psychological mystery that delves into the darkest corners of human guilt and redemption. When a teacher discovers a horrifying truth about the death of her daughter, she decides to take justice into her own hands. But justice, she learns, is never as simple as it seems.\n\nEach chapter reveals a new perspective, a new confession, and a new layer of the truth that will leave you questioning everything you thought you knew.",
+    coverColor: "#4A148C",
+    owned: true,
     content: [
-      "Chapter 1: Embracing Limitations\n\nLimitations are often viewed as obstacles to success. However, this book argues that limitations can actually be powerful catalysts for growth and innovation. When we embrace our limitations, we discover creative solutions we might never have found otherwise.",
-      "History is filled with examples of individuals who achieved greatness not despite their limitations, but because of them. These stories remind us that human potential is not defined by our circumstances but by our response to them.",
-      "Chapter 2: The Growth Mindset\n\nA growth mindset is the belief that abilities and intelligence can be developed through dedication and hard work. This perspective transforms limitations from permanent barriers into temporary challenges that can be overcome.",
-      "Developing a growth mindset requires practice and patience. It involves reframing failure as a learning opportunity and viewing challenges as chances to grow rather than threats to avoid.",
+      "Chapter 1: The Announcement\n\nThe classroom was silent. Thirty-seven pairs of eyes stared at the teacher standing before them. She had an announcement to make — one that would change everything.\n\n'Before we part ways for spring break,' she began, her voice steady, 'I have something to tell you.'",
+      "She paused, letting the weight of the moment settle. The students shifted in their seats, some curious, some bored. None of them suspected what was coming.\n\n'My daughter did not die by accident,' she said.",
+      "Chapter 2: The Truth\n\nThe words hung in the air like smoke. The students looked at each other, confused. Their teacher's daughter had drowned in the school swimming pool months ago. It was ruled an accident.\n\nBut now, standing before them, she told a different story.",
+      "She told them about the evidence she had found. About the security camera footage that had been conveniently erased. About the witnesses who suddenly couldn't remember anything. And about the two students she believed were responsible.",
     ],
   },
   {
     id: "4",
-    title: "Seeing the World Without Eyes",
-    author: "Poppy Oleh",
-    isbn: "978-602-1234-04-2",
-    conversionStatus: "processing",
-    pages: 22,
-    assignedTo: ["s2", "s4"],
+    title: "The Shorts Caller",
+    author: "Dhiah Barhad",
+    genre: "Sci-Fi",
+    category: "Fiction",
+    price: 68000,
+    synopsis: "A mysterious figure known only as the Shorts Caller appears in different cities, always at moments of crisis. No one knows their identity or their purpose. All that is known is that when the Shorts Caller appears, everything changes.\n\nThis mind-bending sci-fi novel explores the nature of time, identity, and the connections that bind us across dimensions.",
+    coverColor: "#006064",
+    owned: false,
     content: [
-      "Chapter 1: A Different Perspective\n\nThis book tells the remarkable story of individuals who navigate the world without sight. Through their experiences, we learn that vision is just one of many ways to perceive and understand the world around us.",
-      "The human brain is remarkably adaptable. When one sense is unavailable, others become enhanced. Many blind individuals develop extraordinary abilities in hearing, touch, and spatial awareness.",
-      "Chapter 2: Technology and Accessibility\n\nModern technology has opened up new possibilities for visually impaired individuals. From screen readers to navigation apps, technology is breaking down barriers and creating a more inclusive world.",
-      "The development of assistive technologies represents one of the most impactful applications of innovation. These tools not only improve independence but also expand opportunities for education and employment.",
+      "Chapter 1: The First Call\n\nThe phone rang at exactly 3:47 AM. Detective Sarah Chen reached for it in the darkness, her hand finding the device by muscle memory.\n\n'This is the Shorts Caller,' said a voice she didn't recognize. 'Listen carefully. You have exactly forty-seven minutes.'",
+      "Sarah sat up in bed, immediately alert. She had heard of the Shorts Caller — everyone in the department had. But no one had ever spoken to them directly.\n\n'Forty-seven minutes until what?' she asked, but the line had already gone dead.",
+      "Chapter 2: The Pattern\n\nSarah pulled up every case file connected to the Shorts Caller. There were seventeen in total, spanning three continents and five years. In each case, someone received a call with a countdown.\n\nAnd in each case, something extraordinary happened when the countdown reached zero.",
     ],
   },
   {
     id: "5",
-    title: "World Without Light",
-    author: "Dunya Cahaya",
-    isbn: "978-602-1234-05-9",
-    conversionStatus: "pending",
-    pages: 18,
-    assignedTo: ["s2", "s3"],
+    title: "Laskar Pelangi",
+    author: "Andrea Hirata",
+    genre: "Drama",
+    category: "Indonesian Literature",
+    price: 72000,
+    synopsis: "Kisah inspiratif tentang sepuluh anak dari keluarga miskin di Belitung yang berjuang mendapatkan pendidikan. Dipimpin oleh dua guru yang luar biasa berdedikasi, mereka membuktikan bahwa semangat belajar tidak bisa dihalangi oleh kemiskinan.\n\nNovel ini menjadi salah satu karya sastra Indonesia yang paling dicintai, menginspirasi jutaan pembaca di seluruh dunia.",
+    coverColor: "#E65100",
+    owned: true,
     content: [
-      "Chapter 1: Into the Darkness\n\nWhat would the world be like without light? This thought-provoking book explores the concept of darkness — both literal and metaphorical — and how it shapes our understanding of existence.",
-      "Throughout human history, darkness has been both feared and revered. Ancient civilizations built elaborate myths around the cycle of light and darkness, recognizing their fundamental importance to life.",
-      "Chapter 2: Finding Light Within\n\nEven in the darkest times, the human spirit has the capacity to find and create light. This chapter explores stories of resilience and hope from people who have faced extreme adversity.",
+      "Bab 1: Sepuluh Murid Baru\n\nPagi itu, hanya sepuluh orang anak yang datang ke sekolah Muhammadiyah. Pak Harfan dan Bu Mus sudah menunggu dengan cemas — jika murid baru tidak mencapai sepuluh orang, sekolah akan ditutup.\n\nNamun takdir berkata lain. Tepat saat harapan hampir pupus, seorang anak lelaki berlari masuk.",
+      "Anak itu bernama Harun. Dengan kedatangannya, genaplah sepuluh murid yang diperlukan. Bu Mus menghela napas lega. Sekolah mereka selamat — untuk saat ini.\n\nMereka menyebut diri mereka Laskar Pelangi.",
+      "Bab 2: Lintang\n\nDi antara sepuluh murid itu, ada seorang anak bernama Lintang. Ia tinggal paling jauh dari sekolah — empat puluh kilometer jauhnya. Setiap hari ia bersepeda melewati hutan dan sungai.\n\nNamun Lintang adalah murid paling cerdas yang pernah dimiliki sekolah itu.",
+    ],
+  },
+  {
+    id: "6",
+    title: "Bumi Manusia",
+    author: "Pramoedya Ananta Toer",
+    genre: "Historical",
+    category: "Indonesian Literature",
+    price: 95000,
+    synopsis: "Set in the Dutch colonial era of Indonesia, this masterpiece tells the story of Minke, a young Javanese student who navigates love, politics, and identity. Through his eyes, we witness the awakening of a nation and the price of fighting for justice in an unjust world.",
+    coverColor: "#33691E",
+    owned: false,
+    content: [
+      "Bab 1: Sebuah Pertemuan\n\nNamaku Minke. Aku adalah seorang murid di H.B.S. — satu-satunya sekolah menengah Belanda di Surabaya. Aku adalah satu dari sedikit pribumi yang beruntung bisa mengenyam pendidikan Eropa.",
+      "Pada suatu sore yang panas, aku diajak temanku Robert Suurhof mengunjungi sebuah rumah besar di pinggir kota. Di sanalah aku pertama kali bertemu dengan Annelies Mellema — gadis Indo yang akan mengubah hidupku selamanya.",
+      "Bab 2: Nyai Ontosoroh\n\nIbu Annelies, yang dipanggil Nyai Ontosoroh, adalah wanita yang luar biasa. Meskipun seorang gundik, ia mengelola seluruh bisnis keluarga Mellema dengan kecerdasan yang mengagumkan.",
     ],
   },
 ];
 
-export const sampleHistory: ReadingHistory[] = [
-  { id: "h1", bookId: "1", title: "Building Educational Strategies", lastPage: 3, totalPages: 5, timestamp: "10 minutes ago" },
-  { id: "h2", bookId: "2", title: "The Art of Speaking", lastPage: 2, totalPages: 5, timestamp: "2 hours ago" },
-  { id: "h3", bookId: "3", title: "The Miracle of Limitations", lastPage: 1, totalPages: 4, timestamp: "1 day ago" },
+export const sampleReadingProgress: ReadingProgress[] = [
+  { bookId: "2", currentPage: 2, totalPages: 4, lastRead: "10 menit lalu" },
+  { bookId: "3", currentPage: 1, totalPages: 4, lastRead: "2 jam lalu" },
+  { bookId: "5", currentPage: 3, totalPages: 3, lastRead: "1 hari lalu" },
 ];
 
+export const sampleBookmarks: BookmarkEntry[] = [
+  { bookId: "1", page: 1, note: "Great opening" },
+  { bookId: "3", page: 2 },
+  { bookId: "6", page: 1 },
+];
+
+export const sampleHistory: ReadingHistory[] = [
+  { id: "h1", bookId: "2", title: "Penance", lastPage: 2, totalPages: 4, timestamp: "10 menit lalu" },
+  { id: "h2", bookId: "3", title: "Confessions", lastPage: 1, totalPages: 4, timestamp: "2 jam lalu" },
+  { id: "h3", bookId: "5", title: "Laskar Pelangi", lastPage: 3, totalPages: 3, timestamp: "1 hari lalu" },
+];
+
+export function formatRupiah(amount: number): string {
+  return `Rp${amount.toLocaleString("id-ID")}`;
+}
+
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
-  roleSelect: [
-    { example: "Saya seorang siswa", intent: "Open student login" },
-    { example: "I'm an administrator", intent: "Open institution login" },
-    { example: "Buka login admin", intent: "Open institution login" },
-  ],
-  institutionLogin: [
-    { example: "Masuk ke akun saya", intent: "Sign in" },
-    { example: "Sign me in", intent: "Sign in" },
-    { example: "Kembali ke awal", intent: "Go back" },
-  ],
-  institutionDashboard: [
-    { example: "Upload buku baru", intent: "Open upload form" },
-    { example: "I want to assign books", intent: "Open assignments" },
-    { example: "Lihat semua buku", intent: "Open book catalog" },
-    { example: "Keluar dari akun", intent: "Log out" },
-  ],
-  institutionBooks: [
-    { example: "Tambah buku baru", intent: "Upload new book" },
-    { example: "Go back to dashboard", intent: "Return to dashboard" },
-  ],
-  institutionUpload: [
-    { example: "Upload bukunya", intent: "Submit the book" },
-    { example: "Kembali", intent: "Go back" },
-  ],
-  institutionAssign: [
-    { example: "Assign buku ini ke Andi", intent: "Assign a book" },
-    { example: "Give this book to Siti", intent: "Assign a book" },
-    { example: "Kembali ke dashboard", intent: "Return to dashboard" },
-  ],
-  studentLogin: [
+  login: [
     { example: "Masuk", intent: "Sign in" },
     { example: "Let me in", intent: "Sign in" },
-    { example: "Kembali", intent: "Go back" },
   ],
   studentHome: [
-    { example: "Bacakan buku The Art of Speaking", intent: "Open a specific book" },
-    { example: "Lanjutkan membaca", intent: "Continue last book" },
-    { example: "Buka perpustakaan saya", intent: "Open library" },
+    { example: "Buka penjelajah", intent: "Open book explorer" },
+    { example: "Lihat koleksi saya", intent: "Open my collection" },
+    { example: "Buka riwayat", intent: "Open reading history" },
+    { example: "Buka panduan", intent: "Open voice guide" },
     { example: "Buka pengaturan", intent: "Open settings" },
+    { example: "Redeem token", intent: "Open token redemption" },
   ],
-  studentLibrary: [
-    { example: "Baca buku yang pertama", intent: "Open a book" },
-    { example: "Read The Miracle of Limitations", intent: "Open a specific book" },
+  penjelajah: [
+    { example: "Cari buku The Silent Patient", intent: "Search for a book" },
+    { example: "Buka detail buku pertama", intent: "Open book details" },
+    { example: "Kembali ke beranda", intent: "Go back to home" },
+  ],
+  bookDetail: [
+    { example: "Beli buku ini", intent: "Purchase this book" },
+    { example: "Preview buku", intent: "Preview book content" },
+    { example: "Kembali", intent: "Go back" },
+  ],
+  koleksi: [
+    { example: "Baca buku Penance", intent: "Open a specific book" },
+    { example: "Read The Silent Patient", intent: "Open a specific book" },
+    { example: "Kembali ke beranda", intent: "Go back to home" },
+  ],
+  riwayat: [
+    { example: "Lanjutkan membaca", intent: "Continue last book" },
+    { example: "Redeem token saya", intent: "Enter redemption token" },
     { example: "Kembali ke beranda", intent: "Go back to home" },
   ],
   reader: [
@@ -198,7 +210,7 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Berhenti dulu", intent: "Pause narration" },
     { example: "Lanjutkan", intent: "Resume narration" },
     { example: "Tolong ringkasin halaman ini", intent: "AI summarize" },
-    { example: "Kembali ke perpustakaan", intent: "Go back to library" },
+    { example: "Kembali ke koleksi", intent: "Go back to collection" },
   ],
   studentGuide: [
     { example: "Kembali ke beranda", intent: "Go back to home" },

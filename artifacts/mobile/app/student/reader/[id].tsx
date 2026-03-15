@@ -34,7 +34,7 @@ export default function StudentReaderScreen() {
   React.useEffect(() => {
     if (book) {
       AccessibilityInfo.announceForAccessibility(
-        `Now reading ${book.title}. Swipe left for voice commands, or use the controls below.`
+        `Membaca ${book.title}. Swipe kiri untuk perintah suara, atau gunakan tombol kontrol.`
       );
     }
   }, [book?.title]);
@@ -43,12 +43,8 @@ export default function StudentReaderScreen() {
     return (
       <SwipeVoiceWrapper>
         <View style={[styles.container, { paddingTop: topPadding }]}>
-          <Text
-            style={styles.errorText}
-            accessibilityRole="alert"
-            accessibilityLabel="Error: Book not found"
-          >
-            Book not found
+          <Text style={styles.errorText} accessibilityRole="alert">
+            Buku tidak ditemukan
           </Text>
         </View>
       </SwipeVoiceWrapper>
@@ -61,22 +57,22 @@ export default function StudentReaderScreen() {
   const goToPage = (page: number) => {
     if (page >= 0 && page < totalPages) {
       setCurrentPage(page);
-      AccessibilityInfo.announceForAccessibility(`Page ${page + 1} of ${totalPages}`);
+      AccessibilityInfo.announceForAccessibility(`Halaman ${page + 1} dari ${totalPages}`);
     }
   };
 
   const handleRewind = () => {
-    AccessibilityInfo.announceForAccessibility("Rewound 10 seconds");
+    AccessibilityInfo.announceForAccessibility("Mundur 10 detik");
   };
 
   const handleForward = () => {
-    AccessibilityInfo.announceForAccessibility("Forwarded 10 seconds");
+    AccessibilityInfo.announceForAccessibility("Maju 10 detik");
   };
 
   const handlePlayPause = () => {
     const newState = !isPlaying;
     setIsPlaying(newState);
-    AccessibilityInfo.announceForAccessibility(newState ? "Playing" : "Paused");
+    AccessibilityInfo.announceForAccessibility(newState ? "Memutar" : "Dijeda");
   };
 
   return (
@@ -84,137 +80,135 @@ export default function StudentReaderScreen() {
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
         <StatusBar style="dark" />
 
-        <View pointerEvents={isVoiceOnly ? 'none' : 'auto'} style={[styles.freezeZone, isVoiceOnly && styles.frozen]}>
-        <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Go back to library"
-            accessibilityHint="Double tap to return to your library"
-          >
-            <Feather name="arrow-left" size={28} color={Colors.text} />
-          </Pressable>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
-              {book.title}
-            </Text>
-            <Text style={styles.headerSubtitle}>
-              Page {currentPage + 1} of {totalPages}
-            </Text>
+        <View style={[styles.freezeZone, isVoiceOnly && styles.frozen, { pointerEvents: isVoiceOnly ? 'none' : 'auto' }]}>
+          <View style={styles.header}>
+            <Pressable
+              style={styles.backButton}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Kembali"
+              accessibilityHint="Double tap to go back"
+            >
+              <Feather name="arrow-left" size={28} color={Colors.text} />
+            </Pressable>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle} numberOfLines={1} accessibilityRole="header">
+                {book.title}
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                Halaman {currentPage + 1} dari {totalPages}
+              </Text>
+            </View>
+            <Pressable
+              style={styles.summarizeHeaderButton}
+              onPress={() => {
+                AccessibilityInfo.announceForAccessibility("Membuat ringkasan AI dari halaman ini");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Ringkas halaman ini dengan AI"
+              accessibilityHint="Double tap to generate an AI summary of the current page"
+            >
+              <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
+            </Pressable>
           </View>
-          <Pressable
-            style={styles.summarizeHeaderButton}
-            onPress={() => {
-              AccessibilityInfo.announceForAccessibility("Generating AI summary of this page");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Summarize this page with AI"
-            accessibilityHint="Double tap to generate and hear an AI summary of the current page"
-          >
-            <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
-          </Pressable>
-        </View>
 
-        <View
-          style={styles.progressBarContainer}
-          accessible
-          accessibilityRole="progressbar"
-          accessibilityLabel="Reading progress"
-          accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
-        >
-          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
-        </View>
-
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
           <View
-            style={styles.readerCard}
-            accessibilityRole="text"
-            accessibilityLabel={`Page ${currentPage + 1} of ${totalPages}. ${book.content[currentPage]}`}
+            style={styles.progressBarContainer}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel="Progress membaca"
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
           >
-            <Text style={[styles.pageContent, { fontSize: textSize, lineHeight: textSize * 1.7 }]}>
-              {book.content[currentPage]}
-            </Text>
-          </View>
-        </ScrollView>
-
-        <View style={styles.controlsSection}>
-          <View style={styles.narrationRow}>
-            <Pressable
-              style={styles.rewindButton}
-              onPress={handleRewind}
-              accessibilityRole="button"
-              accessibilityLabel="Rewind 10 seconds"
-              accessibilityHint="Double tap to go back 10 seconds in the narration"
-            >
-              <MaterialIcons name="replay-10" size={32} color={Colors.text} />
-            </Pressable>
-
-            <Pressable
-              style={styles.playButton}
-              onPress={handlePlayPause}
-              accessibilityRole="button"
-              accessibilityLabel={isPlaying ? "Pause narration" : "Play narration"}
-              accessibilityHint={isPlaying ? "Double tap to pause the narration" : "Double tap to start reading aloud"}
-            >
-              <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
-            </Pressable>
-
-            <Pressable
-              style={styles.forwardButton}
-              onPress={handleForward}
-              accessibilityRole="button"
-              accessibilityLabel="Forward 10 seconds"
-              accessibilityHint="Double tap to skip ahead 10 seconds in the narration"
-            >
-              <MaterialIcons name="forward-10" size={32} color={Colors.text} />
-            </Pressable>
+            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
           </View>
 
-          <View style={styles.pageNavRow}>
-            <Pressable
-              style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
-              onPress={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 0}
-              accessibilityRole="button"
-              accessibilityLabel="Previous page"
-              accessibilityHint="Double tap to go to the previous page"
-              accessibilityState={{ disabled: currentPage === 0 }}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View
+              style={styles.readerCard}
+              accessibilityRole="text"
+              accessibilityLabel={`Halaman ${currentPage + 1} dari ${totalPages}. ${book.content[currentPage]}`}
             >
-              <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
-              <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Previous</Text>
-            </Pressable>
+              <Text style={[styles.pageContent, { fontSize: textSize, lineHeight: textSize * 1.7 }]}>
+                {book.content[currentPage]}
+              </Text>
+            </View>
+          </ScrollView>
 
-            <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
-              {currentPage + 1} / {totalPages}
-            </Text>
+          <View style={styles.controlsSection}>
+            <View style={styles.narrationRow}>
+              <Pressable
+                style={styles.rewindButton}
+                onPress={handleRewind}
+                accessibilityRole="button"
+                accessibilityLabel="Mundur 10 detik"
+                accessibilityHint="Double tap to rewind 10 seconds"
+              >
+                <MaterialIcons name="replay-10" size={32} color={Colors.text} />
+              </Pressable>
 
-            <Pressable
-              style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
-              onPress={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages - 1}
-              accessibilityRole="button"
-              accessibilityLabel="Next page"
-              accessibilityHint="Double tap to go to the next page"
-              accessibilityState={{ disabled: currentPage === totalPages - 1 }}
-            >
-              <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Next</Text>
-              <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
-            </Pressable>
+              <Pressable
+                style={styles.playButton}
+                onPress={handlePlayPause}
+                accessibilityRole="button"
+                accessibilityLabel={isPlaying ? "Jeda narasi" : "Putar narasi"}
+                accessibilityHint={isPlaying ? "Double tap to pause" : "Double tap to play"}
+              >
+                <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
+              </Pressable>
+
+              <Pressable
+                style={styles.forwardButton}
+                onPress={handleForward}
+                accessibilityRole="button"
+                accessibilityLabel="Maju 10 detik"
+                accessibilityHint="Double tap to forward 10 seconds"
+              >
+                <MaterialIcons name="forward-10" size={32} color={Colors.text} />
+              </Pressable>
+            </View>
+
+            <View style={styles.pageNavRow}>
+              <Pressable
+                style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
+                onPress={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 0}
+                accessibilityRole="button"
+                accessibilityLabel="Halaman sebelumnya"
+                accessibilityState={{ disabled: currentPage === 0 }}
+              >
+                <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
+                <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Sebelum</Text>
+              </Pressable>
+
+              <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
+                {currentPage + 1} / {totalPages}
+              </Text>
+
+              <Pressable
+                style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
+                onPress={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages - 1}
+                accessibilityRole="button"
+                accessibilityLabel="Halaman selanjutnya"
+                accessibilityState={{ disabled: currentPage === totalPages - 1 }}
+              >
+                <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Lanjut</Text>
+                <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
+              </Pressable>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Ionicons name="speedometer-outline" size={18} color={Colors.textSecondary} />
+              <Text style={styles.infoText}>{speed}x</Text>
+              <Text style={styles.infoDot}>·</Text>
+              <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
+              <Text style={styles.infoText}>Ubah di Pengaturan</Text>
+            </View>
           </View>
-
-          <View style={styles.infoRow}>
-            <Ionicons name="speedometer-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.infoText}>{speed}x speed</Text>
-            <Text style={styles.infoDot}>·</Text>
-            <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.infoText}>Change in Settings</Text>
-          </View>
-        </View>
         </View>
 
         <SwipeHintBar hints={voiceHints.reader} />
