@@ -145,24 +145,126 @@ export const sampleBooks: Book[] = [
       "Bab 2: Nyai Ontosoroh\n\nIbu Annelies, yang dipanggil Nyai Ontosoroh, adalah wanita yang luar biasa. Meskipun seorang gundik, ia mengelola seluruh bisnis keluarga Mellema dengan kecerdasan yang mengagumkan.",
     ],
   },
+  {
+    id: "7",
+    title: "Ronggeng Dukuh Paruk",
+    author: "Ahmad Tohari",
+    genre: "Drama",
+    category: "Indonesian Literature",
+    price: 78000,
+    synopsis: "Kisah Srintil, seorang gadis desa yang menjadi ronggeng — penari tradisional Jawa — di dusun terpencil Paruk. Novel trilogi ini menggambarkan kehidupan desa, tradisi, cinta, dan tragedi politik 1965 yang menghancurkan segalanya.\n\nKarya sastra Indonesia yang paling kuat menggambarkan nasib rakyat kecil dalam pusaran sejarah.",
+    coverColor: "#5D4037",
+    owned: false,
+    content: [
+      "Bab 1: Dukuh Paruk\n\nDukuh Paruk adalah sebuah pedukuhan kecil yang terpencil. Penduduknya hidup sederhana, bergantung pada apa yang bisa ditanam di tanah kering mereka. Namun Dukuh Paruk terkenal karena satu hal: ronggengnya.",
+      "Srintil masih kecil ketika kedua orangtuanya meninggal karena tempe bongkrek beracun. Ia diasuh oleh kakeknya, Sakarya. Sejak kecil, dalam dirinya sudah terlihat bakat menari yang luar biasa.",
+      "Bab 2: Menjadi Ronggeng\n\nKetika Srintil berusia sebelas tahun, ia mulai menari di halaman rumah kakeknya. Gerakan tubuhnya begitu indah sehingga membuat seluruh dukuh terpesona. Para tetua desa sepakat: Srintil harus menjadi ronggeng.",
+    ],
+  },
+  {
+    id: "8",
+    title: "Cantik Itu Luka",
+    author: "Eka Kurniawan",
+    genre: "Magical Realism",
+    category: "Indonesian Literature",
+    price: 88000,
+    synopsis: "Dewi Ayu, seorang pelacur cantik di kota Halimunda, bangkit dari kuburnya setelah dua puluh satu tahun. Novel epik ini menelusuri sejarah Indonesia dari era kolonial hingga reformasi melalui empat generasi keluarganya.\n\nDipuji oleh The New York Times dan diterjemahkan ke 30 bahasa, novel ini adalah mahakarya realisme magis Indonesia.",
+    coverColor: "#880E4F",
+    owned: true,
+    content: [
+      "Bab 1: Kebangkitan\n\nPada suatu sore di akhir bulan Maret, Dewi Ayu bangkit dari kuburnya setelah dua puluh satu tahun meninggal. Ia berjalan pulang ke rumahnya dengan gaun putih yang sudah lapuk dimakan waktu.",
+      "Penduduk Halimunda yang melihatnya berjalan di jalan raya nyaris tak percaya. Mereka yang mengenalnya dulu ingat betul: Dewi Ayu adalah perempuan paling cantik yang pernah dilahirkan kota ini.",
+      "Bab 2: Halimunda\n\nKota Halimunda terletak di pesisir selatan Jawa. Didirikan oleh Belanda sebagai kota perdagangan, Halimunda tumbuh menjadi kota yang penuh kontradiksi — indah namun menyimpan kekerasan, kaya namun dikelilingi kemiskinan.",
+    ],
+  },
+  {
+    id: "9",
+    title: "Negeri 5 Menara",
+    author: "Ahmad Fuadi",
+    genre: "Drama",
+    category: "Indonesian Literature",
+    price: 75000,
+    synopsis: "Novel inspiratif tentang enam santri dari berbagai daerah di Indonesia yang bermimpi besar di sebuah pesantren di Jawa Timur. Dengan mantra 'man jadda wajada' — siapa yang bersungguh-sungguh pasti berhasil — mereka menempa diri menuju cita-cita.\n\nDiangkat dari kisah nyata penulis, novel ini menjadi best-seller dan menginspirasi jutaan pembaca muda Indonesia.",
+    coverColor: "#1565C0",
+    owned: false,
+    content: [
+      "Bab 1: Keberangkatan\n\nAmak tidak pernah berhenti menangis sejak keputusan itu dibuat. Aku, Alif Fikri, anak bungsu dari keluarga Minangkabau, harus pergi ke pesantren di Jawa. Jauh dari kampung halaman.",
+      "Perjalanan dari Maninjau ke Ponorogo memakan waktu dua hari. Aku duduk di bus dengan perasaan campur aduk — takut, penasaran, dan sedikit bersemangat. Di depanku menanti kehidupan yang sama sekali baru.",
+      "Bab 2: Pondok Madani\n\nPondok Madani berdiri megah di tengah sawah hijau. Bangunannya sederhana namun tertata rapi. Di sinilah ribuan santri dari seluruh Indonesia belajar ilmu agama dan ilmu dunia secara bersamaan.",
+    ],
+  },
+  {
+    id: "10",
+    title: "Supernova: Ksatria, Puteri, dan Bintang Jatuh",
+    author: "Dewi Lestari",
+    genre: "Philosophical Fiction",
+    category: "Indonesian Literature",
+    price: 85000,
+    synopsis: "Dua sahabat — Dimas dan Reuben — menulis sebuah novel tentang Ksatria dan Puteri yang hidup dalam dunia yang berbeda. Sementara itu, seorang ilmuwan wanita bernama Bodhi mencari jawaban atas misteri alam semesta.\n\nNovel ini memadukan sains, spiritualitas, dan cinta dalam sebuah kisah yang menantang cara berpikir konvensional.",
+    coverColor: "#311B92",
+    owned: false,
+    content: [
+      "Bab 1: Prolog\n\nDimas dan Reuben duduk di sebuah kafe kecil di Jakarta. Di antara mereka tergeletak tumpukan kertas — naskah novel yang telah mereka kerjakan selama berbulan-bulan. Mereka menyebutnya Supernova.",
+      "Reuben mengangkat cangkir kopinya. 'Kita perlu seorang Ksatria,' katanya. 'Seseorang yang berani menantang semua aturan.' Dimas mengangguk. 'Dan seorang Puteri. Yang tidak butuh diselamatkan.'",
+      "Bab 2: Bodhi\n\nDi sebuah laboratorium di Bandung, seorang wanita muda bernama Bodhi Arya sedang mengamati data. Ia adalah fisikawan teoretis — salah satu dari sedikit perempuan Indonesia di bidangnya.",
+    ],
+  },
+  {
+    id: "11",
+    title: "Ayat-Ayat Cinta",
+    author: "Habiburrahman El Shirazy",
+    genre: "Romance",
+    category: "Indonesian Literature",
+    price: 79000,
+    synopsis: "Fahri, mahasiswa Indonesia di Universitas Al-Azhar, Kairo, hidup sederhana dan tekun belajar. Hidupnya berubah ketika ia bertemu empat wanita yang masing-masing memiliki perasaan terhadapnya.\n\nNovel ini menjadi fenomena sastra Indonesia dengan penjualan jutaan eksemplar dan diadaptasi ke film laris.",
+    coverColor: "#004D40",
+    owned: true,
+    content: [
+      "Bab 1: Flat Zaitun\n\nFlat Zaitun terletak di lantai empat sebuah gedung tua di kawasan Hadayek Helwan, pinggiran Kairo. Di sinilah aku, Fahri, tinggal bersama tiga teman satu flat dari Indonesia.",
+      "Pagi itu, seperti biasa, aku bangun sebelum subuh. Udara Kairo masih dingin. Aku berwudhu, shalat, lalu membuka mushaf Al-Quran. Setiap hari aku membaca tiga juz — target yang kupasang untuk menyelesaikan hafalan.",
+      "Bab 2: Maria\n\nMaria Girgis adalah tetangga kami di lantai bawah. Ia seorang gadis Kristen Koptik yang cantik dan ramah. Setiap kali berpapasan di tangga, ia selalu menyapa dengan senyum.",
+    ],
+  },
+  {
+    id: "12",
+    title: "Perahu Kertas",
+    author: "Dee Lestari",
+    genre: "Romance",
+    category: "Indonesian Literature",
+    price: 82000,
+    synopsis: "Kugy, gadis nyentrik yang bermimpi menjadi penulis dongeng, dan Keenan, pelukis berbakat yang dipaksa kuliah ekonomi. Keduanya bertemu di Bandung dan memulai persahabatan yang perlahan berubah menjadi cinta.\n\nNovel dua jilid ini menggambarkan perjalanan menemukan passion dan cinta sejati dengan gaya bercerita yang hangat dan menyentuh.",
+    coverColor: "#F57F17",
+    owned: false,
+    content: [
+      "Bab 1: Kugy\n\nNamaku Kugy. Lengkapnya Kugy Utami, tapi jangan panggil aku dengan nama lengkap karena aku tidak suka. Aku suka menulis dongeng. Dongeng tentang Jenderal Pilik dan pasukannya.",
+      "Hari ini adalah hari pertamaku di Bandung. Aku pindah dari Jakarta untuk kuliah di sebuah universitas yang katanya bagus. Tapi yang paling membuatku senang adalah: Bandung punya banyak sudut yang bisa menginspirasi dongeng.",
+      "Bab 2: Keenan\n\nKeenan duduk di depan kanvas kosong. Kuasnya tergenggam erat, tapi tangannya tidak bergerak. Sudah tiga jam ia duduk di situ, menunggu inspirasi yang tak kunjung datang.",
+    ],
+  },
 ];
 
 export const sampleReadingProgress: ReadingProgress[] = [
   { bookId: "2", currentPage: 2, totalPages: 4, lastRead: "10 menit lalu" },
   { bookId: "3", currentPage: 1, totalPages: 4, lastRead: "2 jam lalu" },
   { bookId: "5", currentPage: 3, totalPages: 3, lastRead: "1 hari lalu" },
+  { bookId: "8", currentPage: 2, totalPages: 3, lastRead: "3 hari lalu" },
+  { bookId: "11", currentPage: 1, totalPages: 3, lastRead: "1 minggu lalu" },
 ];
 
 export const sampleBookmarks: BookmarkEntry[] = [
   { bookId: "1", page: 1, note: "Great opening" },
   { bookId: "3", page: 2 },
   { bookId: "6", page: 1 },
+  { bookId: "7", page: 1, note: "Srintil" },
+  { bookId: "10", page: 2 },
 ];
 
 export const sampleHistory: ReadingHistory[] = [
   { id: "h1", bookId: "2", title: "Penance", lastPage: 2, totalPages: 4, timestamp: "10 menit lalu" },
   { id: "h2", bookId: "3", title: "Confessions", lastPage: 1, totalPages: 4, timestamp: "2 jam lalu" },
   { id: "h3", bookId: "5", title: "Laskar Pelangi", lastPage: 3, totalPages: 3, timestamp: "1 hari lalu" },
+  { id: "h4", bookId: "8", title: "Cantik Itu Luka", lastPage: 2, totalPages: 3, timestamp: "3 hari lalu" },
+  { id: "h5", bookId: "11", title: "Ayat-Ayat Cinta", lastPage: 1, totalPages: 3, timestamp: "1 minggu lalu" },
 ];
 
 export function formatRupiah(amount: number): string {
@@ -171,8 +273,9 @@ export function formatRupiah(amount: number): string {
 
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   login: [
+    { example: "Masuk dengan Google", intent: "Sign in with Google" },
+    { example: "Sign in", intent: "Sign in" },
     { example: "Masuk", intent: "Sign in" },
-    { example: "Let me in", intent: "Sign in" },
   ],
   studentHome: [
     { example: "Buka penjelajah", intent: "Open book explorer" },

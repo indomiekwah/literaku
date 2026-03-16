@@ -62,7 +62,7 @@ export default function StudentHomeScreen() {
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Beranda Literaku. Pilih menu: Penjelajah, Riwayat, Koleksi, atau Panduan. Swipe kiri untuk perintah suara."
+      "Beranda Literaku. Pilih menu: Penjelajah, Riwayat, Koleksi, Panduan, atau Redeem Token. Swipe kiri untuk perintah suara."
     );
   }, []);
 
@@ -83,8 +83,8 @@ export default function StudentHomeScreen() {
               style={styles.settingsButton}
               onPress={() => router.push("/student/settings")}
               accessibilityRole="button"
-              accessibilityLabel="Settings"
-              accessibilityHint="Double tap to open settings"
+              accessibilityLabel="Pengaturan"
+              accessibilityHint="Double tap untuk membuka pengaturan"
             >
               <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
             </Pressable>
@@ -102,7 +102,7 @@ export default function StudentHomeScreen() {
               color="#2E7D32"
               onPress={() => router.push("/student/penjelajah")}
               accessibilityLabel="Penjelajah. Jelajahi dan beli buku baru"
-              accessibilityHint="Double tap to browse and buy books"
+              accessibilityHint="Double tap untuk menjelajah dan membeli buku"
             />
 
             <NavButton
@@ -112,7 +112,7 @@ export default function StudentHomeScreen() {
               color="#C62828"
               onPress={() => router.push("/student/riwayat")}
               accessibilityLabel="Riwayat. Lihat riwayat bacaan dan bookmark"
-              accessibilityHint="Double tap to view reading history"
+              accessibilityHint="Double tap untuk melihat riwayat bacaan"
             />
 
             <NavButton
@@ -122,7 +122,17 @@ export default function StudentHomeScreen() {
               color="#1565C0"
               onPress={() => router.push("/student/library")}
               accessibilityLabel="Koleksi. Buku yang sudah dibeli atau dimiliki"
-              accessibilityHint="Double tap to view your book collection"
+              accessibilityHint="Double tap untuk melihat koleksi buku Anda"
+            />
+
+            <NavButton
+              label="Redeem Token"
+              subtitle="Kode dari sekolah atau institusi"
+              icon="gift"
+              color="#E65100"
+              onPress={() => router.push("/student/riwayat")}
+              accessibilityLabel="Redeem Token. Masukkan kode dari sekolah atau institusi Anda untuk mendapatkan buku gratis"
+              accessibilityHint="Double tap untuk memasukkan kode token institusi"
             />
 
             <NavButton
@@ -132,26 +142,8 @@ export default function StudentHomeScreen() {
               color="#37474F"
               onPress={() => router.push("/student/guide")}
               accessibilityLabel="Panduan. Pelajari perintah suara AI"
-              accessibilityHint="Double tap to open voice command guide"
+              accessibilityHint="Double tap untuk membuka panduan suara"
             />
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.redeemButton,
-                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-              ]}
-              onPress={() => router.push("/student/riwayat")}
-              accessibilityRole="button"
-              accessibilityLabel="Redeem Token. Masukkan kode dari institusi Anda"
-              accessibilityHint="Double tap to redeem an institution token for free books"
-            >
-              <Ionicons name="gift" size={28} color={Colors.primaryLight} />
-              <View style={styles.redeemInfo}>
-                <Text style={styles.redeemTitle}>Redeem Token</Text>
-                <Text style={styles.redeemSubtitle}>Punya kode dari institusi?</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.primaryLight} />
-            </Pressable>
           </ScrollView>
         </View>
 
@@ -246,32 +238,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: "rgba(255,255,255,0.8)",
-  },
-  redeemButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: Colors.voiceBarBg,
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderWidth: 2,
-    borderColor: Colors.primaryLight,
-    minHeight: 72,
-  },
-  redeemInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  redeemTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.primaryLight,
-  },
-  redeemSubtitle: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
   },
   freezeZone: {
     flex: 1,

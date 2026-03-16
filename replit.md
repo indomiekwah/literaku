@@ -57,12 +57,12 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 
 **Architecture**: Student-only reading platform with the following screens:
 1. **Splash** — Literaku logo, auto-redirects to login after 2s
-2. **Login** — Email + password with Google/Microsoft OAuth buttons (UI placeholders)
-3. **Home** — 4 large navigation buttons (Penjelajah, Riwayat, Koleksi, Panduan) + settings gear + Redeem Token shortcut
+2. **Login (OAuth-First)** — Google/Microsoft OAuth as hero buttons (large, colored, one-tap). Email/password hidden behind collapsible disclosure toggle. Zero-friction for blind users.
+3. **Home** — 5 large navigation buttons (Penjelajah, Riwayat, Koleksi, Redeem Token, Panduan) + settings gear
 4. **Penjelajah (Explorer)** — Browse & search books with prices in Rupiah, tap to view details
 5. **Book Detail** — Book cover, title, author, genre, price, synopsis, Preview & Buy buttons (mock purchase)
 6. **Koleksi (Collection)** — Owned books with reading progress indicators, search, tap to read
-7. **Riwayat (History)** — Horizontal scroll sections (Baru Dibaca, Bookmark, Dari Institusi) + Redeem Token input
+7. **Riwayat (History)** — Redeem Token section at top, then horizontal scroll sections (Baru Dibaca, Bookmark, Dari Institusi)
 8. **Reader** — Audio controls (rewind/play/forward), page navigation, AI summarize, text display with configurable size
 9. **Panduan (Guide)** — AI voice command guide with examples, Azure AI branding
 10. **Settings** — Voice, speed, language, text size, interaction mode, logout
@@ -107,12 +107,12 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - Green banner "Mode suara — navigasi dengan perintah suara" when active
 
 **Book Data & Purchase Flow**:
-- Sample books: The Silent Patient, Penance, Confessions, The Shorts Caller, Laskar Pelangi, Bumi Manusia
+- Sample books (12): The Silent Patient, Penance, Confessions, The Shorts Caller, Laskar Pelangi, Bumi Manusia, Ronggeng Dukuh Paruk, Cantik Itu Luka, Negeri 5 Menara, Supernova, Ayat-Ayat Cinta, Perahu Kertas
 - Prices in Rupiah (Rp68,000–Rp95,000), formatted with `formatRupiah()` helper
 - Book types include: id, title, author, genre, category, price, synopsis, coverColor, owned, content[]
 - Mock purchase: "Buy Book" shows Alert confirming purchase, marks as owned
 - Preview: Opens reader with first chapter
-- Redeem Token: Text input on Riwayat screen + shortcut on Home screen (UI only, no backend)
+- Redeem Token: Full NavButton on Home (orange #E65100) + prominent section at top of Riwayat screen (UI only, no backend)
 
 **ReadingPreferencesContext** (`contexts/ReadingPreferences.tsx`):
 - Exports: `selectedVoice`, `speed`, `textSize`, `language`, `autoDetectLanguage`, `interactionMode`, `isVoiceOnly`

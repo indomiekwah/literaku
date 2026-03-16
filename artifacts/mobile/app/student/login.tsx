@@ -27,27 +27,37 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
-      "Login to Literaku. Enter your email and password, or sign in with Google or Microsoft."
+      "Selamat datang di Literaku. Tekan tombol besar untuk masuk dengan Google atau Microsoft. Atau buka form email di bawah."
     );
   }, []);
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
       AccessibilityInfo.announceForAccessibility(
-        "Please fill in both email and password"
+        "Harap isi email dan password"
       );
       return;
     }
-    AccessibilityInfo.announceForAccessibility("Signing in...");
+    AccessibilityInfo.announceForAccessibility("Sedang masuk...");
     router.replace("/student/home");
   };
 
   const handleOAuth = (provider: string) => {
-    AccessibilityInfo.announceForAccessibility(`Signing in with ${provider}...`);
+    AccessibilityInfo.announceForAccessibility(`Masuk dengan ${provider}...`);
     router.replace("/student/home");
+  };
+
+  const toggleEmailForm = () => {
+    setShowEmailForm(!showEmailForm);
+    if (!showEmailForm) {
+      AccessibilityInfo.announceForAccessibility("Form email terbuka. Ketik email dan password Anda.");
+    } else {
+      AccessibilityInfo.announceForAccessibility("Form email ditutup.");
+    }
   };
 
   return (
@@ -66,113 +76,144 @@ export default function LoginScreen() {
               <Ionicons name="headset" size={48} color={Colors.primaryLight} />
             </View>
             <Text style={styles.title} accessibilityRole="header">Literaku</Text>
-            <Text style={styles.subtitle}>Sign in to start reading</Text>
+            <Text style={styles.subtitle}>Baca buku dengan suara</Text>
           </View>
 
-          <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="your@email.com"
-                placeholderTextColor={Colors.borderStrong}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                accessibilityLabel="Email address"
-                accessibilityHint="Type your email address here"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.passwordRow}>
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  placeholder="Enter password"
-                  placeholderTextColor={Colors.borderStrong}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  accessibilityLabel="Password"
-                  accessibilityHint="Enter your password"
-                />
-                <Pressable
-                  style={styles.eyeButton}
-                  onPress={() => setShowPassword(!showPassword)}
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                >
-                  <Ionicons
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={24}
-                    color={Colors.textSecondary}
-                  />
-                </Pressable>
-              </View>
-            </View>
+          <View style={styles.quickLoginSection}>
+            <Text style={styles.quickLoginTitle} accessibilityRole="header">Masuk dengan satu ketukan</Text>
 
             <Pressable
               style={({ pressed }) => [
-                styles.loginButton,
-                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-              ]}
-              onPress={handleLogin}
-              accessibilityRole="button"
-              accessibilityLabel="Sign in with email and password"
-              accessibilityHint="Double tap to sign in"
-            >
-              <Text style={styles.loginButtonText}>Sign In</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>atau masuk dengan</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.oauthSection}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.oauthButton,
+                styles.oauthButtonPrimary,
+                styles.googleButton,
                 { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
               ]}
               onPress={() => handleOAuth("Google")}
               accessibilityRole="button"
-              accessibilityLabel="Sign in with Google"
-              accessibilityHint="Double tap to sign in using your Google account"
+              accessibilityLabel="Masuk dengan Google. Cara tercepat untuk masuk."
+              accessibilityHint="Double tap untuk masuk menggunakan akun Google Anda"
             >
-              <Ionicons name="logo-google" size={28} color="#DB4437" />
-              <Text style={styles.oauthText}>Continue with Google</Text>
+              <View style={styles.oauthIconCircle}>
+                <Ionicons name="logo-google" size={32} color="#DB4437" />
+              </View>
+              <View style={styles.oauthTextGroup}>
+                <Text style={styles.oauthButtonTextPrimary}>Masuk dengan Google</Text>
+                <Text style={styles.oauthButtonSubtext}>Tanpa perlu ketik password</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
             </Pressable>
 
             <Pressable
               style={({ pressed }) => [
-                styles.oauthButton,
+                styles.oauthButtonPrimary,
+                styles.microsoftButton,
                 { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
               ]}
               onPress={() => handleOAuth("Microsoft")}
               accessibilityRole="button"
-              accessibilityLabel="Sign in with Microsoft"
-              accessibilityHint="Double tap to sign in using your Microsoft account"
+              accessibilityLabel="Masuk dengan Microsoft. Gunakan akun sekolah Anda."
+              accessibilityHint="Double tap untuk masuk menggunakan akun Microsoft Anda"
             >
-              <Ionicons name="logo-microsoft" size={28} color="#00A4EF" />
-              <Text style={styles.oauthText}>Continue with Microsoft</Text>
+              <View style={styles.oauthIconCircle}>
+                <Ionicons name="logo-microsoft" size={32} color="#00A4EF" />
+              </View>
+              <View style={styles.oauthTextGroup}>
+                <Text style={styles.oauthButtonTextPrimary}>Masuk dengan Microsoft</Text>
+                <Text style={styles.oauthButtonSubtext}>Akun sekolah atau pribadi</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
             </Pressable>
           </View>
 
           <Pressable
+            style={styles.emailToggle}
+            onPress={toggleEmailForm}
+            accessibilityRole="button"
+            accessibilityLabel={showEmailForm ? "Tutup form email" : "Buka form email dan password"}
+            accessibilityHint={showEmailForm ? "Double tap untuk menutup form" : "Double tap untuk masuk dengan email"}
+          >
+            <View style={styles.dividerLine} />
+            <View style={styles.emailToggleContent}>
+              <Ionicons name="mail-outline" size={22} color={Colors.textSecondary} />
+              <Text style={styles.emailToggleText}>
+                {showEmailForm ? "Tutup form email" : "Masuk dengan email & password"}
+              </Text>
+              <Ionicons name={showEmailForm ? "chevron-up" : "chevron-down"} size={22} color={Colors.textSecondary} />
+            </View>
+            <View style={styles.dividerLine} />
+          </Pressable>
+
+          {showEmailForm && (
+            <View style={styles.form}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="email@contoh.com"
+                  placeholderTextColor={Colors.borderStrong}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  accessibilityLabel="Alamat email"
+                  accessibilityHint="Ketik alamat email Anda di sini"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    placeholder="Masukkan password"
+                    placeholderTextColor={Colors.borderStrong}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoComplete="password"
+                    accessibilityLabel="Password"
+                    accessibilityHint="Masukkan password Anda"
+                  />
+                  <Pressable
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color={Colors.textSecondary}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
+                ]}
+                onPress={handleLogin}
+                accessibilityRole="button"
+                accessibilityLabel="Masuk dengan email dan password"
+                accessibilityHint="Double tap untuk masuk"
+              >
+                <Ionicons name="log-in-outline" size={24} color="#FFFFFF" />
+                <Text style={styles.loginButtonText}>Masuk</Text>
+              </Pressable>
+            </View>
+          )}
+
+          <Pressable
             style={styles.registerLink}
             onPress={() => {
-              AccessibilityInfo.announceForAccessibility("Registration is not yet available");
+              AccessibilityInfo.announceForAccessibility("Pendaftaran belum tersedia");
             }}
             accessibilityRole="button"
-            accessibilityLabel="Create a new account"
-            accessibilityHint="Double tap to register for a new Literaku account"
+            accessibilityLabel="Buat akun baru"
+            accessibilityHint="Double tap untuk mendaftar akun Literaku baru"
           >
             <Text style={styles.registerText}>
               Belum punya akun? <Text style={styles.registerBold}>Daftar</Text>
@@ -229,6 +270,73 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 24,
   },
+  quickLoginSection: {
+    gap: 14,
+  },
+  quickLoginTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: Colors.text,
+    textAlign: "center",
+  },
+  oauthButtonPrimary: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    gap: 16,
+    minHeight: 88,
+  },
+  googleButton: {
+    backgroundColor: "#C62828",
+  },
+  microsoftButton: {
+    backgroundColor: "#0078D4",
+  },
+  oauthIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  oauthTextGroup: {
+    flex: 1,
+    gap: 4,
+  },
+  oauthButtonTextPrimary: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: "#FFFFFF",
+  },
+  oauthButtonSubtext: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: "rgba(255,255,255,0.8)",
+  },
+  emailToggle: {
+    gap: 12,
+    alignItems: "center",
+  },
+  emailToggleContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 8,
+    minHeight: 48,
+  },
+  emailToggleText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.textSecondary,
+  },
+  dividerLine: {
+    height: 1.5,
+    backgroundColor: Colors.border,
+    alignSelf: "stretch",
+  },
   form: {
     gap: 18,
   },
@@ -275,46 +383,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 8,
     minHeight: 72,
+    flexDirection: "row",
+    gap: 10,
   },
   loginButtonText: {
     fontFamily: "Inter_700Bold",
     fontSize: 22,
     color: "#FFFFFF",
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1.5,
-    backgroundColor: Colors.border,
-  },
-  dividerText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-  },
-  oauthSection: {
-    gap: 14,
-  },
-  oauthButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 14,
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingVertical: 18,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    minHeight: 66,
-  },
-  oauthText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.text,
   },
   registerLink: {
     alignItems: "center",

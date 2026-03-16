@@ -68,7 +68,7 @@ export default function RiwayatScreen() {
 
   const recentBookIds = sampleHistory.map((h) => h.bookId);
   const bookmarkedBookIds = sampleBookmarks.map((b) => b.bookId);
-  const institutionBookIds = ["5", "6"];
+  const institutionBookIds = ["5", "6", "9"];
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(
@@ -115,10 +115,6 @@ export default function RiwayatScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <HorizontalBookRow bookIds={recentBookIds} label="Baru Dibaca" />
-            <HorizontalBookRow bookIds={bookmarkedBookIds} label="Buku yang Di-bookmark" />
-            <HorizontalBookRow bookIds={institutionBookIds} label="Dari Institusi" />
-
             <View style={styles.redeemSection}>
               <View style={styles.redeemHeader}>
                 <Ionicons name="gift" size={24} color={Colors.primaryLight} />
@@ -152,6 +148,10 @@ export default function RiwayatScreen() {
                 </Pressable>
               </View>
             </View>
+
+            <HorizontalBookRow bookIds={recentBookIds} label="Baru Dibaca" />
+            <HorizontalBookRow bookIds={bookmarkedBookIds} label="Buku yang Di-bookmark" />
+            <HorizontalBookRow bookIds={institutionBookIds} label="Dari Institusi" />
           </ScrollView>
         </View>
 
