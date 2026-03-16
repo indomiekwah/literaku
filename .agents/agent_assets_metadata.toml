@@ -6,3 +6,21 @@ id = "8PXc17AAWy2PRhKORkDHg"
 uri = "file://.local/literaku_user_journey.png"
 type = "image"
 title = "Updated Literaku User Journey Map"
+
+[[outputs]]
+id = "AUPMCK9f4kHjySryWnFNM"
+uri = "file://.local/literaku_feature_nlu_voice.png"
+type = "image"
+title = "Feature 1: Natural Language Voice Navigation"
+
+[[outputs]]
+id = "B5xcY8o5VpFyuA7jvhCZq"
+uri = "file://.local/literaku_feature_voice_only.png"
+type = "image"
+title = "Feature 2: Voice-Only Mode"
+
+[[outputs]]
+id = "_SSHNje5BAkRx90_21etp"
+uri = "file://.local/literaku_feature_token_model.png"
+type = "image"
+title = "Feature 3: Token Model for Institutional Access"
