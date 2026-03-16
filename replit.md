@@ -58,13 +58,13 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 **Architecture**: Student-only reading platform with the following screens:
 1. **Splash** — Literaku logo, auto-redirects to login after 2s
 2. **Login (OAuth-First)** — Google/Microsoft OAuth as hero buttons (large, colored, one-tap). Email/password hidden behind collapsible disclosure toggle. Zero-friction for blind users.
-3. **Home** — 5 large navigation buttons (Penjelajah, Riwayat, Koleksi, Redeem Token, Panduan) + settings gear
-4. **Penjelajah (Explorer)** — Browse & search books with prices in Rupiah, tap to view details
+3. **Home** — 5 large navigation buttons (Explorer, History, Collection, Redeem Token, Guide) + settings gear
+4. **Explorer (penjelajah.tsx)** — Browse & search books with prices in Rupiah, tap to view details
 5. **Book Detail** — Book cover, title, author, genre, price, synopsis, Preview & Buy buttons (mock purchase)
-6. **Koleksi (Collection)** — Owned books with reading progress indicators, search, tap to read
-7. **Riwayat (History)** — Redeem Token section at top, then horizontal scroll sections (Baru Dibaca, Bookmark, Dari Institusi)
+6. **Collection (library.tsx)** — Owned books with reading progress indicators, search, tap to read
+7. **History (riwayat.tsx)** — Redeem Token section at top, then horizontal scroll sections (Recently Read, Bookmarked, From Institution)
 8. **Reader** — Audio controls (rewind/play/forward), page navigation, AI summarize, text display with configurable size
-9. **Panduan (Guide)** — AI voice command guide with examples, Azure AI branding
+9. **Guide** — AI voice command guide with examples, Azure AI branding
 10. **Settings** — Voice, speed, language, text size, interaction mode, logout
 
 **Design principles**:
@@ -89,12 +89,12 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - **TalkBack guide**: Panduan screen has dedicated "Pengguna TalkBack / VoiceOver" section with 3-step instructions for screen reader users
 
 **Settings (student/settings.tsx)**:
-- Voice selector (4 voices: Sari/Budi id-ID, Emma/James en-US)
+- Voice selector (4 voices: Sari/Budi id-ID, Emma/James en-US; default: Emma v3)
 - Speed (0.5x–2x, tap to cycle)
-- Language (Indonesian/English toggle + auto-detect switch)
+- Language (Indonesian/English toggle; default: English)
 - Text size (16-28pt, +/- controls with preview)
 - Voice-Only Mode toggle
-- Logout
+- Logout (routes to /student/login)
 - All managed via `ReadingPreferencesContext`
 
 **Voice-Only Mode (Freeze UI)**:
@@ -104,7 +104,7 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - Login/splash screens are exempt from freezing
 - Settings has dedicated "Interaction Mode" toggle
 - State: `interactionMode: "voice" | "touch"` in ReadingPreferencesContext
-- Green banner "Mode suara — navigasi dengan perintah suara" when active
+- Green banner "Voice mode — navigate with voice commands" when active (translated per language)
 
 **Book Data & Purchase Flow**:
 - Sample books (12): The Silent Patient, Penance, Confessions, The Shorts Caller, Laskar Pelangi, Bumi Manusia, Ronggeng Dukuh Paruk, Cantik Itu Luka, Negeri 5 Menara, Supernova, Ayat-Ayat Cinta, Perahu Kertas
@@ -114,13 +114,25 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - Preview: Opens reader with first chapter
 - Redeem Token: Full NavButton on Home (orange #E65100) + prominent section at top of Riwayat screen (UI only, no backend)
 
+**Translation System** (`constants/translations.ts`):
+- Full `en`/`id` string maps for all UI text across all 9 screens + components
+- `getTranslations(language)` function returns typed translation object
+- `useT()` hook (`hooks/useTranslation.ts`) wraps context for easy access in screens
+- Login screen uses `getTranslations()` directly (before full context availability)
+- SwipeVoiceOverlay uses `getTranslations()` directly with `useReadingPreferences()`
+- Book content (titles, synopses, chapters) stays in original language — only UI chrome is translated
+- Default language: English (`"en"`), switchable in Settings
+
 **ReadingPreferencesContext** (`contexts/ReadingPreferences.tsx`):
-- Exports: `selectedVoice`, `speed`, `textSize`, `language`, `autoDetectLanguage`, `interactionMode`, `isVoiceOnly`
+- Exports: `selectedVoice`, `speed`, `textSize`, `language`, `interactionMode`, `isVoiceOnly`
+- Default voice: Emma (v3, en-US), default language: English
 - Wrapped at root in `_layout.tsx`
 
 **Key files**:
 - `constants/data.ts` — Types (Book, ReadingProgress, BookmarkEntry, NaturalVoiceHint) + sample data + voiceHints + formatRupiah
 - `constants/colors.ts` — High-contrast accessible color palette
+- `constants/translations.ts` — Full en/id translation maps for all UI text
+- `hooks/useTranslation.ts` — `useT()` hook for accessing translations
 - `contexts/ReadingPreferences.tsx` — Voice, speed, textSize, language context
 - `contexts/VoiceActivation.tsx` — Shared context for mic button ↔ voice overlay bridge
 - `components/SwipeVoiceOverlay.tsx` — Full-screen voice listening overlay

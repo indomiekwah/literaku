@@ -18,14 +18,16 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 interface ExampleGroupProps {
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   examples: { phrase: string; result: string }[];
+  exampleA11y: (phrase: string, result: string) => string;
 }
 
-function ExampleGroup({ title, icon, examples }: ExampleGroupProps) {
+function ExampleGroup({ title, icon, examples, exampleA11y }: ExampleGroupProps) {
   return (
     <View style={styles.exampleSection}>
       <View style={styles.exampleHeader}>
@@ -39,7 +41,7 @@ function ExampleGroup({ title, icon, examples }: ExampleGroupProps) {
             style={styles.exampleCard}
             accessible
             accessibilityRole="text"
-            accessibilityLabel={`Contoh: ucapkan "${item.phrase}" untuk ${item.result}`}
+            accessibilityLabel={exampleA11y(item.phrase, item.result)}
           >
             <View style={styles.speechBubble}>
               <Ionicons name="chatbubble-ellipses" size={18} color={Colors.studentPrimary} />
@@ -62,11 +64,10 @@ export default function StudentGuideScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
+  const t = useT();
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      "Panduan suara. Pelajari cara menggunakan perintah suara AI. Swipe kiri untuk mulai bicara."
-    );
+    AccessibilityInfo.announceForAccessibility(t.guide.mountAnnounce);
   }, []);
 
   return (
@@ -80,12 +81,12 @@ export default function StudentGuideScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali"
+              accessibilityLabel={t.reader.backA11yLabel}
               accessibilityHint="Double tap to go back"
             >
               <Feather name="arrow-left" size={32} color={Colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">Panduan</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">{t.guide.title}</Text>
             <View style={{ width: 56 }} />
           </View>
 
@@ -95,106 +96,85 @@ export default function StudentGuideScreen() {
                 <Ionicons name="chevron-back" size={28} color={Colors.studentPrimary} />
                 <Ionicons name="mic" size={48} color={Colors.studentPrimary} />
               </View>
-              <Text style={styles.heroTitle}>Swipe kiri untuk{"\n"}mulai bicara</Text>
-              <Text style={styles.heroSubtext}>
-                Swipe ke kiri dari layar mana saja untuk mengaktifkan perintah suara
-              </Text>
+              <Text style={styles.heroTitle}>{t.guide.heroTitle}</Text>
+              <Text style={styles.heroSubtext}>{t.guide.heroSub}</Text>
             </View>
 
             <View style={styles.aiSection}>
               <View style={styles.aiHeader}>
                 <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
-                <Text style={styles.aiTitle} accessibilityRole="header">Bicara saja secara alami</Text>
+                <Text style={styles.aiTitle} accessibilityRole="header">{t.guide.aiTitle}</Text>
               </View>
-              <Text style={styles.aiText}>
-                Literaku menggunakan Azure AI untuk memahami maksud Anda. Tidak perlu menghafal perintah khusus — cukup bicara seperti biasa, dalam Bahasa Indonesia atau English.
-              </Text>
+              <Text style={styles.aiText}>{t.guide.aiText}</Text>
               <View style={styles.aiExample}>
-                <Text style={styles.aiExampleLabel}>Contoh:</Text>
-                <Text style={styles.aiExampleText}>"Buka penjelajah buku"</Text>
-                <Text style={styles.aiExampleText}>"Lihat koleksi saya"</Text>
+                <Text style={styles.aiExampleLabel}>{t.guide.exampleLabel}</Text>
+                <Text style={styles.aiExampleText}>"Open the book explorer"</Text>
+                <Text style={styles.aiExampleText}>"Show my collection"</Text>
                 <Text style={styles.aiExampleText}>"Read the next page please"</Text>
               </View>
             </View>
 
             <ExampleGroup
-              title="Navigasi"
+              title={t.guide.navTitle}
               icon="compass"
-              examples={[
-                { phrase: "Buka penjelajah", result: "Membuka halaman jelajah buku" },
-                { phrase: "Lihat koleksi saya", result: "Membuka koleksi buku Anda" },
-                { phrase: "Buka riwayat", result: "Membuka riwayat bacaan" },
-                { phrase: "Kembali ke beranda", result: "Kembali ke halaman utama" },
-                { phrase: "Buka pengaturan", result: "Membuka halaman pengaturan" },
-              ]}
+              examples={t.guide.navExamples}
+              exampleA11y={t.guide.exampleA11y}
             />
 
             <ExampleGroup
-              title="Membaca"
+              title={t.guide.readingTitle}
               icon="book"
-              examples={[
-                { phrase: "Baca buku Penance", result: "Membuka dan mulai membaca buku" },
-                { phrase: "Halaman selanjutnya", result: "Ke halaman berikutnya" },
-                { phrase: "Mundur 10 detik", result: "Mundurkan narasi" },
-                { phrase: "Berhenti dulu", result: "Jeda narasi" },
-                { phrase: "Lanjutkan", result: "Lanjutkan narasi" },
-              ]}
+              examples={t.guide.readingExamples}
+              exampleA11y={t.guide.exampleA11y}
             />
 
             <ExampleGroup
-              title="Pembelian & Token"
+              title={t.guide.purchaseTitle}
               icon="cart"
-              examples={[
-                { phrase: "Beli buku ini", result: "Membeli buku yang sedang dilihat" },
-                { phrase: "Preview buku", result: "Preview bab pertama" },
-                { phrase: "Redeem token saya", result: "Membuka halaman redeem token" },
-              ]}
+              examples={t.guide.purchaseExamples}
+              exampleA11y={t.guide.exampleA11y}
             />
 
             <View style={styles.talkbackSection}>
               <View style={styles.talkbackHeader}>
                 <Ionicons name="accessibility" size={28} color="#FFFFFF" />
-                <Text style={styles.talkbackTitle} accessibilityRole="header">Pengguna TalkBack / VoiceOver</Text>
+                <Text style={styles.talkbackTitle} accessibilityRole="header">{t.guide.talkbackTitle}</Text>
               </View>
-              <Text style={styles.talkbackText}>
-                Jika Anda menggunakan screen reader seperti TalkBack atau VoiceOver, swipe-kiri mungkin tidak berfungsi karena digunakan oleh screen reader.
-              </Text>
+              <Text style={styles.talkbackText}>{t.guide.talkbackText}</Text>
               <View style={styles.talkbackSteps}>
-                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 1: Gunakan tombol mikrofon hijau yang selalu ada di pojok kanan bawah layar">
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel={`${t.guide.step} 1: ${t.guide.talkbackStep1}`}>
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText}>1</Text>
                   </View>
-                  <Text style={styles.stepText}>Cari tombol mikrofon hijau di pojok kanan bawah layar</Text>
+                  <Text style={styles.stepText}>{t.guide.talkbackStep1}</Text>
                 </View>
-                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 2: Swipe ke kanan sampai mendengar 'Activate voice command'">
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel={`${t.guide.step} 2: ${t.guide.talkbackStep2}`}>
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText}>2</Text>
                   </View>
-                  <Text style={styles.stepText}>Swipe ke kanan sampai mendengar "Activate voice command"</Text>
+                  <Text style={styles.stepText}>{t.guide.talkbackStep2}</Text>
                 </View>
-                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel="Langkah 3: Double tap untuk membuka perintah suara, lalu bicara">
+                <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel={`${t.guide.step} 3: ${t.guide.talkbackStep3}`}>
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText}>3</Text>
                   </View>
-                  <Text style={styles.stepText}>Double tap untuk membuka perintah suara, lalu bicara seperti biasa</Text>
+                  <Text style={styles.stepText}>{t.guide.talkbackStep3}</Text>
                 </View>
               </View>
               <View style={styles.talkbackMicDemo}>
                 <View style={styles.talkbackMicCircle}>
                   <Ionicons name="mic" size={28} color="#FFFFFF" />
                 </View>
-                <Text style={styles.talkbackMicLabel}>Tombol ini selalu ada di setiap layar</Text>
+                <Text style={styles.talkbackMicLabel}>{t.guide.talkbackMicLabel}</Text>
               </View>
             </View>
 
             <View style={styles.langSection}>
               <View style={styles.langHeader}>
                 <Ionicons name="language" size={24} color={Colors.primaryLight} />
-                <Text style={styles.langTitle} accessibilityRole="header">Deteksi Bahasa Otomatis</Text>
+                <Text style={styles.langTitle} accessibilityRole="header">{t.guide.voiceLangTitle}</Text>
               </View>
-              <Text style={styles.langText}>
-                Azure AI secara otomatis mendeteksi apakah Anda berbicara dalam Bahasa Indonesia atau English. Anda bisa beralih bahasa kapan saja.
-              </Text>
+              <Text style={styles.langText}>{t.guide.voiceLangText}</Text>
             </View>
 
             <View style={styles.azureBadge}>

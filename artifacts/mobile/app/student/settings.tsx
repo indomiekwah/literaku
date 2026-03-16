@@ -21,35 +21,32 @@ import {
   useReadingPreferences,
   VOICE_OPTIONS,
   SPEED_OPTIONS,
-  type SpeedValue,
 } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 export default function StudentSettingsScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
+  const t = useT();
 
   const {
     selectedVoice,
     speed,
     textSize,
     language,
-    autoDetectLanguage,
     interactionMode,
     isVoiceOnly,
     setSelectedVoice,
     setSpeed,
     setTextSize,
     setLanguage,
-    setAutoDetectLanguage,
     setInteractionMode,
   } = useReadingPreferences();
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      "Settings. Adjust voice, speed, language, display, and account preferences."
-    );
+    AccessibilityInfo.announceForAccessibility(t.settings.mountAnnounce);
   }, []);
 
   const cycleSpeed = () => {
@@ -76,12 +73,12 @@ export default function StudentSettingsScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
-            accessibilityHint="Double tap to return to previous screen"
+            accessibilityLabel={t.bookDetail.backA11yLabel}
+            accessibilityHint={t.bookDetail.backA11yLabel}
           >
             <Feather name="arrow-left" size={32} color={Colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle} accessibilityRole="header">Settings</Text>
+          <Text style={styles.headerTitle} accessibilityRole="header">{t.settings.title}</Text>
           <View style={{ width: 56 }} />
         </View>
 
@@ -91,11 +88,11 @@ export default function StudentSettingsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            Voice & Narration
+            {t.settings.voiceNarration}
           </Text>
 
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>Narration Voice</Text>
+            <Text style={styles.cardLabel}>{t.settings.narrationVoice}</Text>
             <View style={styles.voiceList}>
               {VOICE_OPTIONS.map((voice) => {
                 const isSelected = voice.id === selectedVoice;
@@ -105,7 +102,7 @@ export default function StudentSettingsScreen() {
                     style={[styles.voiceOption, isSelected && styles.voiceOptionSelected]}
                     onPress={() => {
                       setSelectedVoice(voice.id);
-                      AccessibilityInfo.announceForAccessibility(`Voice changed to ${voice.label}`);
+                      AccessibilityInfo.announceForAccessibility(t.settings.voiceChanged(voice.label));
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: isSelected }}
@@ -130,7 +127,7 @@ export default function StudentSettingsScreen() {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>Default Reading Speed</Text>
+            <Text style={styles.cardLabel}>{t.settings.readingSpeed}</Text>
             <Pressable
               style={styles.speedControl}
               onPress={cycleSpeed}
@@ -140,22 +137,22 @@ export default function StudentSettingsScreen() {
             >
               <Ionicons name="speedometer-outline" size={24} color={Colors.studentPrimary} />
               <Text style={styles.speedValue}>{speed}x</Text>
-              <Text style={styles.speedHint}>Tap to change</Text>
+              <Text style={styles.speedHint}>{t.settings.tapToChange}</Text>
             </Pressable>
           </View>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            Language
+            {t.settings.language}
           </Text>
 
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>App Language</Text>
+            <Text style={styles.cardLabel}>{t.settings.appLanguage}</Text>
             <View style={styles.langRow}>
               <Pressable
                 style={[styles.langOption, language === "id" && styles.langOptionSelected]}
                 onPress={() => {
                   setLanguage("id");
-                  AccessibilityInfo.announceForAccessibility("Language set to Indonesian");
+                  AccessibilityInfo.announceForAccessibility(t.settings.langSetTo("Indonesian"));
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: language === "id" }}
@@ -171,7 +168,7 @@ export default function StudentSettingsScreen() {
                 style={[styles.langOption, language === "en" && styles.langOptionSelected]}
                 onPress={() => {
                   setLanguage("en");
-                  AccessibilityInfo.announceForAccessibility("Language set to English");
+                  AccessibilityInfo.announceForAccessibility(t.settings.langSetTo("English"));
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: language === "en" }}
@@ -185,44 +182,16 @@ export default function StudentSettingsScreen() {
             </View>
           </View>
 
-          <View style={styles.card}>
-            <View style={styles.toggleRow}>
-              <View style={styles.toggleInfo}>
-                <Text style={styles.cardLabel}>Auto-detect voice language</Text>
-                <Text style={styles.toggleDesc}>AI will detect if you speak Indonesian or English</Text>
-              </View>
-              <Pressable
-                style={styles.toggleHitArea}
-                onPress={() => {
-                  setAutoDetectLanguage(!autoDetectLanguage);
-                  AccessibilityInfo.announceForAccessibility(
-                    autoDetectLanguage ? "Auto-detect disabled" : "Auto-detect enabled"
-                  );
-                }}
-                accessibilityRole="switch"
-                accessibilityState={{ checked: autoDetectLanguage }}
-                accessibilityLabel="Auto-detect voice language"
-                accessibilityHint="Double tap to toggle automatic language detection"
-              >
-                <View style={[styles.toggleSwitch, autoDetectLanguage && styles.toggleSwitchActive]}>
-                  <View style={[styles.toggleKnob, autoDetectLanguage && styles.toggleKnobActive]} />
-                </View>
-              </Pressable>
-            </View>
-          </View>
-
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            Interaction Mode
+            {t.settings.interactionMode}
           </Text>
 
           <View style={styles.card}>
             <View style={styles.toggleRow}>
               <View style={styles.toggleInfo}>
-                <Text style={styles.cardLabel}>Voice-Only Mode</Text>
+                <Text style={styles.cardLabel}>{t.settings.voiceOnlyMode}</Text>
                 <Text style={styles.toggleDesc}>
-                  {isVoiceOnly
-                    ? "Buttons frozen. Navigate with voice commands only."
-                    : "Touch mode active. All buttons can be tapped."}
+                  {isVoiceOnly ? t.settings.voiceOnlyDesc : t.settings.touchModeDesc}
                 </Text>
               </View>
               <Pressable
@@ -231,14 +200,12 @@ export default function StudentSettingsScreen() {
                   const newMode = isVoiceOnly ? "touch" : "voice";
                   setInteractionMode(newMode);
                   AccessibilityInfo.announceForAccessibility(
-                    newMode === "voice"
-                      ? "Voice-only mode enabled. All buttons are now frozen."
-                      : "Touch mode enabled. All buttons are now active."
+                    newMode === "voice" ? t.settings.voiceOnlyEnabled : t.settings.touchEnabled
                   );
                 }}
                 accessibilityRole="switch"
                 accessibilityState={{ checked: isVoiceOnly }}
-                accessibilityLabel="Voice-only mode"
+                accessibilityLabel={t.settings.voiceOnlyMode}
                 accessibilityHint="Double tap to toggle between voice-only and touch mode"
               >
                 <View style={[styles.toggleSwitch, isVoiceOnly && styles.toggleSwitchActive]}>
@@ -249,18 +216,18 @@ export default function StudentSettingsScreen() {
           </View>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            Display
+            {t.settings.display}
           </Text>
 
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>Reader Text Size</Text>
+            <Text style={styles.cardLabel}>{t.settings.textSize}</Text>
             <View style={styles.textSizeRow}>
               <Pressable
                 style={[styles.sizeButton, textSize <= 16 && styles.sizeButtonDisabled]}
                 onPress={decreaseTextSize}
                 disabled={textSize <= 16}
                 accessibilityRole="button"
-                accessibilityLabel="Decrease text size"
+                accessibilityLabel={t.settings.decreaseSize}
                 accessibilityHint="Double tap to make reader text smaller"
               >
                 <Ionicons name="remove" size={28} color={textSize <= 16 ? Colors.borderStrong : Colors.text} />
@@ -269,7 +236,7 @@ export default function StudentSettingsScreen() {
               <View
                 style={styles.sizePreview}
                 accessibilityRole="text"
-                accessibilityLabel={`Current text size: ${textSize} points`}
+                accessibilityLabel={t.settings.currentSize(textSize)}
               >
                 <Text style={[styles.sizePreviewText, { fontSize: textSize }]}>Aa</Text>
                 <Text style={styles.sizeValue}>{textSize}pt</Text>
@@ -280,7 +247,7 @@ export default function StudentSettingsScreen() {
                 onPress={increaseTextSize}
                 disabled={textSize >= 28}
                 accessibilityRole="button"
-                accessibilityLabel="Increase text size"
+                accessibilityLabel={t.settings.increaseSize}
                 accessibilityHint="Double tap to make reader text larger"
               >
                 <Ionicons name="add" size={28} color={textSize >= 28 ? Colors.borderStrong : Colors.text} />
@@ -289,26 +256,26 @@ export default function StudentSettingsScreen() {
           </View>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            Account
+            {t.settings.account}
           </Text>
 
           <Pressable
             style={styles.logoutButton}
             onPress={() => {
-              AccessibilityInfo.announceForAccessibility("Signing out");
+              AccessibilityInfo.announceForAccessibility(t.settings.signingOut);
               router.replace("/student/login");
             }}
             accessibilityRole="button"
-            accessibilityLabel="Log out"
+            accessibilityLabel={t.settings.logOut}
             accessibilityHint="Double tap to sign out and return to login screen"
           >
             <Feather name="log-out" size={24} color={Colors.error} />
-            <Text style={styles.logoutText}>Log Out</Text>
+            <Text style={styles.logoutText}>{t.settings.logOut}</Text>
           </Pressable>
 
           <View style={styles.azureBadge}>
             <Ionicons name="cloud" size={20} color={Colors.primaryLight} />
-            <Text style={styles.azureText}>Voice powered by Azure AI</Text>
+            <Text style={styles.azureText}>{t.settings.azureBadge}</Text>
           </View>
         </ScrollView>
         </View>

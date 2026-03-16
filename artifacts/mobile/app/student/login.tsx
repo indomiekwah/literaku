@@ -18,6 +18,8 @@ import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
+import { getTranslations } from "@/constants/translations";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -28,35 +30,33 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const { language } = useReadingPreferences();
+  const t = getTranslations(language);
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      "Selamat datang di Literaku. Tekan tombol besar untuk masuk dengan Google atau Microsoft. Atau buka form email di bawah."
-    );
+    AccessibilityInfo.announceForAccessibility(t.login.mountAnnounce);
   }, []);
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
-      AccessibilityInfo.announceForAccessibility(
-        "Harap isi email dan password"
-      );
+      AccessibilityInfo.announceForAccessibility(t.login.fillFields);
       return;
     }
-    AccessibilityInfo.announceForAccessibility("Sedang masuk...");
+    AccessibilityInfo.announceForAccessibility(t.login.signingIn);
     router.replace("/student/home");
   };
 
   const handleOAuth = (provider: string) => {
-    AccessibilityInfo.announceForAccessibility(`Masuk dengan ${provider}...`);
+    AccessibilityInfo.announceForAccessibility(`${t.login.signingWith} ${provider}...`);
     router.replace("/student/home");
   };
 
   const toggleEmailForm = () => {
     setShowEmailForm(!showEmailForm);
     if (!showEmailForm) {
-      AccessibilityInfo.announceForAccessibility("Form email terbuka. Ketik email dan password Anda.");
+      AccessibilityInfo.announceForAccessibility(t.login.emailFormOpened);
     } else {
-      AccessibilityInfo.announceForAccessibility("Form email ditutup.");
+      AccessibilityInfo.announceForAccessibility(t.login.emailFormClosed);
     }
   };
 
@@ -75,12 +75,12 @@ export default function LoginScreen() {
             <View style={styles.iconCircle}>
               <Ionicons name="headset" size={48} color={Colors.primaryLight} />
             </View>
-            <Text style={styles.title} accessibilityRole="header">Literaku</Text>
-            <Text style={styles.subtitle}>Baca buku dengan suara</Text>
+            <Text style={styles.title} accessibilityRole="header">{t.app.name}</Text>
+            <Text style={styles.subtitle}>{t.app.tagline}</Text>
           </View>
 
           <View style={styles.quickLoginSection}>
-            <Text style={styles.quickLoginTitle} accessibilityRole="header">Masuk dengan satu ketukan</Text>
+            <Text style={styles.quickLoginTitle} accessibilityRole="header">{t.login.oneTab}</Text>
 
             <Pressable
               style={({ pressed }) => [
@@ -90,15 +90,15 @@ export default function LoginScreen() {
               ]}
               onPress={() => handleOAuth("Google")}
               accessibilityRole="button"
-              accessibilityLabel="Masuk dengan Google. Cara tercepat untuk masuk."
-              accessibilityHint="Double tap untuk masuk menggunakan akun Google Anda"
+              accessibilityLabel={t.login.googleA11yLabel}
+              accessibilityHint={t.login.googleA11yHint}
             >
               <View style={styles.oauthIconCircle}>
                 <Ionicons name="logo-google" size={32} color="#DB4437" />
               </View>
               <View style={styles.oauthTextGroup}>
-                <Text style={styles.oauthButtonTextPrimary}>Masuk dengan Google</Text>
-                <Text style={styles.oauthButtonSubtext}>Tanpa perlu ketik password</Text>
+                <Text style={styles.oauthButtonTextPrimary}>{t.login.google}</Text>
+                <Text style={styles.oauthButtonSubtext}>{t.login.googleSub}</Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
             </Pressable>
@@ -111,15 +111,15 @@ export default function LoginScreen() {
               ]}
               onPress={() => handleOAuth("Microsoft")}
               accessibilityRole="button"
-              accessibilityLabel="Masuk dengan Microsoft. Gunakan akun sekolah Anda."
-              accessibilityHint="Double tap untuk masuk menggunakan akun Microsoft Anda"
+              accessibilityLabel={t.login.microsoftA11yLabel}
+              accessibilityHint={t.login.microsoftA11yHint}
             >
               <View style={styles.oauthIconCircle}>
                 <Ionicons name="logo-microsoft" size={32} color="#00A4EF" />
               </View>
               <View style={styles.oauthTextGroup}>
-                <Text style={styles.oauthButtonTextPrimary}>Masuk dengan Microsoft</Text>
-                <Text style={styles.oauthButtonSubtext}>Akun sekolah atau pribadi</Text>
+                <Text style={styles.oauthButtonTextPrimary}>{t.login.microsoft}</Text>
+                <Text style={styles.oauthButtonSubtext}>{t.login.microsoftSub}</Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
             </Pressable>
@@ -129,14 +129,14 @@ export default function LoginScreen() {
             style={styles.emailToggle}
             onPress={toggleEmailForm}
             accessibilityRole="button"
-            accessibilityLabel={showEmailForm ? "Tutup form email" : "Buka form email dan password"}
-            accessibilityHint={showEmailForm ? "Double tap untuk menutup form" : "Double tap untuk masuk dengan email"}
+            accessibilityLabel={showEmailForm ? t.login.closeEmailA11yLabel : t.login.openEmailA11yLabel}
+            accessibilityHint={showEmailForm ? t.login.closeEmailA11yHint : t.login.openEmailA11yHint}
           >
             <View style={styles.dividerLine} />
             <View style={styles.emailToggleContent}>
               <Ionicons name="mail-outline" size={22} color={Colors.textSecondary} />
               <Text style={styles.emailToggleText}>
-                {showEmailForm ? "Tutup form email" : "Masuk dengan email & password"}
+                {showEmailForm ? t.login.closeEmail : t.login.openEmail}
               </Text>
               <Ionicons name={showEmailForm ? "chevron-up" : "chevron-down"} size={22} color={Colors.textSecondary} />
             </View>
@@ -146,40 +146,40 @@ export default function LoginScreen() {
           {showEmailForm && (
             <View style={styles.form}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text style={styles.inputLabel}>{t.login.email}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="email@contoh.com"
+                  placeholder={t.login.emailPlaceholder}
                   placeholderTextColor={Colors.borderStrong}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
-                  accessibilityLabel="Alamat email"
-                  accessibilityHint="Ketik alamat email Anda di sini"
+                  accessibilityLabel={t.login.emailA11yLabel}
+                  accessibilityHint={t.login.emailA11yHint}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text style={styles.inputLabel}>{t.login.password}</Text>
                 <View style={styles.passwordRow}>
                   <TextInput
                     style={[styles.input, styles.passwordInput]}
-                    placeholder="Masukkan password"
+                    placeholder={t.login.passwordPlaceholder}
                     placeholderTextColor={Colors.borderStrong}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                     autoComplete="password"
-                    accessibilityLabel="Password"
-                    accessibilityHint="Masukkan password Anda"
+                    accessibilityLabel={t.login.password}
+                    accessibilityHint={t.login.passwordA11yHint}
                   />
                   <Pressable
                     style={styles.eyeButton}
                     onPress={() => setShowPassword(!showPassword)}
                     accessibilityRole="button"
-                    accessibilityLabel={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    accessibilityLabel={showPassword ? t.login.hidePassword : t.login.showPassword}
                   >
                     <Ionicons
                       name={showPassword ? "eye-off" : "eye"}
@@ -197,11 +197,11 @@ export default function LoginScreen() {
                 ]}
                 onPress={handleLogin}
                 accessibilityRole="button"
-                accessibilityLabel="Masuk dengan email dan password"
-                accessibilityHint="Double tap untuk masuk"
+                accessibilityLabel={t.login.signInA11yLabel}
+                accessibilityHint={t.login.signInA11yHint}
               >
                 <Ionicons name="log-in-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.loginButtonText}>Masuk</Text>
+                <Text style={styles.loginButtonText}>{t.login.signIn}</Text>
               </Pressable>
             </View>
           )}
@@ -209,14 +209,14 @@ export default function LoginScreen() {
           <Pressable
             style={styles.registerLink}
             onPress={() => {
-              AccessibilityInfo.announceForAccessibility("Pendaftaran belum tersedia");
+              AccessibilityInfo.announceForAccessibility(t.login.registerUnavailable);
             }}
             accessibilityRole="button"
-            accessibilityLabel="Buat akun baru"
-            accessibilityHint="Double tap untuk mendaftar akun Literaku baru"
+            accessibilityLabel={t.login.registerA11yLabel}
+            accessibilityHint={t.login.registerA11yHint}
           >
             <Text style={styles.registerText}>
-              Belum punya akun? <Text style={styles.registerBold}>Daftar</Text>
+              {t.login.noAccount} <Text style={styles.registerBold}>{t.login.register}</Text>
             </Text>
           </Pressable>
         </ScrollView>

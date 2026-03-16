@@ -18,6 +18,7 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
@@ -26,6 +27,7 @@ export default function StudentReaderScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { speed, textSize, isVoiceOnly } = useReadingPreferences();
+  const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,9 +35,7 @@ export default function StudentReaderScreen() {
 
   React.useEffect(() => {
     if (book) {
-      AccessibilityInfo.announceForAccessibility(
-        `Membaca ${book.title}. Swipe kiri untuk perintah suara, atau gunakan tombol kontrol.`
-      );
+      AccessibilityInfo.announceForAccessibility(t.reader.mountAnnounce(book.title));
     }
   }, [book?.title]);
 
@@ -44,7 +44,7 @@ export default function StudentReaderScreen() {
       <SwipeVoiceWrapper>
         <View style={[styles.container, { paddingTop: topPadding }]}>
           <Text style={styles.errorText} accessibilityRole="alert">
-            Buku tidak ditemukan
+            {t.reader.notFound}
           </Text>
         </View>
       </SwipeVoiceWrapper>
@@ -57,22 +57,22 @@ export default function StudentReaderScreen() {
   const goToPage = (page: number) => {
     if (page >= 0 && page < totalPages) {
       setCurrentPage(page);
-      AccessibilityInfo.announceForAccessibility(`Halaman ${page + 1} dari ${totalPages}`);
+      AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
     }
   };
 
   const handleRewind = () => {
-    AccessibilityInfo.announceForAccessibility("Mundur 10 detik");
+    AccessibilityInfo.announceForAccessibility(t.reader.rewind);
   };
 
   const handleForward = () => {
-    AccessibilityInfo.announceForAccessibility("Maju 10 detik");
+    AccessibilityInfo.announceForAccessibility(t.reader.forward);
   };
 
   const handlePlayPause = () => {
     const newState = !isPlaying;
     setIsPlaying(newState);
-    AccessibilityInfo.announceForAccessibility(newState ? "Memutar" : "Dijeda");
+    AccessibilityInfo.announceForAccessibility(newState ? t.reader.playing : t.reader.paused);
   };
 
   return (
@@ -86,7 +86,7 @@ export default function StudentReaderScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali"
+              accessibilityLabel={t.reader.backA11yLabel}
               accessibilityHint="Double tap to go back"
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
@@ -96,17 +96,17 @@ export default function StudentReaderScreen() {
                 {book.title}
               </Text>
               <Text style={styles.headerSubtitle}>
-                Halaman {currentPage + 1} dari {totalPages}
+                {t.reader.pageOf(currentPage + 1, totalPages)}
               </Text>
             </View>
             <Pressable
               style={styles.summarizeHeaderButton}
               onPress={() => {
-                AccessibilityInfo.announceForAccessibility("Membuat ringkasan AI dari halaman ini");
+                AccessibilityInfo.announceForAccessibility(t.reader.summarizing);
               }}
               accessibilityRole="button"
-              accessibilityLabel="Ringkas halaman ini dengan AI"
-              accessibilityHint="Double tap to generate an AI summary of the current page"
+              accessibilityLabel={t.reader.summarize}
+              accessibilityHint={t.reader.summarizeA11yHint}
             >
               <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
             </Pressable>
@@ -116,7 +116,7 @@ export default function StudentReaderScreen() {
             style={styles.progressBarContainer}
             accessible
             accessibilityRole="progressbar"
-            accessibilityLabel="Progress membaca"
+            accessibilityLabel={t.reader.readingProgress}
             accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
           >
             <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
@@ -130,7 +130,7 @@ export default function StudentReaderScreen() {
             <View
               style={styles.readerCard}
               accessibilityRole="text"
-              accessibilityLabel={`Halaman ${currentPage + 1} dari ${totalPages}. ${book.content[currentPage]}`}
+              accessibilityLabel={`${t.reader.pageOf(currentPage + 1, totalPages)}. ${book.content[currentPage]}`}
             >
               <Text style={[styles.pageContent, { fontSize: textSize, lineHeight: textSize * 1.7 }]}>
                 {book.content[currentPage]}
@@ -144,7 +144,7 @@ export default function StudentReaderScreen() {
                 style={styles.rewindButton}
                 onPress={handleRewind}
                 accessibilityRole="button"
-                accessibilityLabel="Mundur 10 detik"
+                accessibilityLabel={t.reader.rewind}
                 accessibilityHint="Double tap to rewind 10 seconds"
               >
                 <MaterialIcons name="replay-10" size={32} color={Colors.text} />
@@ -154,7 +154,7 @@ export default function StudentReaderScreen() {
                 style={styles.playButton}
                 onPress={handlePlayPause}
                 accessibilityRole="button"
-                accessibilityLabel={isPlaying ? "Jeda narasi" : "Putar narasi"}
+                accessibilityLabel={isPlaying ? t.reader.pauseNarration : t.reader.playNarration}
                 accessibilityHint={isPlaying ? "Double tap to pause" : "Double tap to play"}
               >
                 <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
@@ -164,7 +164,7 @@ export default function StudentReaderScreen() {
                 style={styles.forwardButton}
                 onPress={handleForward}
                 accessibilityRole="button"
-                accessibilityLabel="Maju 10 detik"
+                accessibilityLabel={t.reader.forward}
                 accessibilityHint="Double tap to forward 10 seconds"
               >
                 <MaterialIcons name="forward-10" size={32} color={Colors.text} />
@@ -177,11 +177,11 @@ export default function StudentReaderScreen() {
                 onPress={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 0}
                 accessibilityRole="button"
-                accessibilityLabel="Halaman sebelumnya"
+                accessibilityLabel={t.reader.prevPage}
                 accessibilityState={{ disabled: currentPage === 0 }}
               >
                 <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
-                <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>Sebelum</Text>
+                <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>{t.reader.prev}</Text>
               </Pressable>
 
               <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
@@ -193,10 +193,10 @@ export default function StudentReaderScreen() {
                 onPress={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages - 1}
                 accessibilityRole="button"
-                accessibilityLabel="Halaman selanjutnya"
+                accessibilityLabel={t.reader.nextPage}
                 accessibilityState={{ disabled: currentPage === totalPages - 1 }}
               >
-                <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>Lanjut</Text>
+                <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>{t.reader.next}</Text>
                 <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
               </Pressable>
             </View>
@@ -206,7 +206,7 @@ export default function StudentReaderScreen() {
               <Text style={styles.infoText}>{speed}x</Text>
               <Text style={styles.infoDot}>·</Text>
               <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>Ubah di Pengaturan</Text>
+              <Text style={styles.infoText}>{t.reader.changeInSettings}</Text>
             </View>
           </View>
         </View>

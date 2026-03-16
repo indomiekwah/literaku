@@ -18,6 +18,7 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 interface NavButtonProps {
   label: string;
@@ -59,11 +60,10 @@ export default function StudentHomeScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
+  const t = useT();
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      "Beranda Literaku. Pilih menu: Penjelajah, Riwayat, Koleksi, Panduan, atau Redeem Token. Swipe kiri untuk perintah suara."
-    );
+    AccessibilityInfo.announceForAccessibility(t.home.mountAnnounce);
   }, []);
 
   return (
@@ -83,8 +83,8 @@ export default function StudentHomeScreen() {
               style={styles.settingsButton}
               onPress={() => router.push("/student/settings")}
               accessibilityRole="button"
-              accessibilityLabel="Pengaturan"
-              accessibilityHint="Double tap untuk membuka pengaturan"
+              accessibilityLabel={t.home.settings}
+              accessibilityHint={t.home.settingsA11yHint}
             >
               <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
             </Pressable>
@@ -96,53 +96,53 @@ export default function StudentHomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             <NavButton
-              label="Penjelajah"
-              subtitle="Jelajahi & beli buku"
+              label={t.home.explorer}
+              subtitle={t.home.explorerSub}
               icon="compass"
               color="#2E7D32"
               onPress={() => router.push("/student/penjelajah")}
-              accessibilityLabel="Penjelajah. Jelajahi dan beli buku baru"
-              accessibilityHint="Double tap untuk menjelajah dan membeli buku"
+              accessibilityLabel={t.home.explorerA11yLabel}
+              accessibilityHint={t.home.explorerA11yHint}
             />
 
             <NavButton
-              label="Riwayat"
-              subtitle="Riwayat bacaan & bookmark"
+              label={t.home.history}
+              subtitle={t.home.historySub}
               icon="time"
               color="#C62828"
               onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel="Riwayat. Lihat riwayat bacaan dan bookmark"
-              accessibilityHint="Double tap untuk melihat riwayat bacaan"
+              accessibilityLabel={t.home.historyA11yLabel}
+              accessibilityHint={t.home.historyA11yHint}
             />
 
             <NavButton
-              label="Koleksi"
-              subtitle="Buku yang dimiliki"
+              label={t.home.collection}
+              subtitle={t.home.collectionSub}
               icon="library"
               color="#1565C0"
               onPress={() => router.push("/student/library")}
-              accessibilityLabel="Koleksi. Buku yang sudah dibeli atau dimiliki"
-              accessibilityHint="Double tap untuk melihat koleksi buku Anda"
+              accessibilityLabel={t.home.collectionA11yLabel}
+              accessibilityHint={t.home.collectionA11yHint}
             />
 
             <NavButton
-              label="Redeem Token"
-              subtitle="Kode dari sekolah atau institusi"
+              label={t.home.redeemToken}
+              subtitle={t.home.redeemTokenSub}
               icon="gift"
               color="#E65100"
               onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel="Redeem Token. Masukkan kode dari sekolah atau institusi Anda untuk mendapatkan buku gratis"
-              accessibilityHint="Double tap untuk memasukkan kode token institusi"
+              accessibilityLabel={t.home.redeemTokenA11yLabel}
+              accessibilityHint={t.home.redeemTokenA11yHint}
             />
 
             <NavButton
-              label="Panduan"
-              subtitle="Panduan perintah suara"
+              label={t.home.guide}
+              subtitle={t.home.guideSub}
               icon="help-circle"
               color="#37474F"
               onPress={() => router.push("/student/guide")}
-              accessibilityLabel="Panduan. Pelajari perintah suara AI"
-              accessibilityHint="Double tap untuk membuka panduan suara"
+              accessibilityLabel={t.home.guideA11yLabel}
+              accessibilityHint={t.home.guideA11yHint}
             />
           </ScrollView>
         </View>

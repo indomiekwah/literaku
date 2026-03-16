@@ -19,8 +19,9 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleReadingProgress, voiceHints, type Book, type ReadingProgress } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
-function KoleksiBookCard({ book, progress }: { book: Book; progress?: ReadingProgress }) {
+function KoleksiBookCard({ book, progress, t }: { book: Book; progress?: ReadingProgress; t: ReturnType<typeof useT> }) {
   const progressPercent = progress
     ? Math.round((progress.currentPage / progress.totalPages) * 100)
     : 0;
@@ -33,7 +34,7 @@ function KoleksiBookCard({ book, progress }: { book: Book; progress?: ReadingPro
       ]}
       onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} oleh ${book.author}. ${book.genre}. ${progress ? `Progress: ${progressPercent}%. Terakhir dibaca ${progress.lastRead}` : "Belum dibaca"}`}
+      accessibilityLabel={`${book.title} by ${book.author}. ${book.genre}. ${progress ? `${t.collection.progress}: ${progressPercent}%. ${t.collection.lastRead} ${progress.lastRead}` : t.collection.notStarted}`}
       accessibilityHint="Double tap to start reading this book"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
@@ -51,7 +52,7 @@ function KoleksiBookCard({ book, progress }: { book: Book; progress?: ReadingPro
             <Text style={styles.progressText}>{progressPercent}% · {progress.lastRead}</Text>
           </View>
         ) : (
-          <Text style={styles.notStarted}>Belum dibaca</Text>
+          <Text style={styles.notStarted}>{t.collection.notStarted}</Text>
         )}
       </View>
       <View style={styles.playCircle}>
@@ -68,6 +69,7 @@ export default function KoleksiScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
+  const t = useT();
 
   const ownedBooks = sampleBooks.filter((b) => b.owned);
   const filteredBooks = ownedBooks.filter((b) => {
@@ -77,9 +79,7 @@ export default function KoleksiScreen() {
   });
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      `Koleksi Anda. ${ownedBooks.length} buku dimiliki. Swipe kiri untuk perintah suara.`
-    );
+    AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(ownedBooks.length));
   }, [ownedBooks.length]);
 
   return (
@@ -93,12 +93,12 @@ export default function KoleksiScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali ke beranda"
+              accessibilityLabel={t.collection.backA11yLabel}
               accessibilityHint="Double tap to go back to home"
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">Koleksi</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">{t.collection.title}</Text>
             <View style={{ width: 48 }} />
           </View>
 
@@ -106,7 +106,7 @@ export default function KoleksiScreen() {
             <Ionicons name="search" size={22} color={Colors.borderStrong} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Cari di koleksi..."
+              placeholder={t.collection.searchPlaceholder}
               placeholderTextColor={Colors.borderStrong}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -124,8 +124,8 @@ export default function KoleksiScreen() {
             )}
           </View>
 
-          <Text style={styles.bookCount} accessibilityLabel={`${filteredBooks.length} buku di koleksi`}>
-            {filteredBooks.length} buku
+          <Text style={styles.bookCount} accessibilityLabel={t.collection.bookCountA11y(filteredBooks.length)}>
+            {t.collection.bookCount(filteredBooks.length)}
           </Text>
 
           <FlatList
@@ -133,15 +133,15 @@ export default function KoleksiScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
               const progress = sampleReadingProgress.find((p) => p.bookId === item.id);
-              return <KoleksiBookCard book={item} progress={progress} />;
+              return <KoleksiBookCard book={item} progress={progress} t={t} />;
             }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <Ionicons name="library-outline" size={64} color={Colors.textSecondary} />
-                <Text style={styles.emptyText}>Koleksi masih kosong</Text>
-                <Text style={styles.emptySubtext}>Beli buku di Penjelajah atau redeem token</Text>
+                <Text style={styles.emptyText}>{t.collection.emptyTitle}</Text>
+                <Text style={styles.emptySubtext}>{t.collection.emptySub}</Text>
               </View>
             }
           />

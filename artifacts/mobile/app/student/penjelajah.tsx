@@ -19,8 +19,9 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, formatRupiah, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
-function BookListItem({ book }: { book: Book }) {
+function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -29,7 +30,7 @@ function BookListItem({ book }: { book: Book }) {
       ]}
       onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} oleh ${book.author}. ${book.genre}. ${formatRupiah(book.price)}${book.owned ? ". Sudah dimiliki" : ""}`}
+      accessibilityLabel={`${book.title} ${t.explorer.byAuthor} ${book.author}. ${book.genre}. ${formatRupiah(book.price)}${book.owned ? `. ${t.explorer.owned}` : ""}`}
       accessibilityHint="Double tap to view book details"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
@@ -41,7 +42,7 @@ function BookListItem({ book }: { book: Book }) {
         <Text style={styles.bookGenre}>{book.genre}</Text>
         {book.owned ? (
           <View style={styles.ownedBadge}>
-            <Text style={styles.ownedText}>Dimiliki</Text>
+            <Text style={styles.ownedText}>{t.explorer.owned}</Text>
           </View>
         ) : (
           <Text style={styles.bookPrice}>{formatRupiah(book.price)}</Text>
@@ -59,6 +60,7 @@ export default function PenjelajahScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
+  const t = useT();
 
   const filteredBooks = sampleBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
@@ -71,9 +73,7 @@ export default function PenjelajahScreen() {
   });
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      `Penjelajah buku. ${sampleBooks.length} buku tersedia. Gunakan pencarian atau pilih buku.`
-    );
+    AccessibilityInfo.announceForAccessibility(t.explorer.mountAnnounce(sampleBooks.length));
   }, []);
 
   return (
@@ -87,12 +87,12 @@ export default function PenjelajahScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali ke beranda"
+              accessibilityLabel={t.explorer.backA11yLabel}
               accessibilityHint="Double tap to go back to home"
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">Penjelajah</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">{t.explorer.title}</Text>
             <View style={{ width: 48 }} />
           </View>
 
@@ -100,7 +100,7 @@ export default function PenjelajahScreen() {
             <Ionicons name="search" size={22} color={Colors.borderStrong} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Cari buku..."
+              placeholder={t.explorer.searchPlaceholder}
               placeholderTextColor={Colors.borderStrong}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -121,13 +121,13 @@ export default function PenjelajahScreen() {
           <FlatList
             data={filteredBooks}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <BookListItem book={item} />}
+            renderItem={({ item }) => <BookListItem book={item} t={t} />}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={64} color={Colors.textSecondary} />
-                <Text style={styles.emptyText}>Tidak ada buku ditemukan</Text>
+                <Text style={styles.emptyText}>{t.explorer.noResults}</Text>
               </View>
             }
           />

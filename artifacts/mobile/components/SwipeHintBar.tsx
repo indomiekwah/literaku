@@ -6,6 +6,7 @@ import Colors from "@/constants/colors";
 import type { NaturalVoiceHint } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
+import { useT } from "@/hooks/useTranslation";
 
 interface SwipeHintBarProps {
   hints?: NaturalVoiceHint[];
@@ -18,6 +19,7 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
   const { isVoiceOnly, setInteractionMode } = useReadingPreferences();
   const { activateVoice } = useVoiceActivation();
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const t = useT();
 
   const currentHint = hints && hints.length > 0 ? hints[hintIndex % hints.length] : null;
 
@@ -54,23 +56,21 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
     const newMode = isVoiceOnly ? "touch" : "voice";
     setInteractionMode(newMode);
     AccessibilityInfo.announceForAccessibility(
-      newMode === "voice"
-        ? "Mode suara aktif. Navigasi dengan perintah suara. UI dibekukan."
-        : "Mode sentuh aktif. Semua tombol bisa ditekan."
+      newMode === "voice" ? t.swipeHintBar.voiceModeOn : t.swipeHintBar.touchModeOn
     );
-  }, [isVoiceOnly, setInteractionMode]);
+  }, [isVoiceOnly, setInteractionMode, t]);
 
   const handleMicPress = useCallback(() => {
     activateVoice();
-    AccessibilityInfo.announceForAccessibility("Perintah suara aktif. Bicara sekarang.");
-  }, [activateVoice]);
+    AccessibilityInfo.announceForAccessibility(t.overlay.listening);
+  }, [activateVoice, t]);
 
   return (
-    <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel="Voice command hint bar">
+    <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel={t.swipeHintBar.swipeLeftCommand}>
       {isVoiceOnly && (
-        <View style={styles.frozenBanner} accessibilityRole="text" accessibilityLabel="Voice mode active. All buttons are frozen. Use voice commands to navigate.">
+        <View style={styles.frozenBanner} accessibilityRole="text" accessibilityLabel={t.swipeHintBar.voiceModeActive}>
           <Ionicons name="mic" size={18} color={Colors.studentPrimary} />
-          <Text style={styles.frozenText}>Mode suara — navigasi dengan perintah suara</Text>
+          <Text style={styles.frozenText}>{t.swipeHintBar.voiceModeBanner}</Text>
         </View>
       )}
       <View style={styles.row}>
@@ -78,8 +78,8 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
           style={[styles.modeToggle, isVoiceOnly ? styles.modeToggleVoice : styles.modeToggleTouch]}
           onPress={toggleMode}
           accessibilityRole="button"
-          accessibilityLabel={isVoiceOnly ? "Switch to touch mode. Currently voice-only mode, buttons are frozen" : "Switch to voice-only mode. Currently touch mode, buttons are active"}
-          accessibilityHint={isVoiceOnly ? "Double tap to enable touch buttons" : "Double tap to freeze buttons and use voice only"}
+          accessibilityLabel={isVoiceOnly ? t.swipeHintBar.switchToTouch : t.swipeHintBar.switchToVoice}
+          accessibilityHint={isVoiceOnly ? t.swipeHintBar.voiceHint : t.swipeHintBar.touchHint}
         >
           {isVoiceOnly ? (
             <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
@@ -92,19 +92,15 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
           style={styles.hintArea}
           onPress={cycleHint}
           accessibilityRole="button"
-          accessibilityLabel={
-            currentHint
-              ? `Swipe kiri untuk perintah suara. Contoh: ${currentHint.example}. Tap untuk contoh lain.`
-              : "Swipe kiri untuk perintah suara"
-          }
+          accessibilityLabel={t.swipeHintBar.swipeA11y(currentHint?.example ?? null)}
           accessibilityHint="Double tap to see another example voice command"
         >
           <Text style={styles.swipeText}>
-            {isVoiceOnly ? "Swipe kiri untuk navigasi suara" : "Swipe kiri untuk perintah suara"}
+            {isVoiceOnly ? t.swipeHintBar.swipeLeftVoice : t.swipeHintBar.swipeLeftCommand}
           </Text>
           {currentHint && (
             <Text style={styles.exampleText} numberOfLines={1}>
-              Coba: "{currentHint.example}"
+              {t.swipeHintBar.tryExample(currentHint.example)}
             </Text>
           )}
         </Pressable>

@@ -21,6 +21,7 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleHistory, sampleBookmarks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 function HorizontalBookRow({ bookIds, label }: { bookIds: string[]; label: string }) {
   const books = bookIds.map((id) => sampleBooks.find((b) => b.id === id)).filter(Boolean);
@@ -44,7 +45,7 @@ function HorizontalBookRow({ bookIds, label }: { bookIds: string[]; label: strin
             ]}
             onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: item!.id } })}
             accessibilityRole="button"
-            accessibilityLabel={`${item!.title} oleh ${item!.author}`}
+            accessibilityLabel={`${item!.title} by ${item!.author}`}
             accessibilityHint="Double tap to open book details"
           >
             <View style={[styles.bookCover, { backgroundColor: item!.coverColor }]}>
@@ -65,28 +66,27 @@ export default function RiwayatScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
   const [tokenCode, setTokenCode] = useState("");
+  const t = useT();
 
   const recentBookIds = sampleHistory.map((h) => h.bookId);
   const bookmarkedBookIds = sampleBookmarks.map((b) => b.bookId);
   const institutionBookIds = ["5", "6", "9"];
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(
-      "Riwayat bacaan. Lihat buku yang pernah dibaca, bookmark, dan redeem token."
-    );
+    AccessibilityInfo.announceForAccessibility(t.history.mountAnnounce);
   }, []);
 
   const handleRedeemToken = () => {
     if (!tokenCode.trim()) {
-      AccessibilityInfo.announceForAccessibility("Masukkan kode token terlebih dahulu");
+      AccessibilityInfo.announceForAccessibility(t.history.tokenEmpty);
       return;
     }
     Alert.alert(
-      "Token Diterima",
-      `Token "${tokenCode}" berhasil di-redeem. Buku dari institusi Anda akan segera tersedia di Koleksi.`,
+      t.history.tokenSuccess,
+      t.history.tokenSuccessMsg(tokenCode),
       [{ text: "OK" }]
     );
-    AccessibilityInfo.announceForAccessibility("Token berhasil di-redeem");
+    AccessibilityInfo.announceForAccessibility(t.history.tokenRedeemed);
     setTokenCode("");
   };
 
@@ -101,12 +101,12 @@ export default function RiwayatScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali ke beranda"
+              accessibilityLabel={t.history.backA11yLabel}
               accessibilityHint="Double tap to go back to home"
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
             </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">Riwayat</Text>
+            <Text style={styles.headerTitle} accessibilityRole="header">{t.history.title}</Text>
             <View style={{ width: 48 }} />
           </View>
 
@@ -118,15 +118,13 @@ export default function RiwayatScreen() {
             <View style={styles.redeemSection}>
               <View style={styles.redeemHeader}>
                 <Ionicons name="gift" size={24} color={Colors.primaryLight} />
-                <Text style={styles.redeemTitle} accessibilityRole="header">Redeem Token</Text>
+                <Text style={styles.redeemTitle} accessibilityRole="header">{t.history.redeemToken}</Text>
               </View>
-              <Text style={styles.redeemDesc}>
-                Masukkan kode token dari institusi Anda untuk mendapatkan akses buku gratis.
-              </Text>
+              <Text style={styles.redeemDesc}>{t.history.redeemDesc}</Text>
               <View style={styles.redeemInputRow}>
                 <TextInput
                   style={styles.redeemInput}
-                  placeholder="Masukkan kode token..."
+                  placeholder={t.history.tokenPlaceholder}
                   placeholderTextColor={Colors.borderStrong}
                   value={tokenCode}
                   onChangeText={setTokenCode}
@@ -144,14 +142,14 @@ export default function RiwayatScreen() {
                   accessibilityLabel="Submit token"
                   accessibilityHint="Double tap to redeem the token code"
                 >
-                  <Text style={styles.redeemButtonText}>Redeem</Text>
+                  <Text style={styles.redeemButtonText}>{t.history.redeemButton}</Text>
                 </Pressable>
               </View>
             </View>
 
-            <HorizontalBookRow bookIds={recentBookIds} label="Baru Dibaca" />
-            <HorizontalBookRow bookIds={bookmarkedBookIds} label="Buku yang Di-bookmark" />
-            <HorizontalBookRow bookIds={institutionBookIds} label="Dari Institusi" />
+            <HorizontalBookRow bookIds={recentBookIds} label={t.history.recentlyRead} />
+            <HorizontalBookRow bookIds={bookmarkedBookIds} label={t.history.bookmarked} />
+            <HorizontalBookRow bookIds={institutionBookIds} label={t.history.fromInstitution} />
           </ScrollView>
         </View>
 

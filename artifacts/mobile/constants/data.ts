@@ -244,11 +244,11 @@ export const sampleBooks: Book[] = [
 ];
 
 export const sampleReadingProgress: ReadingProgress[] = [
-  { bookId: "2", currentPage: 2, totalPages: 4, lastRead: "10 menit lalu" },
-  { bookId: "3", currentPage: 1, totalPages: 4, lastRead: "2 jam lalu" },
-  { bookId: "5", currentPage: 3, totalPages: 3, lastRead: "1 hari lalu" },
-  { bookId: "8", currentPage: 2, totalPages: 3, lastRead: "3 hari lalu" },
-  { bookId: "11", currentPage: 1, totalPages: 3, lastRead: "1 minggu lalu" },
+  { bookId: "2", currentPage: 2, totalPages: 4, lastRead: "10 min ago" },
+  { bookId: "3", currentPage: 1, totalPages: 4, lastRead: "2 hours ago" },
+  { bookId: "5", currentPage: 3, totalPages: 3, lastRead: "1 day ago" },
+  { bookId: "8", currentPage: 2, totalPages: 3, lastRead: "3 days ago" },
+  { bookId: "11", currentPage: 1, totalPages: 3, lastRead: "1 week ago" },
 ];
 
 export const sampleBookmarks: BookmarkEntry[] = [
@@ -260,11 +260,11 @@ export const sampleBookmarks: BookmarkEntry[] = [
 ];
 
 export const sampleHistory: ReadingHistory[] = [
-  { id: "h1", bookId: "2", title: "Penance", lastPage: 2, totalPages: 4, timestamp: "10 menit lalu" },
-  { id: "h2", bookId: "3", title: "Confessions", lastPage: 1, totalPages: 4, timestamp: "2 jam lalu" },
-  { id: "h3", bookId: "5", title: "Laskar Pelangi", lastPage: 3, totalPages: 3, timestamp: "1 hari lalu" },
-  { id: "h4", bookId: "8", title: "Cantik Itu Luka", lastPage: 2, totalPages: 3, timestamp: "3 hari lalu" },
-  { id: "h5", bookId: "11", title: "Ayat-Ayat Cinta", lastPage: 1, totalPages: 3, timestamp: "1 minggu lalu" },
+  { id: "h1", bookId: "2", title: "Penance", lastPage: 2, totalPages: 4, timestamp: "10 min ago" },
+  { id: "h2", bookId: "3", title: "Confessions", lastPage: 1, totalPages: 4, timestamp: "2 hours ago" },
+  { id: "h3", bookId: "5", title: "Laskar Pelangi", lastPage: 3, totalPages: 3, timestamp: "1 day ago" },
+  { id: "h4", bookId: "8", title: "Cantik Itu Luka", lastPage: 2, totalPages: 3, timestamp: "3 days ago" },
+  { id: "h5", bookId: "11", title: "Ayat-Ayat Cinta", lastPage: 1, totalPages: 3, timestamp: "1 week ago" },
 ];
 
 export function formatRupiah(amount: number): string {
@@ -273,54 +273,54 @@ export function formatRupiah(amount: number): string {
 
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   login: [
-    { example: "Masuk dengan Google", intent: "Sign in with Google" },
+    { example: "Sign in with Google", intent: "Sign in with Google" },
     { example: "Sign in", intent: "Sign in" },
     { example: "Masuk", intent: "Sign in" },
   ],
   studentHome: [
-    { example: "Buka penjelajah", intent: "Open book explorer" },
-    { example: "Lihat koleksi saya", intent: "Open my collection" },
-    { example: "Buka riwayat", intent: "Open reading history" },
-    { example: "Buka panduan", intent: "Open voice guide" },
-    { example: "Buka pengaturan", intent: "Open settings" },
+    { example: "Open explorer", intent: "Open book explorer" },
+    { example: "Show my collection", intent: "Open my collection" },
+    { example: "Open history", intent: "Open reading history" },
+    { example: "Open guide", intent: "Open voice guide" },
+    { example: "Open settings", intent: "Open settings" },
     { example: "Redeem token", intent: "Open token redemption" },
   ],
   penjelajah: [
-    { example: "Cari buku The Silent Patient", intent: "Search for a book" },
-    { example: "Buka detail buku pertama", intent: "Open book details" },
-    { example: "Kembali ke beranda", intent: "Go back to home" },
+    { example: "Search The Silent Patient", intent: "Search for a book" },
+    { example: "Open first book", intent: "Open book details" },
+    { example: "Go back to home", intent: "Go back to home" },
   ],
   bookDetail: [
-    { example: "Beli buku ini", intent: "Purchase this book" },
-    { example: "Preview buku", intent: "Preview book content" },
-    { example: "Kembali", intent: "Go back" },
+    { example: "Buy this book", intent: "Purchase this book" },
+    { example: "Preview book", intent: "Preview book content" },
+    { example: "Go back", intent: "Go back" },
   ],
   koleksi: [
-    { example: "Baca buku Penance", intent: "Open a specific book" },
+    { example: "Read Penance", intent: "Open a specific book" },
     { example: "Read The Silent Patient", intent: "Open a specific book" },
-    { example: "Kembali ke beranda", intent: "Go back to home" },
+    { example: "Go back to home", intent: "Go back to home" },
   ],
   riwayat: [
-    { example: "Lanjutkan membaca", intent: "Continue last book" },
-    { example: "Redeem token saya", intent: "Enter redemption token" },
-    { example: "Kembali ke beranda", intent: "Go back to home" },
+    { example: "Continue reading", intent: "Continue last book" },
+    { example: "Redeem my token", intent: "Enter redemption token" },
+    { example: "Go back to home", intent: "Go back to home" },
   ],
   reader: [
-    { example: "Halaman selanjutnya", intent: "Go to next page" },
+    { example: "Next page", intent: "Go to next page" },
     { example: "Go back one page", intent: "Previous page" },
-    { example: "Mundur 10 detik", intent: "Rewind narration" },
+    { example: "Rewind 10 seconds", intent: "Rewind narration" },
     { example: "Skip ahead", intent: "Forward narration" },
-    { example: "Berhenti dulu", intent: "Pause narration" },
-    { example: "Lanjutkan", intent: "Resume narration" },
-    { example: "Tolong ringkasin halaman ini", intent: "AI summarize" },
-    { example: "Kembali ke koleksi", intent: "Go back to collection" },
+    { example: "Pause", intent: "Pause narration" },
+    { example: "Continue", intent: "Resume narration" },
+    { example: "Summarize this page", intent: "AI summarize" },
+    { example: "Go back to collection", intent: "Go back to collection" },
   ],
   studentGuide: [
-    { example: "Kembali ke beranda", intent: "Go back to home" },
-    { example: "Bacakan buku", intent: "Start reading a book" },
+    { example: "Go back to home", intent: "Go back to home" },
+    { example: "Read a book", intent: "Start reading a book" },
   ],
   studentSettings: [
-    { example: "Kembali", intent: "Go back to home" },
-    { example: "Ganti suara ke Budi", intent: "Change voice" },
+    { example: "Go back", intent: "Go back to home" },
+    { example: "Change voice to James", intent: "Change voice" },
   ],
 };

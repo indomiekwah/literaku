@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 import Colors from "@/constants/colors";
+import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { getTranslations } from "@/constants/translations";
 
 interface SwipeVoiceOverlayProps {
   visible: boolean;
@@ -19,6 +21,10 @@ interface SwipeVoiceOverlayProps {
 export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOverlayProps) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { language } = useReadingPreferences();
+  const t = getTranslations(language);
+
+  const langLabel = language === "en" ? "English" : "Indonesian";
 
   useEffect(() => {
     if (visible) {
@@ -65,14 +71,14 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
       style={[styles.overlay, { opacity: fadeAnim }]}
       accessible
       accessibilityRole="alert"
-      accessibilityLabel="Voice command listening. Speak naturally in Indonesian or English. Tap anywhere or swipe right to dismiss."
+      accessibilityLabel={t.overlay.a11yLabel(langLabel)}
     >
       <Pressable
         style={styles.overlayTouchable}
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel="Dismiss voice command"
-        accessibilityHint="Double tap or swipe right to stop listening"
+        accessibilityLabel={t.overlay.dismissHint}
+        accessibilityHint={t.overlay.dismissHint}
       >
         <View style={styles.content}>
           <Animated.View style={[styles.pulseRing, { transform: [{ scale: pulseAnim }] }]} />
@@ -80,13 +86,13 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
             <Ionicons name="mic" size={56} color="#FFFFFF" />
           </View>
 
-          <Text style={styles.listeningText}>Saya mendengarkan...</Text>
-          <Text style={styles.subtitleText}>Bicara saja secara alami</Text>
-          <Text style={styles.langText}>Indonesian & English</Text>
+          <Text style={styles.listeningText}>{t.overlay.listening}</Text>
+          <Text style={styles.subtitleText}>{t.overlay.speakNaturally}</Text>
+          <Text style={styles.langText}>{langLabel}</Text>
 
           <View style={styles.dismissHint}>
             <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.6)" />
-            <Text style={styles.dismissText}>Swipe kanan atau tap untuk berhenti</Text>
+            <Text style={styles.dismissText}>{t.overlay.dismissHint}</Text>
           </View>
         </View>
       </Pressable>

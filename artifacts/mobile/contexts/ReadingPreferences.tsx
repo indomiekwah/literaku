@@ -24,7 +24,6 @@ interface ReadingPreferencesState {
   speed: SpeedValue;
   textSize: number;
   language: AppLanguage;
-  autoDetectLanguage: boolean;
   interactionMode: InteractionMode;
 }
 
@@ -33,7 +32,6 @@ interface ReadingPreferencesContextValue extends ReadingPreferencesState {
   setSpeed: (speed: SpeedValue) => void;
   setTextSize: (size: number) => void;
   setLanguage: (lang: AppLanguage) => void;
-  setAutoDetectLanguage: (enabled: boolean) => void;
   setInteractionMode: (mode: InteractionMode) => void;
   isVoiceOnly: boolean;
   currentVoiceLabel: string;
@@ -42,14 +40,13 @@ interface ReadingPreferencesContextValue extends ReadingPreferencesState {
 const ReadingPreferencesContext = createContext<ReadingPreferencesContextValue | null>(null);
 
 export function ReadingPreferencesProvider({ children }: { children: ReactNode }) {
-  const [selectedVoice, setSelectedVoice] = useState("v1");
+  const [selectedVoice, setSelectedVoice] = useState("v3");
   const [speed, setSpeed] = useState<SpeedValue>(1);
   const [textSize, setTextSize] = useState(19);
-  const [language, setLanguage] = useState<AppLanguage>("id");
-  const [autoDetectLanguage, setAutoDetectLanguage] = useState(true);
+  const [language, setLanguage] = useState<AppLanguage>("en");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");
 
-  const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Sari (Female)";
+  const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Emma (Female)";
   const isVoiceOnly = interactionMode === "voice";
 
   return (
@@ -59,13 +56,11 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
         speed,
         textSize,
         language,
-        autoDetectLanguage,
         interactionMode,
         setSelectedVoice,
         setSpeed,
         setTextSize,
         setLanguage,
-        setAutoDetectLanguage,
         setInteractionMode,
         isVoiceOnly,
         currentVoiceLabel,

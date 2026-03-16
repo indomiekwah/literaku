@@ -19,6 +19,7 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, formatRupiah, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useT } from "@/hooks/useTranslation";
 
 export default function BookDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -28,6 +29,7 @@ export default function BookDetailScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
   const [purchased, setPurchased] = useState(false);
+  const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
   const isOwned = book?.owned || purchased;
@@ -35,7 +37,7 @@ export default function BookDetailScreen() {
   React.useEffect(() => {
     if (book) {
       AccessibilityInfo.announceForAccessibility(
-        `Detail buku: ${book.title} oleh ${book.author}. ${book.genre}. ${isOwned ? "Sudah dimiliki" : formatRupiah(book.price)}`
+        t.bookDetail.mountAnnounce(book.title, book.author, book.genre, isOwned ? t.bookDetail.owned : formatRupiah(book.price))
       );
     }
   }, [book?.title, isOwned]);
@@ -45,7 +47,7 @@ export default function BookDetailScreen() {
       <SwipeVoiceWrapper>
         <View style={[styles.container, { paddingTop: topPadding }]}>
           <Text style={styles.errorText} accessibilityRole="alert">
-            Buku tidak ditemukan
+            {t.bookDetail.notFound}
           </Text>
         </View>
       </SwipeVoiceWrapper>
@@ -54,16 +56,14 @@ export default function BookDetailScreen() {
 
   const handleBuy = () => {
     Alert.alert(
-      "Pembelian Berhasil",
-      `${book.title} telah ditambahkan ke Koleksi Anda!`,
+      t.bookDetail.purchaseSuccess,
+      t.bookDetail.purchaseSuccessMsg(book.title),
       [
         {
           text: "OK",
           onPress: () => {
             setPurchased(true);
-            AccessibilityInfo.announceForAccessibility(
-              `${book.title} berhasil dibeli dan ditambahkan ke koleksi Anda`
-            );
+            AccessibilityInfo.announceForAccessibility(t.bookDetail.purchaseA11y(book.title));
           },
         },
       ]
@@ -85,7 +85,7 @@ export default function BookDetailScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
               accessibilityRole="button"
-              accessibilityLabel="Kembali"
+              accessibilityLabel={t.bookDetail.backA11yLabel}
               accessibilityHint="Double tap to go back"
             >
               <Feather name="arrow-left" size={28} color={Colors.text} />
@@ -113,7 +113,7 @@ export default function BookDetailScreen() {
               <Text style={styles.bookAuthor}>{book.author}</Text>
               <Text style={styles.bookGenre}>{book.genre} · {book.category}</Text>
               <Text style={styles.bookPrice}>
-                {isOwned ? "Sudah dimiliki" : formatRupiah(book.price)}
+                {isOwned ? t.bookDetail.owned : formatRupiah(book.price)}
               </Text>
             </View>
 
@@ -125,11 +125,11 @@ export default function BookDetailScreen() {
                 ]}
                 onPress={handlePreview}
                 accessibilityRole="button"
-                accessibilityLabel="Preview buku ini"
-                accessibilityHint="Double tap to preview the first chapter"
+                accessibilityLabel={t.bookDetail.previewA11yLabel}
+                accessibilityHint={t.bookDetail.previewA11yHint}
               >
                 <Ionicons name="eye" size={22} color={Colors.primaryLight} />
-                <Text style={styles.previewText}>Preview</Text>
+                <Text style={styles.previewText}>{t.bookDetail.preview}</Text>
               </Pressable>
 
               {!isOwned ? (
@@ -140,11 +140,11 @@ export default function BookDetailScreen() {
                   ]}
                   onPress={handleBuy}
                   accessibilityRole="button"
-                  accessibilityLabel={`Beli buku ${book.title} seharga ${formatRupiah(book.price)}`}
+                  accessibilityLabel={t.bookDetail.buyA11yLabel(book.title, formatRupiah(book.price))}
                   accessibilityHint="Double tap to purchase this book"
                 >
                   <Ionicons name="cart" size={22} color="#FFFFFF" />
-                  <Text style={styles.buyText}>Buy Book</Text>
+                  <Text style={styles.buyText}>{t.bookDetail.buyBook}</Text>
                 </Pressable>
               ) : (
                 <Pressable
@@ -154,20 +154,20 @@ export default function BookDetailScreen() {
                   ]}
                   onPress={handlePreview}
                   accessibilityRole="button"
-                  accessibilityLabel="Baca buku ini"
-                  accessibilityHint="Double tap to start reading"
+                  accessibilityLabel={t.bookDetail.readA11yLabel}
+                  accessibilityHint={t.bookDetail.readA11yHint}
                 >
                   <Ionicons name="book" size={22} color="#FFFFFF" />
-                  <Text style={styles.buyText}>Read Now</Text>
+                  <Text style={styles.buyText}>{t.bookDetail.readNow}</Text>
                 </Pressable>
               )}
             </View>
 
             <View style={styles.synopsisSection}>
-              <Text style={styles.synopsisLabel} accessibilityRole="header">Sinopsis</Text>
+              <Text style={styles.synopsisLabel} accessibilityRole="header">{t.bookDetail.synopsis}</Text>
               <Text
                 style={styles.synopsisText}
-                accessibilityLabel={`Sinopsis: ${book.synopsis}`}
+                accessibilityLabel={`${t.bookDetail.synopsis}: ${book.synopsis}`}
               >
                 {book.synopsis}
               </Text>
