@@ -64,7 +64,7 @@ export default function RiwayatScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly } = useReadingPreferences();
+  const { isVoiceOnly, setIsSubscribed } = useReadingPreferences();
   const [tokenCode, setTokenCode] = useState("");
   const t = useT();
 
@@ -84,7 +84,12 @@ export default function RiwayatScreen() {
     Alert.alert(
       t.history.tokenSuccess,
       t.history.tokenSuccessMsg(tokenCode),
-      [{ text: "OK" }]
+      [{
+        text: "OK",
+        onPress: () => {
+          setIsSubscribed(true);
+        },
+      }]
     );
     AccessibilityInfo.announceForAccessibility(t.history.tokenRedeemed);
     setTokenCode("");

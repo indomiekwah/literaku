@@ -22,16 +22,19 @@ import { useT } from "@/hooks/useTranslation";
 
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, preview } = useLocalSearchParams<{ id: string; preview?: string }>();
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { speed, textSize, isVoiceOnly } = useReadingPreferences();
+  const { speed, textSize, isVoiceOnly, isSubscribed } = useReadingPreferences();
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const isPreviewMode = preview === "true" && !isSubscribed;
+  const maxPage = isPreviewMode ? 0 : (book ? book.content.length - 1 : 0);
 
   React.useEffect(() => {
     if (book) {
@@ -51,11 +54,11 @@ export default function StudentReaderScreen() {
     );
   }
 
-  const totalPages = book.content.length;
+  const totalPages = isPreviewMode ? 1 : book.content.length;
   const progress = ((currentPage + 1) / totalPages) * 100;
 
   const goToPage = (page: number) => {
-    if (page >= 0 && page < totalPages) {
+    if (page >= 0 && page <= maxPage) {
       setCurrentPage(page);
       AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
     }
@@ -96,7 +99,9 @@ export default function StudentReaderScreen() {
                 {book.title}
               </Text>
               <Text style={styles.headerSubtitle}>
-                {t.reader.pageOf(currentPage + 1, totalPages)}
+                {isPreviewMode
+                  ? t.bookDetail.freePreview
+                  : t.reader.pageOf(currentPage + 1, totalPages)}
               </Text>
             </View>
             <Pressable
@@ -111,6 +116,13 @@ export default function StudentReaderScreen() {
               <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
             </Pressable>
           </View>
+
+          {isPreviewMode && (
+            <View style={styles.previewBanner}>
+              <Ionicons name="eye-outline" size={18} color={Colors.primaryLight} />
+              <Text style={styles.previewBannerText}>{t.bookDetail.freePreview}</Text>
+            </View>
+          )}
 
           <View
             style={styles.progressBarContainer}
@@ -136,6 +148,28 @@ export default function StudentReaderScreen() {
                 {book.content[currentPage]}
               </Text>
             </View>
+
+            {isPreviewMode && (
+              <View style={styles.paywallCard}>
+                <Ionicons name="lock-closed" size={36} color="#E65100" />
+                <Text style={styles.paywallTitle}>{t.bookDetail.subscriptionBadge}</Text>
+                <Text style={styles.paywallDesc}>{t.subscription.description}</Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.paywallButton,
+                    { opacity: pressed ? 0.85 : 1 },
+                  ]}
+                  onPress={() => {
+                    router.back();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.bookDetail.subscribeCta}
+                >
+                  <Ionicons name="diamond" size={20} color="#FFFFFF" />
+                  <Text style={styles.paywallButtonText}>{t.bookDetail.subscribeCta}</Text>
+                </Pressable>
+              </View>
+            )}
           </ScrollView>
 
           <View style={styles.controlsSection}>
@@ -171,35 +205,37 @@ export default function StudentReaderScreen() {
               </Pressable>
             </View>
 
-            <View style={styles.pageNavRow}>
-              <Pressable
-                style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
-                onPress={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 0}
-                accessibilityRole="button"
-                accessibilityLabel={t.reader.prevPage}
-                accessibilityState={{ disabled: currentPage === 0 }}
-              >
-                <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
-                <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>{t.reader.prev}</Text>
-              </Pressable>
+            {!isPreviewMode && (
+              <View style={styles.pageNavRow}>
+                <Pressable
+                  style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
+                  onPress={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.reader.prevPage}
+                  accessibilityState={{ disabled: currentPage === 0 }}
+                >
+                  <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
+                  <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>{t.reader.prev}</Text>
+                </Pressable>
 
-              <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
-                {currentPage + 1} / {totalPages}
-              </Text>
+                <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
+                  {currentPage + 1} / {totalPages}
+                </Text>
 
-              <Pressable
-                style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
-                onPress={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
-                accessibilityRole="button"
-                accessibilityLabel={t.reader.nextPage}
-                accessibilityState={{ disabled: currentPage === totalPages - 1 }}
-              >
-                <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>{t.reader.next}</Text>
-                <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
-              </Pressable>
-            </View>
+                <Pressable
+                  style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
+                  onPress={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages - 1}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.reader.nextPage}
+                  accessibilityState={{ disabled: currentPage === totalPages - 1 }}
+                >
+                  <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>{t.reader.next}</Text>
+                  <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
+                </Pressable>
+              </View>
+            )}
 
             <View style={styles.infoRow}>
               <Ionicons name="speedometer-outline" size={18} color={Colors.textSecondary} />
@@ -263,6 +299,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  previewBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: Colors.voiceBarBg,
+    borderRadius: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
+    marginBottom: 4,
+  },
+  previewBannerText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.primaryLight,
+  },
   progressBarContainer: {
     height: 6,
     backgroundColor: Colors.border,
@@ -280,6 +333,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingVertical: 8,
+    gap: 16,
   },
   readerCard: {
     backgroundColor: Colors.background,
@@ -292,6 +346,45 @@ const styles = StyleSheet.create({
   pageContent: {
     fontFamily: "Inter_400Regular",
     color: Colors.text,
+  },
+  paywallCard: {
+    backgroundColor: "#FFF3E0",
+    borderRadius: 18,
+    padding: 24,
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 2,
+    borderColor: "#E65100",
+  },
+  paywallTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: "#E65100",
+    textAlign: "center",
+  },
+  paywallDesc: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  paywallButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#E65100",
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    minHeight: 56,
+    width: "100%",
+  },
+  paywallButtonText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: "#FFFFFF",
   },
   controlsSection: {
     paddingTop: 8,

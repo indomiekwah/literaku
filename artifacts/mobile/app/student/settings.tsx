@@ -38,6 +38,7 @@ export default function StudentSettingsScreen() {
     language,
     interactionMode,
     isVoiceOnly,
+    isSubscribed,
     setSelectedVoice,
     setSpeed,
     setTextSize,
@@ -252,6 +253,28 @@ export default function StudentSettingsScreen() {
               >
                 <Ionicons name="add" size={28} color={textSize >= 28 ? Colors.borderStrong : Colors.text} />
               </Pressable>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            {t.subscription.title}
+          </Text>
+
+          <View style={[styles.subscriptionCard, isSubscribed && styles.subscriptionCardActive]}>
+            <View style={styles.subscriptionRow}>
+              <Ionicons
+                name={isSubscribed ? "checkmark-circle" : "lock-closed"}
+                size={24}
+                color={isSubscribed ? Colors.studentPrimary : "#E65100"}
+              />
+              <View style={styles.subscriptionInfo}>
+                <Text style={styles.subscriptionStatus}>
+                  {isSubscribed ? t.subscription.currentPlan : t.bookDetail.subscriptionBadge}
+                </Text>
+                <Text style={styles.subscriptionDesc}>
+                  {isSubscribed ? t.subscription.institutionActive : t.subscription.description}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -499,6 +522,37 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     fontSize: 18,
     color: Colors.textSecondary,
+  },
+  subscriptionCard: {
+    backgroundColor: "#FFF3E0",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: "#E65100",
+  },
+  subscriptionCardActive: {
+    backgroundColor: Colors.successLight,
+    borderColor: Colors.studentPrimary,
+  },
+  subscriptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  subscriptionInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  subscriptionStatus: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.text,
+  },
+  subscriptionDesc: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: Colors.textSecondary,
+    lineHeight: 22,
   },
   logoutButton: {
     flexDirection: "row",

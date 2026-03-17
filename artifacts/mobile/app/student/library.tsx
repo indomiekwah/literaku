@@ -21,7 +21,9 @@ import { sampleBooks, sampleReadingProgress, voiceHints, type Book, type Reading
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
 
-function KoleksiBookCard({ book, progress, t }: { book: Book; progress?: ReadingProgress; t: ReturnType<typeof useT> }) {
+const savedBookIds = ["1", "2", "3", "5", "8", "11"];
+
+function KoleksiBookCard({ book, progress, isSubscribed, t }: { book: Book; progress?: ReadingProgress; isSubscribed: boolean; t: ReturnType<typeof useT> }) {
   const progressPercent = progress
     ? Math.round((progress.currentPage / progress.totalPages) * 100)
     : 0;
@@ -32,10 +34,10 @@ function KoleksiBookCard({ book, progress, t }: { book: Book; progress?: Reading
         styles.bookCard,
         { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}
-      onPress={() => router.push({ pathname: "/student/reader/[id]", params: { id: book.id } })}
+      onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
       accessibilityLabel={`${book.title} by ${book.author}. ${book.genre}. ${progress ? `${t.collection.progress}: ${progressPercent}%. ${t.collection.lastRead} ${progress.lastRead}` : t.collection.notStarted}`}
-      accessibilityHint="Double tap to start reading this book"
+      accessibilityHint="Double tap to open book details"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
         <Ionicons name="book" size={28} color="#FFFFFF" />
@@ -55,9 +57,15 @@ function KoleksiBookCard({ book, progress, t }: { book: Book; progress?: Reading
           <Text style={styles.notStarted}>{t.collection.notStarted}</Text>
         )}
       </View>
-      <View style={styles.playCircle}>
-        <Ionicons name="play" size={22} color="#FFFFFF" />
-      </View>
+      {isSubscribed ? (
+        <View style={styles.playCircle}>
+          <Ionicons name="play" size={22} color="#FFFFFF" />
+        </View>
+      ) : (
+        <View style={styles.lockCircle}>
+          <Ionicons name="lock-closed" size={20} color="#E65100" />
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -67,20 +75,20 @@ export default function KoleksiScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly } = useReadingPreferences();
+  const { isVoiceOnly, isSubscribed } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
   const t = useT();
 
-  const ownedBooks = sampleBooks.filter((b) => b.owned);
-  const filteredBooks = ownedBooks.filter((b) => {
+  const collectionBooks = sampleBooks.filter((b) => savedBookIds.includes(b.id));
+  const filteredBooks = collectionBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
   });
 
   React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(ownedBooks.length));
-  }, [ownedBooks.length]);
+    AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(collectionBooks.length));
+  }, [collectionBooks.length]);
 
   return (
     <SwipeVoiceWrapper>
@@ -133,7 +141,7 @@ export default function KoleksiScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => {
               const progress = sampleReadingProgress.find((p) => p.bookId === item.id);
-              return <KoleksiBookCard book={item} progress={progress} t={t} />;
+              return <KoleksiBookCard book={item} progress={progress} isSubscribed={isSubscribed} t={t} />;
             }}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
@@ -282,6 +290,16 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: Colors.studentPrimary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lockCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFF3E0",
+    borderWidth: 2,
+    borderColor: "#E65100",
     alignItems: "center",
     justifyContent: "center",
   },

@@ -4,12 +4,35 @@ export interface Book {
   author: string;
   genre: string;
   category: string;
-  price: number;
   synopsis: string;
   coverColor: string;
-  owned: boolean;
   content: string[];
 }
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  priceMonthly: number;
+  priceYearly: number;
+  features: string[];
+}
+
+export const subscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: "basic",
+    name: "Basic",
+    priceMonthly: 49000,
+    priceYearly: 490000,
+    features: ["Unlimited reading", "Voice narration", "AI summarization"],
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    priceMonthly: 89000,
+    priceYearly: 890000,
+    features: ["Unlimited reading", "Voice narration", "AI summarization", "Offline downloads", "Priority support"],
+  },
+];
 
 export interface ReadingProgress {
   bookId: string;
@@ -51,10 +74,8 @@ export const sampleBooks: Book[] = [
     author: "Alex Michaelides",
     genre: "Psychological",
     category: "Thriller",
-    price: 89000,
     synopsis: "Alicia Berenson's life is seemingly perfect. A famous painter married to an in-demand fashion photographer, she lives in a grand house with big windows overlooking a park in one of London's most desirable areas. One evening her husband Gabriel returns home late from a fashion shoot, and Alicia shoots him five times in the face. And then she never speaks another word.\n\nAlicia's refusal to talk, or offer any defense, turns the trial into a media circus. She is found guilty and committed to a secure forensic unit in North London where she remains, silent.\n\nTheo Faber is a criminal psychotherapist who has waited a long time for the opportunity to work with Alicia. His determination to get her to talk and unravel the mystery of why she shot her husband takes him down a path more unexpected than he ever imagined.",
     coverColor: "#1A237E",
-    owned: false,
     content: [
       "Chapter 1: The Silent Patient\n\nAlicia Berenson was thirty-three years old when she killed her husband. She shot Gabriel in the face five times. She then made no attempt to escape. She waited for the police to arrive.\n\nThe murder was shocking — not just because of the brutality of the act, but because Alicia Berenson was famous. She was a painter, known for her work in figurative art.",
       "She was also known for her silence. She didn't speak a single word after the murder. Not to the police, not to her lawyers, not to anyone. Her refusal to speak transformed the trial into a media frenzy.\n\nThe tabloids called her the Silent Patient. And this is where our story truly begins.",
@@ -69,10 +90,8 @@ export const sampleBooks: Book[] = [
     author: "Miroku Kumar",
     genre: "Psychological",
     category: "Fiction",
-    price: 75000,
     synopsis: "Emirs mother refused to accept the life of poverty she was condemned to. In a small village, surrounded by corruption, she chose to fight. Four girls watched everything unfold. They were only children, but they understood more than anyone believed. Even though they had tried to forget, the past would not release them.\n\nEmils mother refused to accept the burden her family carried, a burden that stretched back generations. Find the perpetrator. Find what they took. These became the words that defined her existence, and eventually, the existence of those four girls.",
     coverColor: "#B71C1C",
-    owned: true,
     content: [
       "Chapter 1: The Beginning\n\nThe village was small, the kind of place where everyone knew everyone else's business. The houses were modest, built from weathered wood and corrugated iron. Rain collected in puddles along the unpaved roads.",
       "In one of these modest houses lived a woman who refused to accept her fate. She had four daughters, each born with the same fierce determination that burned in their mother's eyes.\n\nThe girls grew up hearing stories of injustice.",
@@ -86,10 +105,8 @@ export const sampleBooks: Book[] = [
     author: "Miroku Kumar",
     genre: "Psychological",
     category: "Mystery",
-    price: 82000,
     synopsis: "A gripping psychological mystery that delves into the darkest corners of human guilt and redemption. When a teacher discovers a horrifying truth about the death of her daughter, she decides to take justice into her own hands. But justice, she learns, is never as simple as it seems.\n\nEach chapter reveals a new perspective, a new confession, and a new layer of the truth that will leave you questioning everything you thought you knew.",
     coverColor: "#4A148C",
-    owned: true,
     content: [
       "Chapter 1: The Announcement\n\nThe classroom was silent. Thirty-seven pairs of eyes stared at the teacher standing before them. She had an announcement to make — one that would change everything.\n\n'Before we part ways for spring break,' she began, her voice steady, 'I have something to tell you.'",
       "She paused, letting the weight of the moment settle. The students shifted in their seats, some curious, some bored. None of them suspected what was coming.\n\n'My daughter did not die by accident,' she said.",
@@ -103,10 +120,8 @@ export const sampleBooks: Book[] = [
     author: "Dhiah Barhad",
     genre: "Sci-Fi",
     category: "Fiction",
-    price: 68000,
     synopsis: "A mysterious figure known only as the Shorts Caller appears in different cities, always at moments of crisis. No one knows their identity or their purpose. All that is known is that when the Shorts Caller appears, everything changes.\n\nThis mind-bending sci-fi novel explores the nature of time, identity, and the connections that bind us across dimensions.",
     coverColor: "#006064",
-    owned: false,
     content: [
       "Chapter 1: The First Call\n\nThe phone rang at exactly 3:47 AM. Detective Sarah Chen reached for it in the darkness, her hand finding the device by muscle memory.\n\n'This is the Shorts Caller,' said a voice she didn't recognize. 'Listen carefully. You have exactly forty-seven minutes.'",
       "Sarah sat up in bed, immediately alert. She had heard of the Shorts Caller — everyone in the department had. But no one had ever spoken to them directly.\n\n'Forty-seven minutes until what?' she asked, but the line had already gone dead.",
@@ -119,10 +134,8 @@ export const sampleBooks: Book[] = [
     author: "Andrea Hirata",
     genre: "Drama",
     category: "Indonesian Literature",
-    price: 72000,
     synopsis: "Kisah inspiratif tentang sepuluh anak dari keluarga miskin di Belitung yang berjuang mendapatkan pendidikan. Dipimpin oleh dua guru yang luar biasa berdedikasi, mereka membuktikan bahwa semangat belajar tidak bisa dihalangi oleh kemiskinan.\n\nNovel ini menjadi salah satu karya sastra Indonesia yang paling dicintai, menginspirasi jutaan pembaca di seluruh dunia.",
     coverColor: "#E65100",
-    owned: true,
     content: [
       "Bab 1: Sepuluh Murid Baru\n\nPagi itu, hanya sepuluh orang anak yang datang ke sekolah Muhammadiyah. Pak Harfan dan Bu Mus sudah menunggu dengan cemas — jika murid baru tidak mencapai sepuluh orang, sekolah akan ditutup.\n\nNamun takdir berkata lain. Tepat saat harapan hampir pupus, seorang anak lelaki berlari masuk.",
       "Anak itu bernama Harun. Dengan kedatangannya, genaplah sepuluh murid yang diperlukan. Bu Mus menghela napas lega. Sekolah mereka selamat — untuk saat ini.\n\nMereka menyebut diri mereka Laskar Pelangi.",
@@ -135,10 +148,8 @@ export const sampleBooks: Book[] = [
     author: "Pramoedya Ananta Toer",
     genre: "Historical",
     category: "Indonesian Literature",
-    price: 95000,
     synopsis: "Set in the Dutch colonial era of Indonesia, this masterpiece tells the story of Minke, a young Javanese student who navigates love, politics, and identity. Through his eyes, we witness the awakening of a nation and the price of fighting for justice in an unjust world.",
     coverColor: "#33691E",
-    owned: false,
     content: [
       "Bab 1: Sebuah Pertemuan\n\nNamaku Minke. Aku adalah seorang murid di H.B.S. — satu-satunya sekolah menengah Belanda di Surabaya. Aku adalah satu dari sedikit pribumi yang beruntung bisa mengenyam pendidikan Eropa.",
       "Pada suatu sore yang panas, aku diajak temanku Robert Suurhof mengunjungi sebuah rumah besar di pinggir kota. Di sanalah aku pertama kali bertemu dengan Annelies Mellema — gadis Indo yang akan mengubah hidupku selamanya.",
@@ -151,10 +162,8 @@ export const sampleBooks: Book[] = [
     author: "Ahmad Tohari",
     genre: "Drama",
     category: "Indonesian Literature",
-    price: 78000,
     synopsis: "Kisah Srintil, seorang gadis desa yang menjadi ronggeng — penari tradisional Jawa — di dusun terpencil Paruk. Novel trilogi ini menggambarkan kehidupan desa, tradisi, cinta, dan tragedi politik 1965 yang menghancurkan segalanya.\n\nKarya sastra Indonesia yang paling kuat menggambarkan nasib rakyat kecil dalam pusaran sejarah.",
     coverColor: "#5D4037",
-    owned: false,
     content: [
       "Bab 1: Dukuh Paruk\n\nDukuh Paruk adalah sebuah pedukuhan kecil yang terpencil. Penduduknya hidup sederhana, bergantung pada apa yang bisa ditanam di tanah kering mereka. Namun Dukuh Paruk terkenal karena satu hal: ronggengnya.",
       "Srintil masih kecil ketika kedua orangtuanya meninggal karena tempe bongkrek beracun. Ia diasuh oleh kakeknya, Sakarya. Sejak kecil, dalam dirinya sudah terlihat bakat menari yang luar biasa.",
@@ -167,10 +176,8 @@ export const sampleBooks: Book[] = [
     author: "Eka Kurniawan",
     genre: "Magical Realism",
     category: "Indonesian Literature",
-    price: 88000,
     synopsis: "Dewi Ayu, seorang pelacur cantik di kota Halimunda, bangkit dari kuburnya setelah dua puluh satu tahun. Novel epik ini menelusuri sejarah Indonesia dari era kolonial hingga reformasi melalui empat generasi keluarganya.\n\nDipuji oleh The New York Times dan diterjemahkan ke 30 bahasa, novel ini adalah mahakarya realisme magis Indonesia.",
     coverColor: "#880E4F",
-    owned: true,
     content: [
       "Bab 1: Kebangkitan\n\nPada suatu sore di akhir bulan Maret, Dewi Ayu bangkit dari kuburnya setelah dua puluh satu tahun meninggal. Ia berjalan pulang ke rumahnya dengan gaun putih yang sudah lapuk dimakan waktu.",
       "Penduduk Halimunda yang melihatnya berjalan di jalan raya nyaris tak percaya. Mereka yang mengenalnya dulu ingat betul: Dewi Ayu adalah perempuan paling cantik yang pernah dilahirkan kota ini.",
@@ -183,10 +190,8 @@ export const sampleBooks: Book[] = [
     author: "Ahmad Fuadi",
     genre: "Drama",
     category: "Indonesian Literature",
-    price: 75000,
     synopsis: "Novel inspiratif tentang enam santri dari berbagai daerah di Indonesia yang bermimpi besar di sebuah pesantren di Jawa Timur. Dengan mantra 'man jadda wajada' — siapa yang bersungguh-sungguh pasti berhasil — mereka menempa diri menuju cita-cita.\n\nDiangkat dari kisah nyata penulis, novel ini menjadi best-seller dan menginspirasi jutaan pembaca muda Indonesia.",
     coverColor: "#1565C0",
-    owned: false,
     content: [
       "Bab 1: Keberangkatan\n\nAmak tidak pernah berhenti menangis sejak keputusan itu dibuat. Aku, Alif Fikri, anak bungsu dari keluarga Minangkabau, harus pergi ke pesantren di Jawa. Jauh dari kampung halaman.",
       "Perjalanan dari Maninjau ke Ponorogo memakan waktu dua hari. Aku duduk di bus dengan perasaan campur aduk — takut, penasaran, dan sedikit bersemangat. Di depanku menanti kehidupan yang sama sekali baru.",
@@ -199,10 +204,8 @@ export const sampleBooks: Book[] = [
     author: "Dewi Lestari",
     genre: "Philosophical Fiction",
     category: "Indonesian Literature",
-    price: 85000,
     synopsis: "Dua sahabat — Dimas dan Reuben — menulis sebuah novel tentang Ksatria dan Puteri yang hidup dalam dunia yang berbeda. Sementara itu, seorang ilmuwan wanita bernama Bodhi mencari jawaban atas misteri alam semesta.\n\nNovel ini memadukan sains, spiritualitas, dan cinta dalam sebuah kisah yang menantang cara berpikir konvensional.",
     coverColor: "#311B92",
-    owned: false,
     content: [
       "Bab 1: Prolog\n\nDimas dan Reuben duduk di sebuah kafe kecil di Jakarta. Di antara mereka tergeletak tumpukan kertas — naskah novel yang telah mereka kerjakan selama berbulan-bulan. Mereka menyebutnya Supernova.",
       "Reuben mengangkat cangkir kopinya. 'Kita perlu seorang Ksatria,' katanya. 'Seseorang yang berani menantang semua aturan.' Dimas mengangguk. 'Dan seorang Puteri. Yang tidak butuh diselamatkan.'",
@@ -215,10 +218,8 @@ export const sampleBooks: Book[] = [
     author: "Habiburrahman El Shirazy",
     genre: "Romance",
     category: "Indonesian Literature",
-    price: 79000,
     synopsis: "Fahri, mahasiswa Indonesia di Universitas Al-Azhar, Kairo, hidup sederhana dan tekun belajar. Hidupnya berubah ketika ia bertemu empat wanita yang masing-masing memiliki perasaan terhadapnya.\n\nNovel ini menjadi fenomena sastra Indonesia dengan penjualan jutaan eksemplar dan diadaptasi ke film laris.",
     coverColor: "#004D40",
-    owned: true,
     content: [
       "Bab 1: Flat Zaitun\n\nFlat Zaitun terletak di lantai empat sebuah gedung tua di kawasan Hadayek Helwan, pinggiran Kairo. Di sinilah aku, Fahri, tinggal bersama tiga teman satu flat dari Indonesia.",
       "Pagi itu, seperti biasa, aku bangun sebelum subuh. Udara Kairo masih dingin. Aku berwudhu, shalat, lalu membuka mushaf Al-Quran. Setiap hari aku membaca tiga juz — target yang kupasang untuk menyelesaikan hafalan.",
@@ -231,10 +232,8 @@ export const sampleBooks: Book[] = [
     author: "Dee Lestari",
     genre: "Romance",
     category: "Indonesian Literature",
-    price: 82000,
     synopsis: "Kugy, gadis nyentrik yang bermimpi menjadi penulis dongeng, dan Keenan, pelukis berbakat yang dipaksa kuliah ekonomi. Keduanya bertemu di Bandung dan memulai persahabatan yang perlahan berubah menjadi cinta.\n\nNovel dua jilid ini menggambarkan perjalanan menemukan passion dan cinta sejati dengan gaya bercerita yang hangat dan menyentuh.",
     coverColor: "#F57F17",
-    owned: false,
     content: [
       "Bab 1: Kugy\n\nNamaku Kugy. Lengkapnya Kugy Utami, tapi jangan panggil aku dengan nama lengkap karena aku tidak suka. Aku suka menulis dongeng. Dongeng tentang Jenderal Pilik dan pasukannya.",
       "Hari ini adalah hari pertamaku di Bandung. Aku pindah dari Jakarta untuk kuliah di sebuah universitas yang katanya bagus. Tapi yang paling membuatku senang adalah: Bandung punya banyak sudut yang bisa menginspirasi dongeng.",
@@ -291,8 +290,8 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Go back to home", intent: "Go back to home" },
   ],
   bookDetail: [
-    { example: "Buy this book", intent: "Purchase this book" },
-    { example: "Preview book", intent: "Preview book content" },
+    { example: "Subscribe to read", intent: "Open subscription plans" },
+    { example: "Preview book", intent: "Preview first chapter free" },
     { example: "Go back", intent: "Go back" },
   ],
   koleksi: [

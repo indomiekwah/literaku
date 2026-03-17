@@ -25,6 +25,7 @@ interface ReadingPreferencesState {
   textSize: number;
   language: AppLanguage;
   interactionMode: InteractionMode;
+  isSubscribed: boolean;
 }
 
 interface ReadingPreferencesContextValue extends ReadingPreferencesState {
@@ -33,6 +34,7 @@ interface ReadingPreferencesContextValue extends ReadingPreferencesState {
   setTextSize: (size: number) => void;
   setLanguage: (lang: AppLanguage) => void;
   setInteractionMode: (mode: InteractionMode) => void;
+  setIsSubscribed: (subscribed: boolean) => void;
   isVoiceOnly: boolean;
   currentVoiceLabel: string;
 }
@@ -45,6 +47,7 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
   const [textSize, setTextSize] = useState(19);
   const [language, setLanguage] = useState<AppLanguage>("en");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Emma (Female)";
   const isVoiceOnly = interactionMode === "voice";
@@ -57,11 +60,13 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
         textSize,
         language,
         interactionMode,
+        isSubscribed,
         setSelectedVoice,
         setSpeed,
         setTextSize,
         setLanguage,
         setInteractionMode,
+        setIsSubscribed,
         isVoiceOnly,
         currentVoiceLabel,
       }}

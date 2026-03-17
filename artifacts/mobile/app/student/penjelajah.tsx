@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, formatRupiah, voiceHints, type Book } from "@/constants/data";
+import { sampleBooks, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
 
@@ -30,7 +30,7 @@ function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
       ]}
       onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} ${t.explorer.byAuthor} ${book.author}. ${book.genre}. ${formatRupiah(book.price)}${book.owned ? `. ${t.explorer.owned}` : ""}`}
+      accessibilityLabel={`${book.title} ${t.explorer.byAuthor} ${book.author}. ${book.genre}. ${t.explorer.freePreview}`}
       accessibilityHint="Double tap to view book details"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
@@ -40,13 +40,10 @@ function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
         <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>
         <Text style={styles.bookAuthor} numberOfLines={1}>{book.author}</Text>
         <Text style={styles.bookGenre}>{book.genre}</Text>
-        {book.owned ? (
-          <View style={styles.ownedBadge}>
-            <Text style={styles.ownedText}>{t.explorer.owned}</Text>
-          </View>
-        ) : (
-          <Text style={styles.bookPrice}>{formatRupiah(book.price)}</Text>
-        )}
+        <View style={styles.previewBadge}>
+          <Ionicons name="eye-outline" size={14} color={Colors.primaryLight} />
+          <Text style={styles.previewText}>{t.explorer.freePreview}</Text>
+        </View>
       </View>
       <Ionicons name="chevron-forward" size={24} color={Colors.borderStrong} />
     </Pressable>
@@ -228,22 +225,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.primaryLight,
   },
-  bookPrice: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.studentPrimary,
-  },
-  ownedBadge: {
-    backgroundColor: Colors.successLight,
-    paddingHorizontal: 10,
+  previewBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.voiceBarBg,
+    paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
     alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
   },
-  ownedText: {
+  previewText: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: Colors.studentPrimary,
+    fontSize: 13,
+    color: Colors.primaryLight,
   },
   emptyState: {
     alignItems: "center",

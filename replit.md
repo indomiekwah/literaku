@@ -59,9 +59,9 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 1. **Splash** — Literaku logo, auto-redirects to login after 2s
 2. **Login (OAuth-First)** — Google/Microsoft OAuth as hero buttons (large, colored, one-tap). Email/password hidden behind collapsible disclosure toggle. Zero-friction for blind users.
 3. **Home** — 5 large navigation buttons (Explorer, History, Collection, Redeem Token, Guide) + settings gear
-4. **Explorer (penjelajah.tsx)** — Browse & search books with prices in Rupiah, tap to view details
-5. **Book Detail** — Book cover, title, author, genre, price, synopsis, Preview & Buy buttons (mock purchase)
-6. **Collection (library.tsx)** — Owned books with reading progress indicators, search, tap to read
+4. **Explorer (penjelajah.tsx)** — Browse & search books with free preview badges, tap to view details
+5. **Book Detail** — Book cover, title, author, genre, synopsis, Preview (free) & Subscribe/Read buttons with inline subscription flow
+6. **Collection (library.tsx)** — Saved books with reading progress indicators, subscription gating (lock/play icon), tap to open details
 7. **History (riwayat.tsx)** — Redeem Token section at top, then horizontal scroll sections (Recently Read, Bookmarked, From Institution)
 8. **Reader** — Audio controls (rewind/play/forward), page navigation, AI summarize, text display with configurable size
 9. **Guide** — AI voice command guide with examples, Azure AI branding
@@ -106,13 +106,21 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - State: `interactionMode: "voice" | "touch"` in ReadingPreferencesContext
 - Green banner "Voice mode — navigate with voice commands" when active (translated per language)
 
-**Book Data & Purchase Flow**:
+**Subscription Model**:
+- **Free preview**: Chapter 1 of any book is always free to read (preview mode in reader)
+- **Subscription required**: Full reading access requires an active subscription (`isSubscribed` in ReadingPreferencesContext)
+- **Plans**: Basic (Rp49k/mo, Rp490k/yr) and Premium (Rp89k/mo, Rp890k/yr) defined in `subscriptionPlans` in data.ts
+- **Token redemption**: B2B institutional access — redeeming a token activates subscription (`setIsSubscribed(true)`)
+- **Book Detail** (`book/[id].tsx`): Shows "Chapter 1 free" + "Subscription required" badges; Preview button (free), Subscribe to Read / Read Now depending on subscription status; inline subscription screen with monthly/yearly toggle
+- **Reader** (`reader/[id].tsx`): Accepts `preview` param for free preview mode; gates full reading behind subscription; shows paywall card after Chapter 1 preview with Subscribe CTA
+- **Explorer**: Shows "Free preview" badge on all books (no per-book pricing)
+- **Collection** (`library.tsx`): Shows saved books with subscription gating (lock icon if not subscribed, play icon if subscribed)
+- **Settings**: Displays subscription status card (active/inactive)
+
+**Book Data**:
 - Sample books (12): The Silent Patient, Penance, Confessions, The Shorts Caller, Laskar Pelangi, Bumi Manusia, Ronggeng Dukuh Paruk, Cantik Itu Luka, Negeri 5 Menara, Supernova, Ayat-Ayat Cinta, Perahu Kertas
-- Prices in Rupiah (Rp68,000–Rp95,000), formatted with `formatRupiah()` helper
-- Book types include: id, title, author, genre, category, price, synopsis, coverColor, owned, content[]
-- Mock purchase: "Buy Book" shows Alert confirming purchase, marks as owned
-- Preview: Opens reader with first chapter
-- Redeem Token: Full NavButton on Home (orange #E65100) + prominent section at top of Riwayat screen (UI only, no backend)
+- Book types include: id, title, author, genre, category, synopsis, coverColor, content[]
+- Redeem Token: Full NavButton on Home (orange #E65100) + prominent section at top of Riwayat screen — activates subscription on redemption
 
 **Translation System** (`constants/translations.ts`):
 - Full `en`/`id` string maps for all UI text across all 9 screens + components
@@ -124,8 +132,8 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - Default language: English (`"en"`), switchable in Settings
 
 **ReadingPreferencesContext** (`contexts/ReadingPreferences.tsx`):
-- Exports: `selectedVoice`, `speed`, `textSize`, `language`, `interactionMode`, `isVoiceOnly`
-- Default voice: Emma (v3, en-US), default language: English
+- Exports: `selectedVoice`, `speed`, `textSize`, `language`, `interactionMode`, `isVoiceOnly`, `isSubscribed`, `setIsSubscribed`, `currentVoiceLabel`
+- Default voice: Emma (v3, en-US), default language: English, default `isSubscribed: false`
 - Wrapped at root in `_layout.tsx`
 
 **Key files**:
