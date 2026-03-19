@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
+
+const logoImage = require("@/assets/images/literaku-logo.png");
 
 import Colors from "@/constants/colors";
 import type { NaturalVoiceHint } from "@/constants/data";
@@ -125,7 +127,7 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
             accessibilityLabel="Activate voice command"
             accessibilityHint="Double tap to open voice commands"
           >
-            <Ionicons name="mic" size={28} color="#FFFFFF" />
+            <Image source={logoImage} style={styles.micButtonLogo} />
           </Pressable>
         </Animated.View>
       </View>
@@ -207,11 +209,13 @@ const styles = StyleSheet.create({
   micButton: {
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.studentPrimary,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 14,
+    overflow: "hidden",
     borderWidth: 3,
-    borderColor: "#43A047",
+    borderColor: "#1565C0",
+  },
+  micButtonLogo: {
+    width: 50,
+    height: 50,
   },
 });

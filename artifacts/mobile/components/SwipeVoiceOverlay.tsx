@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import {
   AccessibilityInfo,
   Animated,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -13,14 +14,19 @@ import Colors from "@/constants/colors";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { getTranslations } from "@/constants/translations";
 
+const logoImage = require("@/assets/images/literaku-logo.png");
+
 interface SwipeVoiceOverlayProps {
   visible: boolean;
   onDismiss: () => void;
 }
 
 export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOverlayProps) {
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const wave1 = useRef(new Animated.Value(0)).current;
+  const wave2 = useRef(new Animated.Value(0)).current;
+  const wave3 = useRef(new Animated.Value(0)).current;
+  const wave4 = useRef(new Animated.Value(0)).current;
   const { language } = useReadingPreferences();
   const t = getTranslations(language);
 
@@ -34,27 +40,43 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
         useNativeDriver: true,
       }).start();
 
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.3,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      pulse.start();
+      const createWave = (anim: Animated.Value, delay: number) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.delay(delay),
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 1800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 0,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+
+      const w1 = createWave(wave1, 0);
+      const w2 = createWave(wave2, 450);
+      const w3 = createWave(wave3, 900);
+      const w4 = createWave(wave4, 1350);
+
+      w1.start();
+      w2.start();
+      w3.start();
+      w4.start();
 
       AccessibilityInfo.announceForAccessibility(
         "Voice command active. Speak naturally. Swipe right or tap anywhere to dismiss."
       );
 
-      return () => pulse.stop();
+      return () => {
+        w1.stop();
+        w2.stop();
+        w3.stop();
+        w4.stop();
+      };
     } else {
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -62,9 +84,34 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
         useNativeDriver: true,
       }).start();
     }
-  }, [visible, pulseAnim, fadeAnim]);
+  }, [visible, fadeAnim, wave1, wave2, wave3, wave4]);
 
   if (!visible) return null;
+
+  const renderWave = (anim: Animated.Value, size: number) => {
+    const scale = anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.6, 1],
+    });
+    const opacity = anim.interpolate({
+      inputRange: [0, 0.3, 1],
+      outputRange: [0.5, 0.35, 0],
+    });
+    return (
+      <Animated.View
+        style={[
+          styles.waveRing,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            transform: [{ scale }],
+            opacity,
+          },
+        ]}
+      />
+    );
+  };
 
   return (
     <Animated.View
@@ -81,9 +128,14 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
         accessibilityHint={t.overlay.dismissHint}
       >
         <View style={styles.content}>
-          <Animated.View style={[styles.pulseRing, { transform: [{ scale: pulseAnim }] }]} />
-          <View style={styles.micCircle}>
-            <Ionicons name="mic" size={56} color="#FFFFFF" />
+          <View style={styles.wavesContainer}>
+            {renderWave(wave4, 340)}
+            {renderWave(wave3, 280)}
+            {renderWave(wave2, 220)}
+            {renderWave(wave1, 160)}
+            <View style={styles.logoContainer}>
+              <Image source={logoImage} style={styles.logoImage} />
+            </View>
           </View>
 
           <Text style={styles.listeningText}>{t.overlay.listening}</Text>
@@ -118,23 +170,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
-  pulseRing: {
-    position: "absolute",
-    top: -20,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: "rgba(46, 125, 50, 0.25)",
-  },
-  micCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.studentPrimary,
+  wavesContainer: {
+    width: 340,
+    height: 340,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 4,
-    borderColor: "rgba(255,255,255,0.3)",
+  },
+  waveRing: {
+    position: "absolute",
+    backgroundColor: "#1976D2",
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 24,
+    overflow: "hidden",
+    zIndex: 10,
+    elevation: 10,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
   },
   listeningText: {
     fontFamily: "Inter_700Bold",
