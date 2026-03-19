@@ -256,10 +256,11 @@ const styles = StyleSheet.create({
   },
   redeemInputRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 8,
   },
   redeemInput: {
     flex: 1,
+    minWidth: 0,
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.text,
@@ -274,10 +275,11 @@ const styles = StyleSheet.create({
   redeemButton: {
     backgroundColor: Colors.primaryLight,
     borderRadius: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     alignItems: "center",
     justifyContent: "center",
     minHeight: 56,
+    flexShrink: 0,
   },
   redeemButtonText: {
     fontFamily: "Inter_700Bold",
