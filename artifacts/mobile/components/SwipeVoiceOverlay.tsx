@@ -46,7 +46,7 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
             Animated.delay(delay),
             Animated.timing(anim, {
               toValue: 1,
-              duration: 1800,
+              duration: 900,
               useNativeDriver: true,
             }),
             Animated.timing(anim, {
@@ -58,9 +58,9 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
         );
 
       const w1 = createWave(wave1, 0);
-      const w2 = createWave(wave2, 450);
-      const w3 = createWave(wave3, 900);
-      const w4 = createWave(wave4, 1350);
+      const w2 = createWave(wave2, 220);
+      const w3 = createWave(wave3, 440);
+      const w4 = createWave(wave4, 660);
 
       w1.start();
       w2.start();
@@ -91,11 +91,11 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
   const renderWave = (anim: Animated.Value, size: number) => {
     const scale = anim.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.6, 1],
+      outputRange: [0.3, 1.2],
     });
     const opacity = anim.interpolate({
-      inputRange: [0, 0.3, 1],
-      outputRange: [0.5, 0.35, 0],
+      inputRange: [0, 0.15, 0.6, 1],
+      outputRange: [0.7, 0.5, 0.2, 0],
     });
     return (
       <Animated.View
@@ -129,10 +129,10 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
       >
         <View style={styles.content}>
           <View style={styles.wavesContainer}>
-            {renderWave(wave4, 340)}
-            {renderWave(wave3, 280)}
-            {renderWave(wave2, 220)}
-            {renderWave(wave1, 160)}
+            {renderWave(wave4, 420)}
+            {renderWave(wave3, 340)}
+            {renderWave(wave2, 260)}
+            {renderWave(wave1, 180)}
             <View style={styles.logoContainer}>
               <Image source={logoImage} style={styles.logoImage} />
             </View>
@@ -171,8 +171,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   wavesContainer: {
-    width: 340,
-    height: 340,
+    width: 420,
+    height: 420,
     alignItems: "center",
     justifyContent: "center",
   },
