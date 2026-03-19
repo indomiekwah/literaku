@@ -30,13 +30,13 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.15,
-            duration: 1000,
+            toValue: 1.1,
+            duration: 1200,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 1200,
             useNativeDriver: true,
           }),
         ])
@@ -69,26 +69,18 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
 
   return (
     <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel={t.swipeHintBar.swipeLeftCommand}>
-      {isVoiceOnly && (
-        <View style={styles.frozenBanner} accessibilityRole="text" accessibilityLabel={t.swipeHintBar.voiceModeActive}>
-          <Ionicons name="mic" size={18} color={Colors.studentPrimary} />
-          <Text style={styles.frozenText}>{t.swipeHintBar.voiceModeBanner}</Text>
-        </View>
-      )}
       <View style={styles.row}>
-        <Pressable
-          style={[styles.modeToggle, isVoiceOnly ? styles.modeToggleVoice : styles.modeToggleTouch]}
-          onPress={toggleMode}
-          accessibilityRole="button"
-          accessibilityLabel={isVoiceOnly ? t.swipeHintBar.switchToTouch : t.swipeHintBar.switchToVoice}
-          accessibilityHint={isVoiceOnly ? t.swipeHintBar.voiceHint : t.swipeHintBar.touchHint}
-        >
-          {isVoiceOnly ? (
-            <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
-          ) : (
-            <Ionicons name="lock-open" size={22} color={Colors.studentPrimary} />
-          )}
-        </Pressable>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <Pressable
+            style={styles.logoButton}
+            onPress={handleMicPress}
+            accessibilityRole="button"
+            accessibilityLabel="Activate voice command"
+            accessibilityHint="Double tap to open voice commands"
+          >
+            <Image source={logoImage} style={styles.logoImg} />
+          </Pressable>
+        </Animated.View>
 
         <Pressable
           style={styles.hintArea}
@@ -97,39 +89,41 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
           accessibilityLabel={t.swipeHintBar.swipeA11y(currentHint?.example ?? null)}
           accessibilityHint="Double tap to see another example voice command"
         >
-          <Text style={styles.swipeText}>
-            {isVoiceOnly ? t.swipeHintBar.swipeLeftVoice : t.swipeHintBar.swipeLeftCommand}
-          </Text>
           {currentHint && (
-            <Text style={styles.exampleText} numberOfLines={1}>
+            <Text style={styles.hintText} numberOfLines={1}>
               {t.swipeHintBar.tryExample(currentHint.example)}
             </Text>
           )}
         </Pressable>
 
+        <Pressable
+          style={[styles.modeChip, isVoiceOnly && styles.modeChipActive]}
+          onPress={toggleMode}
+          accessibilityRole="button"
+          accessibilityLabel={isVoiceOnly ? t.swipeHintBar.switchToTouch : t.swipeHintBar.switchToVoice}
+          accessibilityHint={isVoiceOnly ? t.swipeHintBar.voiceHint : t.swipeHintBar.touchHint}
+        >
+          <Ionicons
+            name={isVoiceOnly ? "mic" : "hand-left"}
+            size={16}
+            color={isVoiceOnly ? "#FFFFFF" : Colors.primaryLight}
+          />
+          <Text style={[styles.modeChipText, isVoiceOnly && styles.modeChipTextActive]}>
+            {isVoiceOnly ? "Voice" : "Touch"}
+          </Text>
+        </Pressable>
+
         {showHelpButton && onHelpPress && (
           <Pressable
-            style={styles.helpButton}
+            style={styles.helpBtn}
             onPress={onHelpPress}
             accessibilityRole="button"
             accessibilityLabel="Voice guide"
             accessibilityHint="Double tap to open the voice command guide"
           >
-            <Ionicons name="help-circle" size={36} color={Colors.primaryLight} />
+            <Ionicons name="help-circle" size={28} color={Colors.primaryLight} />
           </Pressable>
         )}
-
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <Pressable
-            style={styles.micButton}
-            onPress={handleMicPress}
-            accessibilityRole="button"
-            accessibilityLabel="Activate voice command"
-            accessibilityHint="Double tap to open voice commands"
-          >
-            <Image source={logoImage} style={styles.micButtonLogo} />
-          </Pressable>
-        </Animated.View>
       </View>
     </View>
   );
@@ -139,83 +133,63 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 6,
     paddingBottom: 4,
-    gap: 4,
-  },
-  frozenBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Colors.successLight,
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderWidth: 1.5,
-    borderColor: Colors.studentPrimary,
-  },
-  frozenText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.studentPrimary,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.voiceBarBg,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 10,
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 8,
   },
-  modeToggle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
+  logoButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    overflow: "hidden",
   },
-  modeToggleVoice: {
-    backgroundColor: Colors.studentPrimary,
-    borderColor: Colors.studentPrimary,
-  },
-  modeToggleTouch: {
-    backgroundColor: Colors.successLight,
-    borderColor: Colors.studentPrimary,
+  logoImg: {
+    width: 40,
+    height: 40,
   },
   hintArea: {
     flex: 1,
-    gap: 2,
-    minHeight: 44,
     justifyContent: "center",
+    minHeight: 36,
   },
-  swipeText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.text,
-  },
-  exampleText: {
+  hintText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.studentPrimary,
+    fontSize: 15,
+    color: Colors.primaryLight,
   },
-  helpButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  modeChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: Colors.voiceBarBg,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+  },
+  modeChipActive: {
+    backgroundColor: Colors.primaryLight,
+    borderColor: Colors.primaryLight,
+  },
+  modeChipText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: Colors.primaryLight,
+  },
+  modeChipTextActive: {
+    color: "#FFFFFF",
+  },
+  helpBtn: {
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
-  },
-  micButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    overflow: "hidden",
-    borderWidth: 3,
-    borderColor: "#1565C0",
-  },
-  micButtonLogo: {
-    width: 50,
-    height: 50,
   },
 });
