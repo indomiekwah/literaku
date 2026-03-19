@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
   AccessibilityInfo,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -11,6 +12,8 @@ import {
   Text,
   View,
 } from "react-native";
+
+const logoImage = require("@/assets/images/literaku-logo.png");
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
@@ -74,9 +77,7 @@ export default function StudentHomeScreen() {
         <View style={[styles.freezeZone, isVoiceOnly && styles.frozen, { pointerEvents: isVoiceOnly ? 'none' : 'auto' }]}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <View style={styles.logoCircle}>
-                <Ionicons name="headset" size={22} color={Colors.primaryLight} />
-              </View>
+              <Image source={logoImage} style={styles.logoImage} accessibilityLabel="Literaku logo" />
               <Text style={styles.headerTitle}>Literaku</Text>
             </View>
             <Pressable
@@ -175,15 +176,10 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
-  logoCircle: {
+  logoImage: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.voiceBarBg,
-    borderWidth: 2,
-    borderColor: Colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 10,
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",

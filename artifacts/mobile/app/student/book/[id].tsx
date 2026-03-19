@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import {
   AccessibilityInfo,
   Alert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -202,7 +203,7 @@ export default function BookDetailScreen() {
             </Pressable>
             <View style={styles.headerCenter}>
               <View style={styles.headerLogoRow}>
-                <Ionicons name="headset" size={18} color={Colors.primaryLight} />
+                <Image source={require("@/assets/images/literaku-logo.png")} style={styles.headerLogoImg} accessibilityLabel="Literaku logo" />
                 <Text style={styles.headerBrand}>Literaku</Text>
               </View>
             </View>
@@ -344,6 +345,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+  },
+  headerLogoImg: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
   },
   headerBrand: {
     fontFamily: "Inter_700Bold",

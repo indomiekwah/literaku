@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import {
   AccessibilityInfo,
+  Image,
   Platform,
   StyleSheet,
   Text,
@@ -11,6 +11,8 @@ import {
 } from "react-native";
 
 import Colors from "@/constants/colors";
+
+const logoImage = require("@/assets/images/literaku-logo.png");
 
 export default function SplashScreen() {
   const isWeb = Platform.OS === "web";
@@ -29,9 +31,7 @@ export default function SplashScreen() {
     <View style={styles.container} accessibilityLabel="Literaku splash screen. Loading the app.">
       <StatusBar style="light" />
       <View style={styles.logoContainer}>
-        <View style={styles.logoCircle}>
-          <Ionicons name="headset" size={64} color="#FFFFFF" />
-        </View>
+        <Image source={logoImage} style={styles.logoImage} accessibilityLabel="Literaku logo" />
         <Text style={styles.logoText}>Literaku</Text>
         <Text style={styles.tagline}>Voice-First Accessible Reading</Text>
       </View>
@@ -50,15 +50,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
-  logoCircle: {
+  logoImage: {
     width: 120,
     height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.5)",
+    borderRadius: 28,
   },
   logoText: {
     fontFamily: "Inter_700Bold",

@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   AccessibilityInfo,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -12,6 +13,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+const logoImage = require("@/assets/images/literaku-logo.png");
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
@@ -72,9 +75,7 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.iconSection}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="headset" size={48} color={Colors.primaryLight} />
-            </View>
+            <Image source={logoImage} style={styles.logoImage} accessibilityLabel="Literaku logo" />
             <Text style={styles.title} accessibilityRole="header">{t.app.name}</Text>
             <Text style={styles.subtitle}>{t.app.tagline}</Text>
           </View>
@@ -246,6 +247,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     paddingTop: 20,
+  },
+  logoImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 20,
   },
   iconCircle: {
     width: 88,
