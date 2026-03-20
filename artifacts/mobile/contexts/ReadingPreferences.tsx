@@ -43,7 +43,7 @@ const ReadingPreferencesContext = createContext<ReadingPreferencesContextValue |
 
 export function ReadingPreferencesProvider({ children }: { children: ReactNode }) {
   const [selectedVoice, setSelectedVoice] = useState("v3");
-  const [speed, setSpeed] = useState<SpeedValue>(0.75);
+  const [speed, setSpeed] = useState<SpeedValue>(0.5);
   const [textSize, setTextSize] = useState(19);
   const [language, setLanguage] = useState<AppLanguage>("en");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");

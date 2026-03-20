@@ -199,7 +199,7 @@ speechRouter.post("/speech/tts", async (req: Request, res: Response) => {
   }
 
   const voiceName = voice || "en-US-EmmaMultilingualNeural";
-  const prosodyRate = rate ? `${Math.round(rate * 100)}%` : "100%";
+  const prosodyRate = rate != null ? `${rate}` : "1";
 
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>
     <voice name='${voiceName}'>

@@ -1,5 +1,8 @@
 import { router } from "expo-router";
 import { AccessibilityInfo } from "react-native";
+import { speakText } from "@/services/speech";
+
+const CONFIRM_SPEED = 0.5;
 
 export type VoiceIntent =
   | "nav_home"
@@ -28,11 +31,11 @@ interface MatchResult {
 
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
   { pattern: /\b(go\s*(?:back\s*)?(?:to\s*)?home|beranda|ke\s*beranda|pulang|kembali\s*ke\s*(?:beranda|home))\b/i, intent: "nav_home" },
-  { pattern: /\b(open\s*explorer|explorer|penjelajah|buka\s*penjelajah|jelajah|explore)\b/i, intent: "nav_explorer" },
-  { pattern: /\b((?:show\s*(?:my\s*)?)?collection|koleksi|buka\s*koleksi|my\s*(?:books?|library)|perpustakaan|library)\b/i, intent: "nav_collection" },
-  { pattern: /\b((?:open\s*)?history|riwayat|buka\s*riwayat|reading\s*history)\b/i, intent: "nav_history" },
-  { pattern: /\b((?:open\s*)?guide|panduan|buka\s*panduan|help|bantuan|voice\s*guide)\b/i, intent: "nav_guide" },
-  { pattern: /\b((?:open\s*)?settings|pengaturan|buka\s*pengaturan|setelan)\b/i, intent: "nav_settings" },
+  { pattern: /\b(open\s*(?:the\s*)?explorer|explorer|penjelajah|buka\s*penjelajah|jelajah|explore)\b/i, intent: "nav_explorer" },
+  { pattern: /\b((?:show\s*(?:my\s*)?)?(?:the\s*)?collection|koleksi|buka\s*koleksi|my\s*(?:books?|library)|perpustakaan|library)\b/i, intent: "nav_collection" },
+  { pattern: /\b((?:open\s*)?(?:the\s*)?history|riwayat|buka\s*riwayat|(?:reading\s*)?history)\b/i, intent: "nav_history" },
+  { pattern: /\b((?:open\s*)?(?:the\s*)?guide|panduan|buka\s*panduan|help|bantuan|voice\s*guide)\b/i, intent: "nav_guide" },
+  { pattern: /\b((?:open\s*)?(?:the\s*)?settings|pengaturan|buka\s*pengaturan|setelan)\b/i, intent: "nav_settings" },
   { pattern: /\b(redeem|token|redeem\s*token|tukar\s*token|kode\s*token)\b/i, intent: "nav_redeem" },
   { pattern: /\b(go\s*back|back|kembali|mundur|balik)\b/i, intent: "nav_back" },
   { pattern: /\b(sign\s*(?:in|out)|log\s*(?:in|out)|masuk|keluar|login|logout)\b/i, intent: "nav_login" },
@@ -66,42 +69,43 @@ export function matchVoiceIntent(text: string): MatchResult {
   return { intent: "unknown" };
 }
 
-export function executeGlobalNavigation(intent: VoiceIntent): boolean {
-  const announce = (msg: string) => {
+export function executeGlobalNavigation(intent: VoiceIntent, voice: string): boolean {
+  const confirm = (msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
+    speakText(msg, voice, CONFIRM_SPEED).catch(() => {});
   };
 
   switch (intent) {
     case "nav_home":
-      announce("Going to home");
+      confirm("Going back to the home page");
       router.replace("/student/home");
       return true;
     case "nav_explorer":
-      announce("Opening explorer");
+      confirm("Opening the explorer page");
       router.push("/student/penjelajah");
       return true;
     case "nav_collection":
-      announce("Opening collection");
+      confirm("Opening your book collection");
       router.push("/student/library");
       return true;
     case "nav_history":
-      announce("Opening history");
+      confirm("Opening the history page");
       router.push("/student/riwayat");
       return true;
     case "nav_guide":
-      announce("Opening guide");
+      confirm("Opening the voice guide");
       router.push("/student/guide");
       return true;
     case "nav_settings":
-      announce("Opening settings");
+      confirm("Opening the settings page");
       router.push("/student/settings");
       return true;
     case "nav_redeem":
-      announce("Opening redeem token");
+      confirm("Opening the redeem token page");
       router.push("/student/riwayat");
       return true;
     case "nav_back":
-      announce("Going back");
+      confirm("Going back to the previous page");
       router.back();
       return true;
     default:

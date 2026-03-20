@@ -6,11 +6,11 @@ import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPrefer
 import { matchVoiceIntent, executeGlobalNavigation, type VoiceIntent } from "@/services/voiceRouter";
 
 const SPEED_MAP: Record<string, SpeedValue> = {
-  "1": 0.75,
-  "2": 1,
-  "3": 1.25,
-  "4": 1.5,
-  "5": 2,
+  "1": 0.5,
+  "2": 0.75,
+  "3": 1,
+  "4": 1.25,
+  "5": 1.5,
 };
 
 interface VoiceActivationContextType {
@@ -73,7 +73,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             setSpeed(mapped);
             const msg = `Speed set to level ${param}`;
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 0.7).catch(() => {});
+            speakText(msg, selectedVoice, 0.5).catch(() => {});
             setIsVoiceActive(false);
             return;
           }
@@ -83,7 +83,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           const handled = callbackRef.current(text, intent, param);
         }
 
-        const globalHandled = executeGlobalNavigation(intent);
+        const globalHandled = executeGlobalNavigation(intent, selectedVoice);
         if (globalHandled) {
           setIsVoiceActive(false);
           return;
@@ -94,7 +94,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? "Maaf, saya tidak mengerti. Coba lagi."
             : "Sorry, I didn't understand that. Please try again.";
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 0.7).catch(() => {});
+          speakText(msg, selectedVoice, 0.5).catch(() => {});
         }
 
         setTimeout(() => setIsVoiceActive(false), 2000);
@@ -103,7 +103,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           ? "Tidak terdengar suara. Coba lagi."
           : "Could not understand. Please try again.";
         AccessibilityInfo.announceForAccessibility(msg);
-        speakText(msg, selectedVoice, 0.7).catch(() => {});
+        speakText(msg, selectedVoice, 0.5).catch(() => {});
         setTimeout(() => setIsVoiceActive(false), 2000);
       }
     } catch (err) {
@@ -131,7 +131,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         : "Microphone access denied. Please allow microphone access in browser settings.";
       setTranscribedText(msg);
       AccessibilityInfo.announceForAccessibility(msg);
-      speakText(msg, selectedVoice, 0.7).catch(() => {});
+      speakText(msg, selectedVoice, 0.5).catch(() => {});
       setTimeout(() => {
         setIsVoiceActive(false);
         setTranscribedText("");
