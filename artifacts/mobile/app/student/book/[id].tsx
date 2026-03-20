@@ -38,14 +38,6 @@ export default function BookDetailScreen() {
 
   useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, book.genre) : "");
 
-  React.useEffect(() => {
-    if (book) {
-      AccessibilityInfo.announceForAccessibility(
-        t.bookDetail.mountAnnounce(book.title, book.author, book.genre)
-      );
-    }
-  }, [book?.title]);
-
   if (!book) {
     return (
       <SwipeVoiceWrapper>

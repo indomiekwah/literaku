@@ -93,10 +93,6 @@ export default function KoleksiScreen() {
 
   useTTSAnnounce(t.collection.mountAnnounce(collectionBooks.length));
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(collectionBooks.length));
-  }, [collectionBooks.length]);
-
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if ((intent === "open_book" || intent === "search_book") && param) {

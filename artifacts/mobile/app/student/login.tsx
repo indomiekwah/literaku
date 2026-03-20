@@ -39,10 +39,6 @@ export default function LoginScreen() {
 
   useTTSAnnounce(t.login.mountAnnounce);
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.login.mountAnnounce);
-  }, []);
-
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
       AccessibilityInfo.announceForAccessibility(t.login.fillFields);

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import { AccessibilityInfo } from "react-native";
 import { speakText, stopTTSPlayback } from "@/services/speech";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
-const ANNOUNCE_SPEED = 0.85;
+const ANNOUNCE_SPEED = 0.7;
 
 export function useTTSAnnounce(text: string) {
   const { selectedVoice } = useReadingPreferences();
@@ -11,6 +12,8 @@ export function useTTSAnnounce(text: string) {
   useEffect(() => {
     if (!text || text === lastTextRef.current) return;
     lastTextRef.current = text;
+
+    AccessibilityInfo.announceForAccessibility(text);
 
     const timer = setTimeout(() => {
       speakText(text, selectedVoice, ANNOUNCE_SPEED).catch(() => {});

@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
-  AccessibilityInfo,
   Image,
   Platform,
   Pressable,
@@ -67,10 +66,6 @@ export default function StudentHomeScreen() {
   const t = useT();
 
   useTTSAnnounce(t.home.mountAnnounce);
-
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.home.mountAnnounce);
-  }, []);
 
   return (
     <SwipeVoiceWrapper>

@@ -75,10 +75,6 @@ export default function RiwayatScreen() {
 
   useTTSAnnounce(t.history.mountAnnounce);
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.history.mountAnnounce);
-  }, []);
-
   const handleRedeemToken = () => {
     if (!tokenCode.trim()) {
       AccessibilityInfo.announceForAccessibility(t.history.tokenEmpty);

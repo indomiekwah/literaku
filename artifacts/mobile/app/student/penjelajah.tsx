@@ -76,10 +76,6 @@ export default function PenjelajahScreen() {
 
   useTTSAnnounce(t.explorer.mountAnnounce(sampleBooks.length));
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.explorer.mountAnnounce(sampleBooks.length));
-  }, []);
-
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "search_book" && param) {

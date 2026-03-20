@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
-  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -68,10 +67,6 @@ export default function StudentGuideScreen() {
   const t = useT();
 
   useTTSAnnounce(t.guide.mountAnnounce);
-
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.guide.mountAnnounce);
-  }, []);
 
   return (
     <SwipeVoiceWrapper>

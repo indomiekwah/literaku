@@ -39,10 +39,6 @@ export default function SignUpScreen() {
 
   useTTSAnnounce(t.signup.mountAnnounce);
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.signup.mountAnnounce);
-  }, []);
-
   const handleSignUp = () => {
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       AccessibilityInfo.announceForAccessibility(t.signup.fillAllFields);

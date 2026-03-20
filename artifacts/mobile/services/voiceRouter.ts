@@ -1,6 +1,5 @@
 import { router } from "expo-router";
 import { AccessibilityInfo } from "react-native";
-import { speakText, stopTTSPlayback } from "@/services/speech";
 
 export type VoiceIntent =
   | "nav_home"
@@ -67,10 +66,9 @@ export function matchVoiceIntent(text: string): MatchResult {
   return { intent: "unknown" };
 }
 
-export function executeGlobalNavigation(intent: VoiceIntent, voice: string): boolean {
+export function executeGlobalNavigation(intent: VoiceIntent): boolean {
   const announce = (msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
-    speakText(msg, voice, 0.85).catch(() => {});
   };
 
   switch (intent) {

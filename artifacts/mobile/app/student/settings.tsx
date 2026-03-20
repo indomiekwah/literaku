@@ -49,10 +49,6 @@ export default function StudentSettingsScreen() {
 
   useTTSAnnounce(t.settings.mountAnnounce);
 
-  React.useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(t.settings.mountAnnounce);
-  }, []);
-
   const cycleSpeed = () => {
     const idx = SPEED_OPTIONS.indexOf(speed);
     setSpeed(SPEED_OPTIONS[(idx + 1) % SPEED_OPTIONS.length]);

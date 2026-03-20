@@ -85,12 +85,6 @@ export default function StudentReaderScreen() {
 
   useTTSAnnounce(book ? t.reader.mountAnnounce(book.title) : "");
 
-  React.useEffect(() => {
-    if (book) {
-      AccessibilityInfo.announceForAccessibility(t.reader.mountAnnounce(book.title));
-    }
-  }, [book?.title]);
-
   useEffect(() => {
     return () => {
       ttsAbortRef.current = true;
