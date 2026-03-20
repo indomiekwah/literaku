@@ -196,7 +196,7 @@ export default function LoginScreen() {
           <Pressable
             style={styles.registerLink}
             onPress={() => {
-              AccessibilityInfo.announceForAccessibility(t.login.registerUnavailable);
+              router.push("/student/signup");
             }}
             accessibilityRole="button"
             accessibilityLabel={t.login.registerA11yLabel}

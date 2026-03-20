@@ -34,6 +34,7 @@ function RootLayoutNav() {
       <Stack.Screen name="student/reader/[id]" />
       <Stack.Screen name="student/guide" />
       <Stack.Screen name="student/settings" />
+      <Stack.Screen name="student/signup" />
     </Stack>
   );
 }
