@@ -1,6 +1,8 @@
 import { Router, type Request, type Response } from "express";
+import multer from "multer";
 
 const speechRouter = Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const AZURE_SPEECH_KEY = process.env["AZURE_SPEECH_KEY"] || "";
 const AZURE_SPEECH_REGION = process.env["AZURE_SPEECH_REGION"] || "";
@@ -36,7 +38,7 @@ speechRouter.get("/speech/token", async (_req: Request, res: Response) => {
   }
 });
 
-speechRouter.post("/speech/stt", async (req: Request, res: Response) => {
+speechRouter.post("/speech/stt", upload.single("audio"), async (req: Request, res: Response) => {
   if (!AZURE_SPEECH_KEY || !AZURE_SPEECH_REGION) {
     res.status(500).json({ error: "Azure Speech credentials not configured" });
     return;
@@ -44,19 +46,31 @@ speechRouter.post("/speech/stt", async (req: Request, res: Response) => {
 
   const lang = (req.query["lang"] as string) || "en-US";
 
-  const contentType = req.headers["content-type"] || "audio/wav";
-
   try {
-    const chunks: Buffer[] = [];
-    for await (const chunk of req) {
-      chunks.push(Buffer.from(chunk));
+    let audioBuffer: Buffer;
+    let audioContentType = "audio/wav";
+
+    if (req.file && req.file.buffer.length > 0) {
+      audioBuffer = req.file.buffer;
+      audioContentType = req.file.mimetype || "audio/wav";
+    } else if (Buffer.isBuffer(req.body) && req.body.length > 0) {
+      audioBuffer = req.body;
+      audioContentType = req.headers["content-type"] || "audio/wav";
+    } else {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(Buffer.from(chunk));
+      }
+      audioBuffer = Buffer.concat(chunks);
+      audioContentType = req.headers["content-type"] || "audio/wav";
     }
-    const audioBuffer = Buffer.concat(chunks);
 
     if (audioBuffer.length === 0) {
       res.status(400).json({ error: "No audio data received" });
       return;
     }
+
+    console.log(`STT: received ${audioBuffer.length} bytes, content-type: ${audioContentType}`);
 
     const sttRes = await fetch(
       `https://${AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${lang}`,
@@ -64,7 +78,7 @@ speechRouter.post("/speech/stt", async (req: Request, res: Response) => {
         method: "POST",
         headers: {
           "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
-          "Content-Type": contentType,
+          "Content-Type": audioContentType,
           "Accept": "application/json",
         },
         body: audioBuffer,

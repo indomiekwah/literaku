@@ -33,9 +33,22 @@ export async function speechToText(audioBlob: Blob, lang: string = "en-US"): Pro
 }
 
 export async function speechToTextFromUri(uri: string, lang: string = "en-US"): Promise<STTResult> {
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  return speechToText(blob, lang);
+  const formData = new FormData();
+  formData.append("audio", {
+    uri,
+    type: "audio/wav",
+    name: "recording.wav",
+  } as any);
+
+  const res = await fetch(`${API_BASE}/speech/stt?lang=${encodeURIComponent(lang)}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "STT request failed" }));
+    throw new Error(err.error || "STT request failed");
+  }
+  return res.json();
 }
 
 export async function textToSpeech(
@@ -242,7 +255,7 @@ export class AudioRecorder {
     }
   }
 
-  async stop(): Promise<Blob> {
+  async stop(): Promise<Blob | string> {
     if (Platform.OS === "web") {
       return new Promise((resolve, reject) => {
         if (!this.mediaRecorder) {
@@ -272,9 +285,7 @@ export class AudioRecorder {
         playsInSilentModeIOS: true,
       });
 
-      const response = await fetch(uri!);
-      const blob = await response.blob();
-      return blob;
+      return uri!;
     }
   }
 

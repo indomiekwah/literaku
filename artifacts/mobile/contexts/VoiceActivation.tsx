@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useRef } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
-import { AudioRecorder, speechToText } from "@/services/speech";
+import { AudioRecorder, speechToText, speechToTextFromUri } from "@/services/speech";
 import { speakText } from "@/services/speech";
 import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPreferences";
 
@@ -63,12 +63,14 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
     try {
-      const audioBlob = await recorderRef.current.stop();
+      const audioData = await recorderRef.current.stop();
       recorderRef.current = null;
       setIsListening(false);
 
       const lang = "en-US";
-      const result = await speechToText(audioBlob, lang);
+      const result = typeof audioData === "string"
+        ? await speechToTextFromUri(audioData, lang)
+        : await speechToText(audioData, lang);
 
       if (result.RecognitionStatus === "Success" && result.DisplayText) {
         const text = result.DisplayText;
