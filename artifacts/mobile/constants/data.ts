@@ -307,11 +307,11 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   reader: [
     { example: "Next page", intent: "Go to next page" },
     { example: "Go back one page", intent: "Previous page" },
-    { example: "Rewind 10 seconds", intent: "Rewind narration" },
-    { example: "Skip ahead", intent: "Forward narration" },
+    { example: "Speed 1", intent: "Slow speed" },
+    { example: "Speed 2", intent: "Normal speed" },
+    { example: "Speed 3", intent: "Fast speed" },
     { example: "Pause", intent: "Pause narration" },
     { example: "Continue", intent: "Resume narration" },
-    { example: "Summarize this page", intent: "AI summarize" },
     { example: "Go back to collection", intent: "Go back to collection" },
   ],
   studentGuide: [
@@ -320,6 +320,8 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   ],
   studentSettings: [
     { example: "Go back", intent: "Go back to home" },
+    { example: "Speed 1", intent: "Slow speed (0.75x)" },
+    { example: "Speed 3", intent: "Fast speed (1.25x)" },
     { example: "Change voice to James", intent: "Change voice" },
   ],
 };

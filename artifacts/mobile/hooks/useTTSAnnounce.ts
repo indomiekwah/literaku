@@ -3,8 +3,10 @@ import { Platform } from "react-native";
 import { speakText, stopTTSPlayback } from "@/services/speech";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
+const ANNOUNCE_SPEED = 0.85;
+
 export function useTTSAnnounce(text: string) {
-  const { selectedVoice, speed } = useReadingPreferences();
+  const { selectedVoice } = useReadingPreferences();
   const lastTextRef = useRef("");
 
   useEffect(() => {
@@ -12,12 +14,12 @@ export function useTTSAnnounce(text: string) {
     lastTextRef.current = text;
 
     const timer = setTimeout(() => {
-      speakText(text, selectedVoice, speed).catch(() => {});
+      speakText(text, selectedVoice, ANNOUNCE_SPEED).catch(() => {});
     }, 500);
 
     return () => {
       clearTimeout(timer);
       stopTTSPlayback();
     };
-  }, [text, selectedVoice, speed]);
+  }, [text, selectedVoice]);
 }

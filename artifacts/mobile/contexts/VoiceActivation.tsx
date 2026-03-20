@@ -1,6 +1,37 @@
 import React, { createContext, useContext, useCallback, useState, useRef } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 import { AudioRecorder, speechToText } from "@/services/speech";
+import { speakText } from "@/services/speech";
+import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPreferences";
+
+const SPEED_MAP: Record<string, SpeedValue> = {
+  "1": 0.75,
+  "2": 1,
+  "3": 1.25,
+  "4": 1.5,
+  "5": 2,
+};
+
+function parseVoiceCommand(text: string, setSpeed: (s: SpeedValue) => void, selectedVoice: string): boolean {
+  const lower = text.toLowerCase().replace(/[.,!?]/g, "").trim();
+
+  const speedMatch = lower.match(/speed\s*(\d)/i) || lower.match(/kecepatan\s*(\d)/i);
+  if (speedMatch) {
+    const level = speedMatch[1];
+    const mapped = SPEED_MAP[level];
+    if (mapped) {
+      setSpeed(mapped);
+      const msg = `Speed set to level ${level}`;
+      AccessibilityInfo.announceForAccessibility(msg);
+      if (Platform.OS === "web") {
+        speakText(msg, selectedVoice, 0.85).catch(() => {});
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
 
 interface VoiceActivationContextType {
   activateVoice: () => void;
@@ -27,6 +58,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const recorderRef = useRef<AudioRecorder | null>(null);
   const callbackRef = useRef<((text: string) => void) | null>(null);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { setSpeed, selectedVoice } = useReadingPreferences();
 
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
@@ -42,7 +74,10 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         const text = result.DisplayText;
         setTranscribedText(text);
         AccessibilityInfo.announceForAccessibility(`You said: ${text}`);
-        if (callbackRef.current) {
+
+        const handled = parseVoiceCommand(text, setSpeed, selectedVoice);
+
+        if (!handled && callbackRef.current) {
           callbackRef.current(text);
         }
       } else {
@@ -53,7 +88,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       setIsListening(false);
       AccessibilityInfo.announceForAccessibility("Voice recognition failed. Please try again.");
     }
-  }, []);
+  }, [setSpeed, selectedVoice]);
 
   const startRecording = useCallback(async () => {
     if (Platform.OS !== "web") return;

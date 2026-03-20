@@ -23,7 +23,7 @@ export default function SplashScreen() {
       "Welcome to Literaku. Loading..."
     );
     if (Platform.OS === "web") {
-      speakText("Welcome to Literaku", "en-US-EmmaMultilingualNeural", 1).catch(() => {});
+      speakText("Welcome to Literaku", "en-US-EmmaMultilingualNeural", 0.85).catch(() => {});
     }
     const timer = setTimeout(() => {
       stopTTSPlayback();
