@@ -19,6 +19,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 import { speakText, stopTTSPlayback } from "@/services/speech";
 
 export default function StudentReaderScreen() {
@@ -38,6 +39,8 @@ export default function StudentReaderScreen() {
 
   const isPreviewMode = preview === "true" && !isSubscribed;
   const maxPage = isPreviewMode ? 0 : (book ? book.content.length - 1 : 0);
+
+  useTTSAnnounce(book ? t.reader.mountAnnounce(book.title) : "");
 
   React.useEffect(() => {
     if (book) {

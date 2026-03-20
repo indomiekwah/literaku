@@ -19,6 +19,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 interface ExampleGroupProps {
   title: string;
@@ -65,6 +66,8 @@ export default function StudentGuideScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
   const t = useT();
+
+  useTTSAnnounce(t.guide.mountAnnounce);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.guide.mountAnnounce);

@@ -22,6 +22,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleHistory, sampleBookmarks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 function HorizontalBookRow({ bookIds, label }: { bookIds: string[]; label: string }) {
   const books = bookIds.map((id) => sampleBooks.find((b) => b.id === id)).filter(Boolean);
@@ -71,6 +72,8 @@ export default function RiwayatScreen() {
   const recentBookIds = sampleHistory.map((h) => h.bookId);
   const bookmarkedBookIds = sampleBookmarks.map((b) => b.bookId);
   const institutionBookIds = ["5", "6", "9"];
+
+  useTTSAnnounce(t.history.mountAnnounce);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.history.mountAnnounce);

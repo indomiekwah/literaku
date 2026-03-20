@@ -20,6 +20,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleReadingProgress, voiceHints, type Book, type ReadingProgress } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 const savedBookIds = ["1", "2", "3", "5", "8", "11"];
 
@@ -85,6 +86,8 @@ export default function KoleksiScreen() {
     const q = searchQuery.toLowerCase();
     return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
   });
+
+  useTTSAnnounce(t.collection.mountAnnounce(collectionBooks.length));
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(collectionBooks.length));

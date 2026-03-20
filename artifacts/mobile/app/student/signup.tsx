@@ -21,6 +21,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { getTranslations } from "@/constants/translations";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 export default function SignUpScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +36,8 @@ export default function SignUpScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
   const { language } = useReadingPreferences();
   const t = getTranslations(language);
+
+  useTTSAnnounce(t.signup.mountAnnounce);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.signup.mountAnnounce);

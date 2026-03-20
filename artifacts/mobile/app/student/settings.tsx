@@ -23,6 +23,7 @@ import {
   SPEED_OPTIONS,
 } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 export default function StudentSettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -45,6 +46,8 @@ export default function StudentSettingsScreen() {
     setLanguage,
     setInteractionMode,
   } = useReadingPreferences();
+
+  useTTSAnnounce(t.settings.mountAnnounce);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.settings.mountAnnounce);

@@ -20,6 +20,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
   return (
@@ -68,6 +69,8 @@ export default function PenjelajahScreen() {
       b.genre.toLowerCase().includes(q)
     );
   });
+
+  useTTSAnnounce(t.explorer.mountAnnounce(sampleBooks.length));
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.explorer.mountAnnounce(sampleBooks.length));

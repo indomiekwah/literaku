@@ -21,6 +21,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, subscriptionPlans, formatRupiah, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 export default function BookDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -34,6 +35,8 @@ export default function BookDetailScreen() {
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
+
+  useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, book.genre) : "");
 
   React.useEffect(() => {
     if (book) {

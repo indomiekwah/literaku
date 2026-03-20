@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import Colors from "@/constants/colors";
+import { speakText, stopTTSPlayback } from "@/services/speech";
 
 const logoImage = require("@/assets/images/literaku-logo.png");
 
@@ -21,10 +22,17 @@ export default function SplashScreen() {
     AccessibilityInfo.announceForAccessibility(
       "Welcome to Literaku. Loading..."
     );
+    if (Platform.OS === "web") {
+      speakText("Welcome to Literaku", "en-US-EmmaMultilingualNeural", 1).catch(() => {});
+    }
     const timer = setTimeout(() => {
+      stopTTSPlayback();
       router.replace("/student/login");
     }, 2000);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      stopTTSPlayback();
+    };
   }, []);
 
   return (

@@ -23,6 +23,7 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { getTranslations } from "@/constants/translations";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +36,8 @@ export default function LoginScreen() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const { language } = useReadingPreferences();
   const t = getTranslations(language);
+
+  useTTSAnnounce(t.login.mountAnnounce);
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.login.mountAnnounce);
