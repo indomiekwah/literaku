@@ -73,7 +73,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             setSpeed(mapped);
             const msg = `Speed set to level ${param}`;
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 0.65).catch(() => {});
+            speakText(msg, selectedVoice, 0.8).catch(() => {});
             setIsVoiceActive(false);
             return;
           }
@@ -94,7 +94,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? "Maaf, saya tidak mengerti. Coba lagi."
             : "Sorry, I didn't understand that. Please try again.";
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 0.65).catch(() => {});
+          speakText(msg, selectedVoice, 0.8).catch(() => {});
         }
 
         setTimeout(() => setIsVoiceActive(false), 2000);
@@ -103,7 +103,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           ? "Tidak terdengar suara. Coba lagi."
           : "Could not understand. Please try again.";
         AccessibilityInfo.announceForAccessibility(msg);
-        speakText(msg, selectedVoice, 0.65).catch(() => {});
+        speakText(msg, selectedVoice, 0.8).catch(() => {});
         setTimeout(() => setIsVoiceActive(false), 2000);
       }
     } catch (err) {
@@ -131,7 +131,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         : "Microphone access denied. Please allow microphone access in browser settings.";
       setTranscribedText(msg);
       AccessibilityInfo.announceForAccessibility(msg);
-      speakText(msg, selectedVoice, 0.65).catch(() => {});
+      speakText(msg, selectedVoice, 0.8).catch(() => {});
       setTimeout(() => {
         setIsVoiceActive(false);
         setTranscribedText("");
