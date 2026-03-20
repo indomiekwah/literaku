@@ -77,16 +77,23 @@ Expo React Native app — **Literaku**: a voice-first accessible reading platfor
 - SwipeVoiceWrapper on every screen for swipe-left voice overlay activation
 - AccessibilityInfo.announceForAccessibility on all screens (mount, errors, actions)
 
-**Voice System (Azure AI)**:
-- **Activation**: Swipe left anywhere on screen → `SwipeVoiceOverlay` (full-screen pulsing mic, dark overlay)
-- **Mic button**: Persistent 56px green (#2E7D32) circular button in SwipeHintBar, always tappable (even in voice-only freeze mode). Pulses (scale 1→1.15→1) when voice-only mode is active. Last in TalkBack focus order with `accessibilityLabel="Activate voice command"`.
-- **VoiceActivationContext**: Shared context (`contexts/VoiceActivation.tsx`) bridges SwipeHintBar mic button ↔ SwipeVoiceWrapper overlay. Provider wrapped at root `_layout.tsx`.
+**Voice System (Azure Speech)**:
+- **Azure Speech Integration**: Real STT (Speech-to-Text) and TTS (Text-to-Speech) via Azure Cognitive Services
+- **API Server proxy**: `api-server/src/routes/speech.ts` — Token exchange (`GET /api/speech/token`), STT proxy (`POST /api/speech/stt`), TTS proxy (`POST /api/speech/tts`). Keeps Azure keys secure on server side.
+- **Speech service module**: `mobile/services/speech.ts` — `AudioRecorder` class (web MediaRecorder API), `speechToText()`, `textToSpeech()`, `speakText()`, `stopTTSPlayback()` functions
+- **Azure voices**: Sari→id-ID-GadisNeural, Budi→id-ID-ArdiNeural, Emma→en-US-EmmaMultilingualNeural, James→en-US-AndrewMultilingualNeural
+- **STT flow**: Swipe left / mic button → VoiceActivation starts recording (7s max) → audio sent to `/api/speech/stt` → Azure STT → transcribed text displayed in overlay
+- **TTS flow (Reader)**: Play button → page text sent to `/api/speech/tts` → Azure TTS generates audio MP3 → played via HTML5 Audio → auto-advances to next page
+- **Activation**: Swipe left anywhere on screen → `SwipeVoiceOverlay` (full-screen pulsing sonar, dark overlay, real mic recording)
+- **Mic button**: Persistent 56px green (#2E7D32) circular button in SwipeHintBar, always tappable (even in voice-only freeze mode). Pulses (scale 1→1.15→1) when voice-only mode is active.
+- **VoiceActivationContext**: Shared context (`contexts/VoiceActivation.tsx`) bridges SwipeHintBar mic button ↔ SwipeVoiceWrapper overlay. Now includes `isListening`, `transcribedText`, `onTranscription` callback, and actual `AudioRecorder` management.
 - **Dismiss**: Swipe right or tap anywhere to dismiss overlay
 - **SwipeHintBar**: Persistent bottom bar with mode toggle, hint text, optional help button, and mic button. Always outside freeze zone.
 - **SwipeVoiceWrapper**: Wraps every screen, uses `react-native-gesture-handler` Gesture.Fling + VoiceActivationContext
-- **Natural language**: Users speak freely in Indonesian or English; Azure AI detects language and intent
+- **Natural language**: Users speak freely in Indonesian or English; Azure Speech detects and transcribes
 - **Voice hints**: `voiceHints` in data.ts — per-screen context with `{ example, intent }` pairs
 - **TalkBack guide**: Panduan screen has dedicated "Pengguna TalkBack / VoiceOver" section with 3-step instructions for screen reader users
+- **Environment secrets**: `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` (required for STT/TTS)
 
 **Settings (student/settings.tsx)**:
 - Voice selector (4 voices: Sari/Budi id-ID, Emma/James en-US; default: Emma v3)

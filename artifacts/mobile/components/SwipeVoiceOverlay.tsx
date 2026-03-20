@@ -12,6 +12,7 @@ import {
 
 import Colors from "@/constants/colors";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { getTranslations } from "@/constants/translations";
 
 const logoImage = require("@/assets/images/literaku-logo.png");
@@ -28,6 +29,7 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
   const wave3 = useRef(new Animated.Value(0)).current;
   const wave4 = useRef(new Animated.Value(0)).current;
   const { language } = useReadingPreferences();
+  const { isListening, transcribedText } = useVoiceActivation();
   const t = getTranslations(language);
 
   const langLabel = language === "en" ? "English" : "Indonesian";
@@ -113,6 +115,18 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
     );
   };
 
+  const statusText = isListening
+    ? t.overlay.listening
+    : transcribedText
+    ? `"${transcribedText}"`
+    : t.overlay.listening;
+
+  const subtitleText = isListening
+    ? t.overlay.speakNaturally
+    : transcribedText
+    ? t.overlay.processing || "Processing..."
+    : t.overlay.speakNaturally;
+
   return (
     <Animated.View
       style={[styles.overlay, { opacity: fadeAnim }]}
@@ -138,9 +152,23 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
             </View>
           </View>
 
-          <Text style={styles.listeningText}>{t.overlay.listening}</Text>
-          <Text style={styles.subtitleText}>{t.overlay.speakNaturally}</Text>
+          {isListening && (
+            <View style={styles.listeningIndicator}>
+              <View style={styles.redDot} />
+              <Text style={styles.recordingText}>REC</Text>
+            </View>
+          )}
+
+          <Text style={styles.listeningText}>{statusText}</Text>
+          <Text style={styles.subtitleText}>{subtitleText}</Text>
           <Text style={styles.langText}>{langLabel}</Text>
+
+          {transcribedText && !isListening && (
+            <View style={styles.transcriptBox}>
+              <Ionicons name="chatbubble-outline" size={18} color="rgba(255,255,255,0.7)" />
+              <Text style={styles.transcriptText}>{transcribedText}</Text>
+            </View>
+          )}
 
           <View style={styles.dismissHint}>
             <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.6)" />
@@ -192,11 +220,34 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
+  listeningIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(220, 38, 38, 0.3)",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  redDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#EF4444",
+  },
+  recordingText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    color: "#EF4444",
+    letterSpacing: 2,
+  },
   listeningText: {
     fontFamily: "Inter_700Bold",
     fontSize: 28,
     color: "#FFFFFF",
     marginTop: 12,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
   subtitleText: {
     fontFamily: "Inter_500Medium",
@@ -208,6 +259,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "rgba(255,255,255,0.5)",
     marginTop: 4,
+  },
+  transcriptBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    marginTop: 8,
+    maxWidth: 340,
+  },
+  transcriptText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: "#FFFFFF",
+    flex: 1,
   },
   dismissHint: {
     flexDirection: "row",

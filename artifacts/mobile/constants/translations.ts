@@ -291,6 +291,7 @@ const en = {
   overlay: {
     listening: "Listening...",
     speakNaturally: "Speak naturally",
+    processing: "Processing...",
     dismissHint: "Swipe right or tap to stop",
     a11yLabel: (lang: string) => `Voice command listening. Speak naturally in ${lang}. Tap anywhere or swipe right to dismiss.`,
   },
@@ -587,6 +588,7 @@ const id: typeof en = {
   overlay: {
     listening: "Saya mendengarkan...",
     speakNaturally: "Bicara saja secara alami",
+    processing: "Memproses...",
     dismissHint: "Swipe kanan atau tap untuk berhenti",
     a11yLabel: (lang: string) => `Perintah suara aktif. Bicara secara alami dalam ${lang}. Tap atau swipe kanan untuk berhenti.`,
   },
