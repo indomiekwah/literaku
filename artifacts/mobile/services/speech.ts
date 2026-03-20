@@ -27,10 +27,11 @@ export async function getAzureToken(): Promise<{ token: string; region: string }
 }
 
 export async function speechToText(audioBlob: Blob, lang: string = "en-US"): Promise<STTResult> {
+  const contentType = audioBlob.type || "audio/wav";
   const res = await fetch(`${API_BASE}/speech/stt?lang=${encodeURIComponent(lang)}`, {
     method: "POST",
     headers: {
-      "Content-Type": "audio/wav",
+      "Content-Type": contentType,
     },
     body: audioBlob,
   });
@@ -42,11 +43,26 @@ export async function speechToText(audioBlob: Blob, lang: string = "en-US"): Pro
 }
 
 export async function speechToTextFromUri(uri: string, lang: string = "en-US"): Promise<STTResult> {
+  const ext = uri.split(".").pop()?.toLowerCase() || "wav";
+  const mimeMap: Record<string, string> = {
+    wav: "audio/wav",
+    m4a: "audio/mp4",
+    mp4: "audio/mp4",
+    aac: "audio/aac",
+    ogg: "audio/ogg",
+    webm: "audio/webm",
+    "3gp": "audio/3gpp",
+  };
+  const mimeType = mimeMap[ext] || "audio/wav";
+  const fileName = `recording.${ext}`;
+
+  console.log(`speechToTextFromUri: uri=${uri}, ext=${ext}, mime=${mimeType}`);
+
   const formData = new FormData();
   formData.append("audio", {
     uri,
-    type: "audio/wav",
-    name: "recording.wav",
+    type: mimeType,
+    name: fileName,
   } as any);
 
   const res = await fetch(`${API_BASE}/speech/stt?lang=${encodeURIComponent(lang)}`, {
@@ -197,6 +213,7 @@ export class AudioRecorder {
   private chunks: Blob[] = [];
   private stream: MediaStream | null = null;
   private nativeRecording: any = null;
+  private recordedMimeType: string = "audio/webm";
 
   async start(): Promise<void> {
     if (Platform.OS === "web") {
@@ -210,9 +227,10 @@ export class AudioRecorder {
         },
       });
 
-      this.mediaRecorder = new MediaRecorder(this.stream, {
-        mimeType: this.getSupportedMimeType(),
-      });
+      const mimeType = this.getSupportedMimeType();
+      this.recordedMimeType = mimeType;
+      this.mediaRecorder = new MediaRecorder(this.stream, { mimeType });
+      console.log(`AudioRecorder: web recording started, mimeType=${mimeType}`);
 
       this.mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -236,12 +254,12 @@ export class AudioRecorder {
       const recording = new Audio.Recording();
       await recording.prepareToRecordAsync({
         android: {
-          extension: ".wav",
+          extension: ".m4a",
           outputFormat: 2,
           audioEncoder: 3,
           sampleRate: 16000,
           numberOfChannels: 1,
-          bitRate: 256000,
+          bitRate: 128000,
         },
         ios: {
           extension: ".wav",
@@ -261,6 +279,7 @@ export class AudioRecorder {
       } as any);
       await recording.startAsync();
       this.nativeRecording = recording;
+      console.log(`AudioRecorder: native recording started, platform=${Platform.OS}`);
     }
   }
 
@@ -273,7 +292,7 @@ export class AudioRecorder {
         }
 
         this.mediaRecorder.onstop = () => {
-          const blob = new Blob(this.chunks, { type: "audio/webm" });
+          const blob = new Blob(this.chunks, { type: this.recordedMimeType });
           this.cleanup();
           resolve(blob);
         };

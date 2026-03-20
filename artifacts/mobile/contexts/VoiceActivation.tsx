@@ -50,13 +50,16 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       setIsListening(false);
 
       const lang = language === "id" ? "id-ID" : "en-US";
+      console.log(`VoiceActivation: sending audio for STT, type=${typeof audioData}, lang=${lang}`);
+
       const result = typeof audioData === "string"
         ? await speechToTextFromUri(audioData, lang)
         : await speechToText(audioData, lang);
 
+      console.log(`VoiceActivation: STT result status=${result.RecognitionStatus}`);
       const displayText = result.DisplayText || result.NBest?.[0]?.Display || "";
 
-      if ((result.RecognitionStatus === "Success" || result.RecognitionStatus === "InitialSilenceTimeout") && displayText) {
+      if (result.RecognitionStatus === "Success" && displayText) {
         const text = displayText;
         setTranscribedText(text);
         AccessibilityInfo.announceForAccessibility(`You said: ${text}`);
@@ -121,11 +124,20 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       listenTimeoutRef.current = setTimeout(() => {
         stopRecording();
       }, 7000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Mic access error:", err);
-      AccessibilityInfo.announceForAccessibility("Microphone access denied. Please allow microphone access.");
+      const msg = language === "id"
+        ? "Akses mikrofon ditolak. Izinkan akses mikrofon di pengaturan browser."
+        : "Microphone access denied. Please allow microphone access in browser settings.";
+      setTranscribedText(msg);
+      AccessibilityInfo.announceForAccessibility(msg);
+      speakText(msg, selectedVoice, 0.85).catch(() => {});
+      setTimeout(() => {
+        setIsVoiceActive(false);
+        setTranscribedText("");
+      }, 3000);
     }
-  }, [stopRecording]);
+  }, [stopRecording, language, selectedVoice]);
 
   const activateVoice = useCallback(() => {
     setIsVoiceActive(true);
@@ -139,16 +151,13 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       listenTimeoutRef.current = null;
     }
     if (recorderRef.current) {
-      if (isListening) {
-        stopRecording();
-      } else {
-        recorderRef.current.cancel();
-        recorderRef.current = null;
-      }
+      recorderRef.current.cancel();
+      recorderRef.current = null;
     }
     setIsVoiceActive(false);
     setIsListening(false);
-  }, [isListening, stopRecording]);
+    setTranscribedText("");
+  }, []);
 
   const onTranscription = useCallback((callback: (text: string, intent: VoiceIntent, param?: string) => void) => {
     callbackRef.current = callback;

@@ -1,11 +1,71 @@
 import express, { Router, type Request, type Response } from "express";
 import multer from "multer";
+import { execFile } from "child_process";
+import { writeFile, readFile, unlink } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
+import { randomUUID } from "crypto";
 
 const speechRouter = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const AZURE_SPEECH_KEY = process.env["AZURE_SPEECH_KEY"] || "";
 const AZURE_SPEECH_REGION = process.env["AZURE_SPEECH_REGION"] || "";
+
+const AZURE_WAV_CONTENT_TYPES = new Set([
+  "audio/wav",
+  "audio/wave",
+  "audio/x-wav",
+]);
+
+function isWavPcm(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+  const riff = buffer.toString("ascii", 0, 4);
+  const wave = buffer.toString("ascii", 8, 12);
+  return riff === "RIFF" && wave === "WAVE";
+}
+
+async function convertToWav(inputBuffer: Buffer, inputMime: string): Promise<Buffer> {
+  const id = randomUUID();
+  const ext = inputMime.includes("webm") ? ".webm"
+    : inputMime.includes("ogg") ? ".ogg"
+    : inputMime.includes("mp4") || inputMime.includes("m4a") || inputMime.includes("aac") ? ".m4a"
+    : inputMime.includes("3gp") ? ".3gp"
+    : inputMime.includes("amr") ? ".amr"
+    : ".bin";
+
+  const inputPath = join(tmpdir(), `stt-input-${id}${ext}`);
+  const outputPath = join(tmpdir(), `stt-output-${id}.wav`);
+
+  try {
+    await writeFile(inputPath, inputBuffer);
+
+    await new Promise<void>((resolve, reject) => {
+      execFile("ffmpeg", [
+        "-y",
+        "-i", inputPath,
+        "-ar", "16000",
+        "-ac", "1",
+        "-sample_fmt", "s16",
+        "-f", "wav",
+        outputPath,
+      ], { timeout: 15000 }, (error, _stdout, stderr) => {
+        if (error) {
+          console.error("ffmpeg error:", stderr);
+          reject(new Error(`ffmpeg conversion failed: ${error.message}`));
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    const wavBuffer = await readFile(outputPath);
+    return wavBuffer;
+  } finally {
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
+  }
+}
 
 speechRouter.get("/speech/token", async (_req: Request, res: Response) => {
   if (!AZURE_SPEECH_KEY || !AZURE_SPEECH_REGION) {
@@ -66,12 +126,8 @@ speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
       audioBuffer = req.body;
       audioContentType = req.headers["content-type"] || "audio/wav";
     } else {
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) {
-        chunks.push(Buffer.from(chunk));
-      }
-      audioBuffer = Buffer.concat(chunks);
-      audioContentType = req.headers["content-type"] || "audio/wav";
+      res.status(415).json({ error: "Unsupported content type. Send audio/* or multipart/form-data." });
+      return;
     }
 
     if (audioBuffer.length === 0) {
@@ -79,8 +135,21 @@ speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
       return;
     }
 
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`STT: received ${audioBuffer.length} bytes, content-type: ${audioContentType}, lang: ${lang}`);
+    console.log(`STT: received ${audioBuffer.length} bytes, content-type: ${audioContentType}, lang: ${lang}`);
+
+    const needsConversion = !isWavPcm(audioBuffer);
+
+    if (needsConversion) {
+      console.log(`STT: converting ${audioContentType} to WAV PCM using ffmpeg...`);
+      try {
+        audioBuffer = await convertToWav(audioBuffer, audioContentType);
+        audioContentType = "audio/wav";
+        console.log(`STT: conversion complete, ${audioBuffer.length} bytes WAV`);
+      } catch (convErr: any) {
+        console.error("STT: ffmpeg conversion failed:", convErr.message);
+        res.status(400).json({ error: "Audio format conversion failed. Please try again." });
+        return;
+      }
     }
 
     const sttRes = await fetch(
@@ -89,7 +158,7 @@ speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
         method: "POST",
         headers: {
           "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
-          "Content-Type": audioContentType,
+          "Content-Type": "audio/wav",
           "Accept": "application/json",
         },
         body: audioBuffer,
@@ -104,9 +173,7 @@ speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
     }
 
     const result = await sttRes.json();
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`STT result status: ${result.RecognitionStatus}`);
-    }
+    console.log(`STT result: ${result.RecognitionStatus}`);
     res.json(result);
   } catch (err: any) {
     console.error("STT error:", err);

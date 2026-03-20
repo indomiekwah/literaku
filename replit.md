@@ -40,7 +40,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - `SwipeVoiceOverlay` for visual feedback during voice listening.
     - "Voice-Only Mode" freezes UI navigation, relying solely on voice commands.
     - Azure voice map: v1=id-ID-GadisNeural, v2=id-ID-ArdiNeural, v3=en-US-EmmaMultilingualNeural, v4=en-US-AndrewMultilingualNeural.
-    - STT flow: `AudioRecorder.start()` → mic → `stop()` returns Blob(web) or URI(native) → `speechToText/speechToTextFromUri` → `POST /api/speech/stt` with multer (multipart) or raw body (audio/*).
+    - STT flow: `AudioRecorder.start()` → mic → `stop()` returns Blob(web/webm) or URI(native/m4a on Android, wav on iOS) → `speechToText/speechToTextFromUri` with correct MIME types → `POST /api/speech/stt` → server ffmpeg converts to WAV PCM → Azure STT.
     - TTS flow: `speakText()` → `POST /api/speech/tts` → MP3 bytes → web: HTMLAudioElement; native: expo-av base64 data URI.
     - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_redeem, nav_back, reader_next, reader_prev, reader_play, reader_pause, search_book, open_book, speed_change.
     - Reader-specific voice commands: play/pause/next/prev page handled via `onTranscription` callback.
@@ -59,7 +59,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - **Purpose**: Provides backend services, including proxying Azure Speech API requests.
 - **Speech Routes**:
     - `GET /api/speech/token` - Azure token proxy.
-    - `POST /api/speech/stt` - STT with smart middleware (multer for multipart, express.raw for audio/*).
+    - `POST /api/speech/stt` - STT with smart middleware (multer for multipart, express.raw for audio/*). Auto-converts non-WAV audio (webm, m4a, ogg, etc.) to 16kHz mono 16-bit PCM WAV using ffmpeg before sending to Azure.
     - `POST /api/speech/tts` - TTS proxy to Azure with SSML.
 - **Data Validation**: Uses Zod schemas generated from OpenAPI spec for request and response validation.
 - **Build**: Uses esbuild for production bundling.
