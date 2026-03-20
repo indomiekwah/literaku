@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from "express";
+import express, { Router, type Request, type Response } from "express";
 import multer from "multer";
 
 const speechRouter = Router();
@@ -38,7 +38,16 @@ speechRouter.get("/speech/token", async (_req: Request, res: Response) => {
   }
 });
 
-speechRouter.post("/speech/stt", upload.single("audio"), async (req: Request, res: Response) => {
+const rawAudioParser = express.raw({ type: ["audio/*", "application/octet-stream"], limit: "10mb" });
+
+speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
+  const ct = req.headers["content-type"] || "";
+  if (ct.includes("multipart/form-data")) {
+    upload.single("audio")(req, res, next);
+  } else {
+    rawAudioParser(req, res, next);
+  }
+}, async (req: Request, res: Response) => {
   if (!AZURE_SPEECH_KEY || !AZURE_SPEECH_REGION) {
     res.status(500).json({ error: "Azure Speech credentials not configured" });
     return;
@@ -70,10 +79,12 @@ speechRouter.post("/speech/stt", upload.single("audio"), async (req: Request, re
       return;
     }
 
-    console.log(`STT: received ${audioBuffer.length} bytes, content-type: ${audioContentType}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`STT: received ${audioBuffer.length} bytes, content-type: ${audioContentType}, lang: ${lang}`);
+    }
 
     const sttRes = await fetch(
-      `https://${AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${lang}`,
+      `https://${AZURE_SPEECH_REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${lang}&format=detailed`,
       {
         method: "POST",
         headers: {
@@ -87,13 +98,18 @@ speechRouter.post("/speech/stt", upload.single("audio"), async (req: Request, re
 
     if (!sttRes.ok) {
       const errText = await sttRes.text();
+      console.log(`STT Azure error: ${sttRes.status} - ${errText}`);
       res.status(sttRes.status).json({ error: `STT failed: ${errText}` });
       return;
     }
 
     const result = await sttRes.json();
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`STT result status: ${result.RecognitionStatus}`);
+    }
     res.json(result);
   } catch (err: any) {
+    console.error("STT error:", err);
     res.status(500).json({ error: err.message || "STT failed" });
   }
 });

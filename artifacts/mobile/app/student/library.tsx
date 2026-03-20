@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -19,8 +19,10 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleReadingProgress, voiceHints, type Book, type ReadingProgress } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 const savedBookIds = ["1", "2", "3", "5", "8", "11"];
 
@@ -87,11 +89,29 @@ export default function KoleksiScreen() {
     return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
   });
 
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
+
   useTTSAnnounce(t.collection.mountAnnounce(collectionBooks.length));
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.collection.mountAnnounce(collectionBooks.length));
   }, [collectionBooks.length]);
+
+  useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if ((intent === "open_book" || intent === "search_book") && param) {
+        const match = collectionBooks.find((b) =>
+          b.title.toLowerCase().includes(param.toLowerCase())
+        );
+        if (match) {
+          router.push({ pathname: "/student/book/[id]", params: { id: match.id } });
+        } else {
+          setSearchQuery(param);
+        }
+      }
+    });
+    return () => clearTranscriptionCallback();
+  }, [collectionBooks]);
 
   return (
     <SwipeVoiceWrapper>

@@ -4,11 +4,20 @@ const API_BASE = Platform.OS === "web"
   ? "/api"
   : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
 
+export interface STTNBestEntry {
+  Confidence: number;
+  Lexical: string;
+  ITN: string;
+  MaskedITN: string;
+  Display: string;
+}
+
 export interface STTResult {
   RecognitionStatus: string;
   DisplayText?: string;
   Offset?: number;
   Duration?: number;
+  NBest?: STTNBestEntry[];
 }
 
 export async function getAzureToken(): Promise<{ token: string; region: string }> {

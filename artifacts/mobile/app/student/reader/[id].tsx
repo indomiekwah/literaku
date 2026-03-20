@@ -1,7 +1,7 @@
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -18,9 +18,11 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 import { speakText, stopTTSPlayback } from "@/services/speech";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
@@ -29,6 +31,7 @@ export default function StudentReaderScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { speed, textSize, isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
@@ -38,46 +41,9 @@ export default function StudentReaderScreen() {
   const ttsAbortRef = useRef(false);
 
   const isPreviewMode = preview === "true" && !isSubscribed;
-  const maxPage = isPreviewMode ? 0 : (book ? book.content.length - 1 : 0);
-
-  useTTSAnnounce(book ? t.reader.mountAnnounce(book.title) : "");
-
-  React.useEffect(() => {
-    if (book) {
-      AccessibilityInfo.announceForAccessibility(t.reader.mountAnnounce(book.title));
-    }
-  }, [book?.title]);
-
-  React.useEffect(() => {
-    return () => {
-      ttsAbortRef.current = true;
-      stopTTSPlayback();
-    };
-  }, []);
-
-  if (!book) {
-    return (
-      <SwipeVoiceWrapper>
-        <View style={[styles.container, { paddingTop: topPadding }]}>
-          <Text style={styles.errorText} accessibilityRole="alert">
-            {t.reader.notFound}
-          </Text>
-        </View>
-      </SwipeVoiceWrapper>
-    );
-  }
-
-  const totalPages = isPreviewMode ? 1 : book.content.length;
-  const progress = ((currentPage + 1) / totalPages) * 100;
-
-  const goToPage = useCallback((page: number) => {
-    if (page >= 0 && page <= maxPage) {
-      stopTTSPlayback();
-      setIsPlaying(false);
-      setCurrentPage(page);
-      AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
-    }
-  }, [maxPage, totalPages, t]);
+  const totalPages = book ? (isPreviewMode ? 1 : book.content.length) : 0;
+  const maxPage = Math.max(0, totalPages - 1);
+  const progress = totalPages > 0 ? ((currentPage + 1) / totalPages) * 100 : 0;
 
   const startTTS = useCallback(async (pageIndex: number) => {
     if (!book) return;
@@ -107,6 +73,83 @@ export default function StudentReaderScreen() {
       AccessibilityInfo.announceForAccessibility("Voice playback failed.");
     }
   }, [book, selectedVoice, speed, maxPage, t]);
+
+  const goToPage = useCallback((page: number) => {
+    if (page >= 0 && page <= maxPage) {
+      stopTTSPlayback();
+      setIsPlaying(false);
+      setCurrentPage(page);
+      AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
+    }
+  }, [maxPage, totalPages, t]);
+
+  useTTSAnnounce(book ? t.reader.mountAnnounce(book.title) : "");
+
+  React.useEffect(() => {
+    if (book) {
+      AccessibilityInfo.announceForAccessibility(t.reader.mountAnnounce(book.title));
+    }
+  }, [book?.title]);
+
+  useEffect(() => {
+    return () => {
+      ttsAbortRef.current = true;
+      stopTTSPlayback();
+      clearTranscriptionCallback();
+    };
+  }, []);
+
+  useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent) => {
+      switch (intent) {
+        case "reader_next":
+          if (currentPage < maxPage) {
+            ttsAbortRef.current = true;
+            stopTTSPlayback();
+            setIsPlaying(false);
+            setCurrentPage(currentPage + 1);
+            AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage + 2, totalPages));
+          }
+          break;
+        case "reader_prev":
+          if (currentPage > 0) {
+            ttsAbortRef.current = true;
+            stopTTSPlayback();
+            setIsPlaying(false);
+            setCurrentPage(currentPage - 1);
+            AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage, totalPages));
+          }
+          break;
+        case "reader_play":
+          if (!isPlaying) {
+            startTTS(currentPage);
+          }
+          break;
+        case "reader_pause":
+        case "reader_stop":
+          if (isPlaying) {
+            ttsAbortRef.current = true;
+            stopTTSPlayback();
+            setIsPlaying(false);
+            setIsTTSLoading(false);
+            AccessibilityInfo.announceForAccessibility(t.reader.paused);
+          }
+          break;
+      }
+    });
+  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, t]);
+
+  if (!book) {
+    return (
+      <SwipeVoiceWrapper>
+        <View style={[styles.container, { paddingTop: topPadding }]}>
+          <Text style={styles.errorText} accessibilityRole="alert">
+            {t.reader.notFound}
+          </Text>
+        </View>
+      </SwipeVoiceWrapper>
+    );
+  }
 
   const handleRewind = useCallback(() => {
     if (currentPage > 0) {

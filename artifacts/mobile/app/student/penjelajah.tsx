@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -19,8 +19,10 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
   return (
@@ -70,10 +72,31 @@ export default function PenjelajahScreen() {
     );
   });
 
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
+
   useTTSAnnounce(t.explorer.mountAnnounce(sampleBooks.length));
 
   React.useEffect(() => {
     AccessibilityInfo.announceForAccessibility(t.explorer.mountAnnounce(sampleBooks.length));
+  }, []);
+
+  useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if (intent === "search_book" && param) {
+        setSearchQuery(param);
+        AccessibilityInfo.announceForAccessibility(`Searching for ${param}`);
+      } else if (intent === "open_book" && param) {
+        const match = sampleBooks.find((b) =>
+          b.title.toLowerCase().includes(param.toLowerCase())
+        );
+        if (match) {
+          router.push({ pathname: "/student/book/[id]", params: { id: match.id } });
+        } else {
+          setSearchQuery(param);
+        }
+      }
+    });
+    return () => clearTranscriptionCallback();
   }, []);
 
   return (
