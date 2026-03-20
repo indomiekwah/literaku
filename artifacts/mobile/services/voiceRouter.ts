@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { AccessibilityInfo } from "react-native";
 import { speakText } from "@/services/speech";
 
-const CONFIRM_SPEED = 0.5;
+const CONFIRM_SPEED = 0.65;
 
 export type VoiceIntent =
   | "nav_home"

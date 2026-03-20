@@ -3,7 +3,7 @@ import { AccessibilityInfo } from "react-native";
 import { speakText, stopTTSPlayback } from "@/services/speech";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
-const ANNOUNCE_SPEED = 0.5;
+const ANNOUNCE_SPEED = 0.65;
 
 export function useTTSAnnounce(text: string) {
   const { selectedVoice } = useReadingPreferences();
