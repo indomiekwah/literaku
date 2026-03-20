@@ -91,7 +91,6 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   }, [setSpeed, selectedVoice]);
 
   const startRecording = useCallback(async () => {
-    if (Platform.OS !== "web") return;
     try {
       const recorder = new AudioRecorder();
       recorderRef.current = recorder;

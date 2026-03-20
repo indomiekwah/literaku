@@ -32,6 +32,12 @@ export async function speechToText(audioBlob: Blob, lang: string = "en-US"): Pro
   return res.json();
 }
 
+export async function speechToTextFromUri(uri: string, lang: string = "en-US"): Promise<STTResult> {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return speechToText(blob, lang);
+}
+
 export async function textToSpeech(
   text: string,
   voice: string = "en-US-EmmaMultilingualNeural",
@@ -62,13 +68,22 @@ export function getAzureVoiceName(voiceId: string): string {
   return AZURE_VOICE_MAP[voiceId] || "en-US-EmmaMultilingualNeural";
 }
 
-let currentAudio: HTMLAudioElement | null = null;
+let currentAudioWeb: HTMLAudioElement | null = null;
+let currentSoundNative: any = null;
 
 export function stopTTSPlayback(): void {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
+  if (Platform.OS === "web") {
+    if (currentAudioWeb) {
+      currentAudioWeb.pause();
+      currentAudioWeb.currentTime = 0;
+      currentAudioWeb = null;
+    }
+  } else {
+    if (currentSoundNative) {
+      currentSoundNative.stopAsync().catch(() => {});
+      currentSoundNative.unloadAsync().catch(() => {});
+      currentSoundNative = null;
+    }
   }
 }
 
@@ -80,82 +95,201 @@ export async function speakText(
   stopTTSPlayback();
 
   const azureVoice = getAzureVoiceName(voiceId);
-  const audioBuffer = await textToSpeech(text, azureVoice, rate);
-  const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
-  const url = URL.createObjectURL(blob);
 
-  return new Promise((resolve, reject) => {
-    const audio = new Audio(url);
-    currentAudio = audio;
-    audio.onended = () => {
-      URL.revokeObjectURL(url);
-      currentAudio = null;
-      resolve();
-    };
-    audio.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      currentAudio = null;
-      reject(new Error("Audio playback failed"));
-    };
-    audio.play().catch(reject);
-  });
+  if (Platform.OS === "web") {
+    const audioBuffer = await textToSpeech(text, azureVoice, rate);
+    const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
+    const url = URL.createObjectURL(blob);
+
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(url);
+      currentAudioWeb = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        currentAudioWeb = null;
+        resolve();
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        currentAudioWeb = null;
+        reject(new Error("Audio playback failed"));
+      };
+      audio.play().catch(reject);
+    });
+  } else {
+    const { Audio } = await import("expo-av");
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+    });
+
+    const ttsUrl = `${API_BASE}/speech/tts`;
+    const res = await fetch(ttsUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice: azureVoice, rate }),
+    });
+    if (!res.ok) throw new Error("TTS request failed");
+
+    const arrayBuffer = await res.arrayBuffer();
+    const base64 = arrayBufferToBase64(arrayBuffer);
+    const dataUri = `data:audio/mpeg;base64,${base64}`;
+
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: dataUri },
+      { shouldPlay: true }
+    );
+    currentSoundNative = sound;
+
+    return new Promise((resolve) => {
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) {
+          sound.unloadAsync().catch(() => {});
+          currentSoundNative = null;
+          resolve();
+        }
+      });
+    });
+  }
+}
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
 export function isTTSPlaying(): boolean {
-  return currentAudio !== null && !currentAudio.paused;
+  if (Platform.OS === "web") {
+    return currentAudioWeb !== null && !currentAudioWeb.paused;
+  }
+  return currentSoundNative !== null;
 }
 
 export class AudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
   private stream: MediaStream | null = null;
+  private nativeRecording: any = null;
 
   async start(): Promise<void> {
-    this.chunks = [];
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        sampleRate: 16000,
-        echoCancellation: true,
-        noiseSuppression: true,
-      },
-    });
+    if (Platform.OS === "web") {
+      this.chunks = [];
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
 
-    this.mediaRecorder = new MediaRecorder(this.stream, {
-      mimeType: this.getSupportedMimeType(),
-    });
+      this.mediaRecorder = new MediaRecorder(this.stream, {
+        mimeType: this.getSupportedMimeType(),
+      });
 
-    this.mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        this.chunks.push(e.data);
+      this.mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          this.chunks.push(e.data);
+        }
+      };
+
+      this.mediaRecorder.start(100);
+    } else {
+      const { Audio } = await import("expo-av");
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        throw new Error("Microphone permission denied");
       }
-    };
 
-    this.mediaRecorder.start(100);
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const recording = new Audio.Recording();
+      await recording.prepareToRecordAsync({
+        android: {
+          extension: ".wav",
+          outputFormat: 2,
+          audioEncoder: 3,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 256000,
+        },
+        ios: {
+          extension: ".wav",
+          outputFormat: "linearPCM" as any,
+          audioQuality: 127,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 256000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: "audio/webm",
+          bitsPerSecond: 128000,
+        },
+      } as any);
+      await recording.startAsync();
+      this.nativeRecording = recording;
+    }
   }
 
   async stop(): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      if (!this.mediaRecorder) {
-        reject(new Error("No recording in progress"));
-        return;
+    if (Platform.OS === "web") {
+      return new Promise((resolve, reject) => {
+        if (!this.mediaRecorder) {
+          reject(new Error("No recording in progress"));
+          return;
+        }
+
+        this.mediaRecorder.onstop = () => {
+          const blob = new Blob(this.chunks, { type: "audio/webm" });
+          this.cleanup();
+          resolve(blob);
+        };
+
+        this.mediaRecorder.stop();
+      });
+    } else {
+      if (!this.nativeRecording) {
+        throw new Error("No recording in progress");
       }
+      await this.nativeRecording.stopAndUnloadAsync();
+      const uri = this.nativeRecording.getURI();
+      this.nativeRecording = null;
 
-      this.mediaRecorder.onstop = () => {
-        const blob = new Blob(this.chunks, { type: "audio/webm" });
-        this.cleanup();
-        resolve(blob);
-      };
+      const { Audio } = await import("expo-av");
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
 
-      this.mediaRecorder.stop();
-    });
+      const response = await fetch(uri!);
+      const blob = await response.blob();
+      return blob;
+    }
   }
 
   cancel(): void {
-    if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
-      this.mediaRecorder.stop();
+    if (Platform.OS === "web") {
+      if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
+        this.mediaRecorder.stop();
+      }
+      this.cleanup();
+    } else {
+      if (this.nativeRecording) {
+        this.nativeRecording.stopAndUnloadAsync().catch(() => {});
+        this.nativeRecording = null;
+      }
     }
-    this.cleanup();
   }
 
   private cleanup(): void {

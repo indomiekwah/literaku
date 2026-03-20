@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Platform } from "react-native";
 import { speakText, stopTTSPlayback } from "@/services/speech";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 
@@ -10,7 +9,7 @@ export function useTTSAnnounce(text: string) {
   const lastTextRef = useRef("");
 
   useEffect(() => {
-    if (Platform.OS !== "web" || !text || text === lastTextRef.current) return;
+    if (!text || text === lastTextRef.current) return;
     lastTextRef.current = text;
 
     const timer = setTimeout(() => {

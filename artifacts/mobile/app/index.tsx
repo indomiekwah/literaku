@@ -22,9 +22,7 @@ export default function SplashScreen() {
     AccessibilityInfo.announceForAccessibility(
       "Welcome to Literaku. Loading..."
     );
-    if (Platform.OS === "web") {
-      speakText("Welcome to Literaku", "en-US-EmmaMultilingualNeural", 0.85).catch(() => {});
-    }
+    speakText("Welcome to Literaku", "en-US-EmmaMultilingualNeural", 0.85).catch(() => {});
     const timer = setTimeout(() => {
       stopTTSPlayback();
       router.replace("/student/login");
