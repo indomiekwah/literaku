@@ -81,11 +81,9 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.quickLoginSection}>
-            <Text style={styles.quickLoginTitle} accessibilityRole="header">{t.login.oneTab}</Text>
-
             <Pressable
               style={({ pressed }) => [
-                styles.oauthButtonPrimary,
+                styles.oauthButton,
                 styles.googleButton,
                 { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
               ]}
@@ -94,19 +92,13 @@ export default function LoginScreen() {
               accessibilityLabel={t.login.googleA11yLabel}
               accessibilityHint={t.login.googleA11yHint}
             >
-              <View style={styles.oauthIconCircle}>
-                <Ionicons name="logo-google" size={32} color="#DB4437" />
-              </View>
-              <View style={styles.oauthTextGroup}>
-                <Text style={styles.oauthButtonTextPrimary}>{t.login.google}</Text>
-                <Text style={styles.oauthButtonSubtext}>{t.login.googleSub}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
+              <Ionicons name="logo-google" size={22} color="#DB4437" />
+              <Text style={styles.oauthButtonText}>{t.login.google}</Text>
             </Pressable>
 
             <Pressable
               style={({ pressed }) => [
-                styles.oauthButtonPrimary,
+                styles.oauthButton,
                 styles.microsoftButton,
                 { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
               ]}
@@ -115,14 +107,8 @@ export default function LoginScreen() {
               accessibilityLabel={t.login.microsoftA11yLabel}
               accessibilityHint={t.login.microsoftA11yHint}
             >
-              <View style={styles.oauthIconCircle}>
-                <Ionicons name="logo-microsoft" size={32} color="#00A4EF" />
-              </View>
-              <View style={styles.oauthTextGroup}>
-                <Text style={styles.oauthButtonTextPrimary}>{t.login.microsoft}</Text>
-                <Text style={styles.oauthButtonSubtext}>{t.login.microsoftSub}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.7)" />
+              <Ionicons name="logo-microsoft" size={22} color="#00A4EF" />
+              <Text style={styles.oauthButtonText}>{t.login.microsoft}</Text>
             </Pressable>
           </View>
 
@@ -277,50 +263,31 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   quickLoginSection: {
-    gap: 14,
+    gap: 12,
   },
-  quickLoginTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: Colors.text,
-    textAlign: "center",
-  },
-  oauthButtonPrimary: {
+  oauthButton: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 20,
-    paddingVertical: 20,
+    justifyContent: "center",
+    borderRadius: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    gap: 16,
-    minHeight: 88,
+    gap: 12,
+    minHeight: 56,
+    borderWidth: 2,
   },
   googleButton: {
-    backgroundColor: "#C62828",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#DADCE0",
   },
   microsoftButton: {
-    backgroundColor: "#0078D4",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#DADCE0",
   },
-  oauthIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.95)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  oauthTextGroup: {
-    flex: 1,
-    gap: 4,
-  },
-  oauthButtonTextPrimary: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: "#FFFFFF",
-  },
-  oauthButtonSubtext: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
-    color: "rgba(255,255,255,0.8)",
+  oauthButtonText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.text,
   },
   emailToggle: {
     gap: 12,
