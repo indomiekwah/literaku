@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1600">
+<title>Literaku System Architecture</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0f1117;
+  color: #e0e0e0;
+  padding: 30px 40px;
+  width: 1600px;
+}
+
+.title-bar {
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: white;
+  padding: 14px 30px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.title-bar h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+.title-bar p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+.legend {
+  background: rgba(255,255,255,0.06);
+  padding: 6px 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.legend .done { color: #66BB6A; font-weight: 600; }
+.legend .plan { color: #FFA726; font-weight: 600; }
+
+.section-header {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  margin-top: 18px;
+}
+.section-header:first-of-type { margin-top: 0; }
+
+.section-blue { background: rgba(25, 118, 210, 0.2); color: #64B5F6; border-left: 4px solid #1976D2; }
+.section-green { background: rgba(46, 125, 50, 0.2); color: #81C784; border-left: 4px solid #2E7D32; }
+.section-violet { background: rgba(126, 87, 194, 0.2); color: #B39DDB; border-left: 4px solid #7E57C2; }
+.section-orange { background: rgba(230, 81, 0, 0.2); color: #FFB74D; border-left: 4px solid #E65100; }
+.section-red { background: rgba(211, 47, 47, 0.2); color: #EF9A9A; border-left: 4px solid #D32F2F; }
+.section-dark { background: rgba(255,255,255,0.08); color: #B0BEC5; border-left: 4px solid #607D8B; }
+
+.row { display: flex; gap: 14px; margin-bottom: 12px; }
+.col-2 { flex: 1; min-width: 0; }
+.col-3 { flex: 1; min-width: 0; }
+
+.card {
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.card ul { list-style: none; padding: 0; }
+.card ul li { padding: 1px 0; }
+.card ul li::before { content: ""; }
+
+.card-blue { background: rgba(25, 118, 210, 0.08); border-color: rgba(100, 181, 246, 0.2); }
+.card-blue h3 { color: #64B5F6; }
+.card-green { background: rgba(46, 125, 50, 0.08); border-color: rgba(129, 199, 132, 0.2); }
+.card-green h3 { color: #81C784; }
+.card-violet { background: rgba(126, 87, 194, 0.08); border-color: rgba(179, 157, 219, 0.2); }
+.card-violet h3 { color: #B39DDB; }
+.card-yellow { background: rgba(255, 160, 0, 0.08); border-color: rgba(255, 183, 77, 0.2); }
+.card-yellow h3 { color: #FFB74D; }
+.card-red { background: rgba(211, 47, 47, 0.08); border-color: rgba(239, 154, 154, 0.2); }
+.card-red h3 { color: #EF9A9A; }
+.card-grey { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+.card-grey h3 { color: #B0BEC5; }
+
+.tag-done { 
+  display: inline-block; background: #2E7D32; color: #fff; 
+  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;
+}
+.tag-plan { 
+  display: inline-block; background: #E65100; color: #fff; 
+  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;
+}
+
+.arrow-connector {
+  text-align: center;
+  padding: 4px 0;
+  color: #666;
+  font-size: 11px;
+}
+.arrow-connector .arrow { font-size: 20px; color: #555; }
+.arrow-connector .label { color: #888; font-size: 10px; }
+
+.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px; }
+.dim { color: #888; }
+pre { white-space: pre-wrap; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h1>LITERAKU &mdash; System Architecture</h1>
+  <p>Voice-First Accessible Reading Platform for Visually Impaired Students</p>
+</div>
+
+<div class="legend">
+  <span class="done">[DONE]</span> = Implemented &nbsp;&nbsp;|&nbsp;&nbsp;
+  <span class="plan">[PLAN]</span> = Planned &nbsp;&nbsp;|&nbsp;&nbsp;
+  Priority: Azure services first
+</div>
+
+<!-- SECTION 1: CLIENT -->
+<div class="section-header section-blue">1. CLIENT SIDE &mdash; Expo React Native (iOS + Android + Web) &nbsp;|&nbsp; SDK 54 &nbsp;|&nbsp; TypeScript</div>
+
+<div class="row">
+  <div class="col-2">
+    <div class="card card-blue">
+      <h3>MOBILE APP &mdash; Screens & Navigation</h3>
+      <pre>Screen Flow: Splash → Login (OAuth) → Home →
+├── Explorer (search & browse books)
+├── Collection (my saved books)
+├── History & Redeem Token
+├── Book Detail → Reader
+├── Settings (voice, speed, language)
+└── Voice Guide
+
+Reader Features: <span class="tag-done">DONE</span>
+  • Page-by-page TTS narration
+  • Auto-advance to next page
+  • Voice controls (play/pause/next/prev)
+  • Adjustable speed (0.5x–2x)
+  • Voice-Only mode (freeze touch)
+  • AI summarization <span class="tag-plan">PLAN</span>
+
+Auth: <span class="tag-done">DONE</span> OAuth (Google/Microsoft) + Email</pre>
+    </div>
+  </div>
+  <div class="col-2">
+    <div class="card card-blue">
+      <h3>VOICE SYSTEM &mdash; Accessibility Layer</h3>
+      <pre>Voice Activation: <span class="tag-done">DONE</span>
+  • Swipe Left → activate mic
+  • Swipe Right → dismiss
+  • Persistent mic button (TalkBack compatible)
+  • Full-screen overlay with live transcription
+
+Intent Recognition:
+  <span class="tag-done">DONE</span> Regex pattern matching (EN + ID bilingual)
+  <span class="tag-plan">PLAN</span> Azure CLU → flexible NLU, entity extraction
+
+Voice Commands Available:
+  Navigation: home, explorer, collection, history,
+    settings, guide, back
+  Reader: play, pause, next, prev
+  Search: "search [query]" | Speed: "speed 1-5"
+
+TTS Feedback: <span class="tag-done">DONE</span>
+  Screen announcements, navigation confirmation,
+  error messages, AccessibilityInfo integration</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ARROW -->
+<div class="arrow-connector">
+  <div class="arrow">▼</div>
+  <div class="label">HTTPS / REST API &nbsp;|&nbsp; Audio blobs (STT) ↑↓ MP3 stream (TTS)</div>
+</div>
+
+<!-- SECTION 2: API -->
+<div class="section-header section-green">2. API SERVER &mdash; Express 5 &nbsp;|&nbsp; Node.js &nbsp;|&nbsp; TypeScript &nbsp;|&nbsp; Port 8080 &nbsp;|&nbsp; Prefix: /api</div>
+
+<div class="row">
+  <div class="col-2">
+    <div class="card card-green">
+      <h3>CURRENT ENDPOINTS <span class="tag-done">DONE</span></h3>
+      <pre class="mono">GET  /api/healthz
+  → Health check
+
+GET  /api/speech/token
+  → Azure auth token for client SDK
+
+POST /api/speech/stt
+  → Speech-to-Text proxy
+  → Accepts: webm, mp4, wav (any audio)
+  → ffmpeg converts to 16kHz WAV PCM
+  → Forwards to Azure STT API
+  → Returns: recognized text + confidence
+
+POST /api/speech/tts
+  → Text-to-Speech proxy
+  → Input: { text, voice, rate }
+  → Generates SSML with prosody rate
+  → Returns: audio/mpeg stream
+  → 4 Azure Neural voices (ID + EN)</pre>
+    </div>
+  </div>
+  <div class="col-2">
+    <div class="card card-green">
+      <h3>PLANNED ENDPOINTS <span class="tag-plan">PLAN</span></h3>
+      <pre class="mono">Auth API:
+  POST /api/auth/login    (OAuth callback)
+  POST /api/auth/register
+  GET  /api/auth/me
+
+Books API:
+  GET  /api/books          (list/search)
+  GET  /api/books/:id      (detail + content)
+  POST /api/books/:id/progress  (save pos)
+  GET  /api/books/:id/summary   (AI)
+
+Subscription API:
+  GET  /api/subscription/status
+  POST /api/subscription/create
+  POST /api/payment/webhook (Midtrans)
+
+NLU API (Azure CLU):
+  POST /api/voice/intent
+  → Replaces client-side regex matching</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ARROW -->
+<div class="arrow-connector">
+  <div class="arrow">▼</div>
+  <div class="label">Azure SDK / REST API Calls</div>
+</div>
+
+<!-- SECTION 3: SERVICES -->
+<div class="section-header section-violet">3. EXTERNAL SERVICES & DATA LAYER &mdash; Azure-First Strategy</div>
+
+<div class="row">
+  <div class="col-3">
+    <div class="card card-violet">
+      <h3>AZURE AI SERVICES</h3>
+      <pre>Region: southeastasia
+
+<span class="tag-done">DONE</span> Azure Speech Service
+  STT: Real-time recognition
+    • en-US, id-ID languages
+    • Conversation mode
+  TTS: Neural voices
+    • id-ID-GadisNeural (F)
+    • id-ID-ArdiNeural (M)
+    • en-US-EmmaMultilingual (F)
+    • en-US-AndrewMultilingual (M)
+    • SSML prosody rate control
+
+<span class="tag-plan">PLAN</span> Azure CLU
+  • Intent classification
+  • Entity extraction
+  • Multi-turn conversation
+
+<span class="tag-plan">PLAN</span> Azure OpenAI
+  • Book page summarization
+  • Content simplification
+  • Reading comprehension Q&A</pre>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card card-violet">
+      <h3>AZURE POSTGRESQL <span class="tag-plan">PLAN</span></h3>
+      <pre>user_accounts
+  → id, email, name, role, oauth_id
+  → subscription_status, preferences
+
+books_metadata
+  → id, title, author, genre, synopsis
+  → cover_url, blob_path, page_count
+  → is_public, publisher_id (FK)
+
+reading_progress
+  → user_id, book_id, current_page
+  → last_read_at, completed
+
+partnerships (Publishers)
+  → name, contact, revenue margin_%
+
+businesses (Institutions)
+  → name, type, book_stock
+  → assigned_tokens[]
+
+subscriptions
+  → user_id, plan, status
+  → start/end_date, payment_id</pre>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card card-violet">
+      <h3>AZURE BLOB STORAGE <span class="tag-plan">PLAN</span></h3>
+      <pre>/originals/
+  Raw EPUB/PDF uploads
+  From publishers/admin
+
+/digitized/
+  Extracted text (per page)
+  Highlighted text markers
+  TTS-ready text chunks
+
+/covers/
+  Book cover images
+  Thumbnails (multiple sizes)
+
+/audio-cache/ (optional)
+  Pre-generated TTS audio
+  Reduces Azure API calls
+  Cache by voice + speed
+
+Access Control:
+  Server-side signed URLs
+  Client never accesses
+    Blob Storage directly
+  CDN for covers/thumbnails</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: ADMIN -->
+<div class="section-header section-orange">4. ADMIN, PAYMENT & NOTIFICATIONS</div>
+
+<div class="row">
+  <div class="col-3">
+    <div class="card card-yellow">
+      <h3>ADMIN WEB DASHBOARD <span class="tag-plan">PLAN</span></h3>
+      <pre>React + Vite (separate artifact)
+Shares same API server
+
+Roles:
+  • Super Admin (Literaku team)
+  • Publisher (partnership accounts)
+  • Institution (business accounts)
+
+Features:
+  • User management (all types)
+  • Book upload (EPUB/PDF)
+  • Auto-digitization pipeline
+  • Quality checking (QA)
+  • Toggle: Private ↔ Public
+  • Assign books to institution
+  • Generate redeem tokens
+  • Publisher revenue dashboard
+  • Analytics & usage reports</pre>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card card-yellow">
+      <h3>PAYMENT GATEWAY <span class="tag-plan">PLAN</span></h3>
+      <pre>Indonesia (Primary): Midtrans
+  • Credit/Debit cards
+  • GoPay, OVO, DANA
+  • Bank Transfer (VA)
+  • Monthly recurring billing
+
+International: Stripe (scaling)
+  • International cards
+  • Multi-currency support
+
+Payment Models:
+
+1. B2C Monthly Subscription
+   → Student pays monthly
+   → Full library access
+   → Ch.1 free preview without sub
+   → Revenue shared with publishers
+
+2. B2B Institution Book Stock
+   → School pays lump sum
+   → Buys N book access tokens
+   → Assigns to students via code</pre>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="card card-yellow">
+      <h3>NOTIFICATIONS <span class="tag-plan">PLAN</span></h3>
+      <pre>Email Notifications:
+  • Payment confirmation
+  • Subscription renewal
+  • Welcome / onboarding
+  • Book assignment (from inst.)
+  • Password reset
+
+Provider Options:
+  Azure Communication Svc
+  or SendGrid / Resend
+
+Push Notifications (future):
+  • Expo Push Notifications
+  • New book available
+  • Subscription expiring
+
+In-App (Voice):
+  • TTS spoken announcements
+  • Voice-navigable alerts
+  • AccessibilityInfo integration</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: FLOWS -->
+<div class="section-header section-red">5. KEY DATA FLOWS</div>
+
+<div class="row">
+  <div class="col-2">
+    <div class="card card-red">
+      <h3>READING FLOW (Core Experience)</h3>
+      <pre> 1. Student opens book from Explorer/Collection
+ 2. App calls GET /api/books/:id
+ 3. Server fetches digitized text from Blob Storage
+ 4. Returns page content to client
+ 5. Student taps Play (or voice command: "play")
+ 6. App sends page text to POST /api/speech/tts
+ 7. Server generates SSML → Azure Neural TTS
+ 8. Azure returns MP3 → streamed to client
+ 9. Audio plays via HTMLAudioElement or expo-av
+10. On page finish → auto-advance to next page
+11. Progress saved via POST /books/:id/progress</pre>
+    </div>
+  </div>
+  <div class="col-2">
+    <div class="card card-red">
+      <h3>B2B INSTITUTION & PUBLISHER FLOW</h3>
+      <pre>Institution Flow:
+ 1. Institution signs agreement (offline)
+ 2. Admin creates business account in web dashboard
+ 3. Admin assigns book stock to institution
+ 4. Admin generates redeem tokens (codes)
+ 5. Institution distributes codes to students
+ 6. Student opens app → Redeem Token screen
+ 7. Enters code → POST /api/redeem
+ 8. Server validates & assigns book access
+
+Publisher Flow:
+ 1. Publisher uploads EPUB/PDF via admin web
+ 2. System digitizes: extract text + metadata
+ 3. Admin QA checks → toggle Public when ready
+ 4. Publisher earns margin% from subscriptions</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section-header section-dark" style="margin-bottom: 0; font-size: 11px; line-height: 1.4; padding: 6px 16px;">
+6. DECISIONS: Azure-First • Voice-First (touch fallback) • Server-Side Audio • Dual Payment (B2C+B2B) • Bilingual (EN+ID) • Content Security<br>
+STACK: Expo SDK 54 + RN 0.81 + expo-router + expo-av | Express 5 + TS + ffmpeg | Azure Speech <span class="tag-done">DONE</span> CLU/OpenAI/PgSQL/Blob <span class="tag-plan">PLAN</span> | Admin: React+Vite <span class="tag-plan">PLAN</span> | Pay: Midtrans+Stripe <span class="tag-plan">PLAN</span> | WCAG 2.1 AA | v1.0 March 2026
+</div>
+
+</body>
+</html>

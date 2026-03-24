@@ -24,3 +24,9 @@ id = "_SSHNje5BAkRx90_21etp"
 uri = "file://.local/literaku_feature_token_model.png"
 type = "image"
 title = "Feature 3: Token Model for Institutional Access"
+
+[[outputs]]
+id = "bBviYRwVU20vxcA0mLmpw"
+uri = "file://.canvas/assets/literaku-architecture.png"
+type = "image"
+title = "Literaku System Architecture Diagram"
