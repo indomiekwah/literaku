@@ -46,7 +46,10 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Reader-specific voice commands: play/pause/next/prev page handled via `onTranscription` callback.
     - Explorer/Collection voice commands: search_book and open_book handled via screen-specific callbacks.
     - ANNOUNCE_SPEED = 0.85 for mount/feedback announcements.
-- **Subscription Model**: Chapter 1 free preview; full reading requires subscription. B2B token redemption on History screen.
+- **Business Model**:
+    - B2C: $7/month subscription, access to full library. Ch.1 free preview. Payment via Midtrans (ID) / Stripe (intl).
+    - B2B: Institution pays per page for digitization ($0.06 Starter, $0.05 Medium, $0.04 Enterprise). Admin assigns books to students for FREE via web dashboard (no subscription needed for B2B students).
+    - Revenue share with publishers from B2C subscriptions.
 - **Localization**: Full `en`/`id` translation system (`constants/translations.ts`). Language-aware STT (id-ID vs en-US).
 - **Settings Screen**: `student/settings.tsx` with voice selection, speed control, language toggle, text size, voice-only mode, subscription status, and logout.
 - **State Management**: `ReadingPreferencesContext` for user settings (voice, speed, language, text size, interaction mode, subscription status) and `VoiceActivationContext` for voice interaction state.
@@ -63,6 +66,18 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - `POST /api/speech/tts` - TTS proxy to Azure with SSML.
 - **Data Validation**: Uses Zod schemas generated from OpenAPI spec for request and response validation.
 - **Build**: Uses esbuild for production bundling.
+- **Deployment**: Replit (dev) → Azure App Service B1/B2 (prod). ffmpeg required for audio conversion.
+
+**Infrastructure (Azure)**:
+- Azure App Service B1/B2: API + Admin Web (~$13-26/mo)
+- Azure Speech Service: STT + TTS with audio caching (~$80-150/mo with cache)
+- Azure PostgreSQL Burstable B1ms: User data, books, assignments (~$15/mo)
+- Azure Blob Storage: Books, covers, audio cache (~$5/mo)
+- Azure CDN: Jakarta node for Indonesia (~$2/mo)
+- Azure Key Vault: Secrets management, planned (~$1/mo)
+- Azure Communication Services: Email notifications (~$3/mo)
+- Total estimated: $119-202/mo at 100 B2C users + 1-2 B2B institutions
+- Audio caching is CRITICAL: reduces TTS cost by 80%+, without it TTS alone costs $500-700/mo
 
 **Database Layer (`lib/db`)**:
 - **ORM**: Drizzle ORM.
