@@ -282,7 +282,7 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Open history", intent: "Open reading history" },
     { example: "Open guide", intent: "Open voice guide" },
     { example: "Open settings", intent: "Open settings" },
-    { example: "Redeem token", intent: "Open token redemption" },
+    { example: "Join institution", intent: "Open institution page" },
   ],
   penjelajah: [
     { example: "Search The Silent Patient", intent: "Search for a book" },
@@ -301,7 +301,7 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   ],
   riwayat: [
     { example: "Continue reading", intent: "Continue last book" },
-    { example: "Redeem my token", intent: "Enter redemption token" },
+    { example: "Books from school", intent: "View institution books" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
   reader: [

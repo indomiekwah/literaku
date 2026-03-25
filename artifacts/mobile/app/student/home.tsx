@@ -125,13 +125,13 @@ export default function StudentHomeScreen() {
             />
 
             <NavButton
-              label={t.home.redeemToken}
-              subtitle={t.home.redeemTokenSub}
-              icon="gift"
+              label={t.home.joinInstitution}
+              subtitle={t.home.joinInstitutionSub}
+              icon="school"
               color="#E65100"
               onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel={t.home.redeemTokenA11yLabel}
-              accessibilityHint={t.home.redeemTokenA11yHint}
+              accessibilityLabel={t.home.joinInstitutionA11yLabel}
+              accessibilityHint={t.home.joinInstitutionA11yHint}
             />
 
             <NavButton

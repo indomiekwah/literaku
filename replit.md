@@ -42,13 +42,13 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Azure voice map: v1=id-ID-GadisNeural, v2=id-ID-ArdiNeural, v3=en-US-EmmaMultilingualNeural, v4=en-US-AndrewMultilingualNeural.
     - STT flow: `AudioRecorder.start()` → mic → `stop()` returns Blob(web/webm) or URI(native/m4a on Android, wav on iOS) → `speechToText/speechToTextFromUri` with correct MIME types → `POST /api/speech/stt` → server ffmpeg converts to WAV PCM → Azure STT.
     - TTS flow: `speakText()` → `POST /api/speech/tts` → MP3 bytes → web: HTMLAudioElement; native: expo-av base64 data URI.
-    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_redeem, nav_back, reader_next, reader_prev, reader_play, reader_pause, search_book, open_book, speed_change.
+    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_join_institution, nav_back, reader_next, reader_prev, reader_play, reader_pause, search_book, open_book, speed_change.
     - Reader-specific voice commands: play/pause/next/prev page handled via `onTranscription` callback.
     - Explorer/Collection voice commands: search_book and open_book handled via screen-specific callbacks.
     - ANNOUNCE_SPEED = 0.85 for mount/feedback announcements.
 - **Business Model**:
     - B2C: $7/month subscription, access to full library. Ch.1 free preview. Payment via Midtrans (ID) / Stripe (intl).
-    - B2B: Institution pays per page for digitization ($0.06 Starter, $0.05 Medium, $0.04 Enterprise). Admin assigns books to students for FREE via web dashboard (no subscription needed for B2B students).
+    - B2B: Institution pays per page for digitization ($0.06 Starter, $0.05 Medium, $0.04 Enterprise). Admin assigns books to students for FREE via web dashboard (no subscription needed for B2B students). Students join institution via code (e.g., "SMAN5-JKT") or operator invite.
     - Revenue share with publishers from B2C subscriptions.
 - **Localization**: Full `en`/`id` translation system (`constants/translations.ts`). Language-aware STT (id-ID vs en-US).
 - **Settings Screen**: `student/settings.tsx` with voice selection, speed control, language toggle, text size, voice-only mode, subscription status, and logout.

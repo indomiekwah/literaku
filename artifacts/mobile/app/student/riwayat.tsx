@@ -66,32 +66,35 @@ export default function RiwayatScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, setIsSubscribed } = useReadingPreferences();
-  const [tokenCode, setTokenCode] = useState("");
+  const [institutionCode, setInstitutionCode] = useState("");
+  const [joinedInstitution, setJoinedInstitution] = useState<string | null>("SMAN 5 Jakarta");
   const t = useT();
 
   const recentBookIds = sampleHistory.map((h) => h.bookId);
   const bookmarkedBookIds = sampleBookmarks.map((b) => b.bookId);
-  const institutionBookIds = ["5", "6", "9"];
+  const institutionBookIds = joinedInstitution ? ["5", "6", "9"] : [];
 
   useTTSAnnounce(t.history.mountAnnounce);
 
-  const handleRedeemToken = () => {
-    if (!tokenCode.trim()) {
-      AccessibilityInfo.announceForAccessibility(t.history.tokenEmpty);
+  const handleJoinInstitution = () => {
+    if (!institutionCode.trim()) {
+      AccessibilityInfo.announceForAccessibility(t.history.joinCodeEmpty);
       return;
     }
+    const mockInstitutionName = "SMAN 5 Jakarta";
     Alert.alert(
-      t.history.tokenSuccess,
-      t.history.tokenSuccessMsg(tokenCode),
+      t.history.joinSuccess,
+      t.history.joinSuccessMsg(mockInstitutionName),
       [{
         text: "OK",
         onPress: () => {
+          setJoinedInstitution(mockInstitutionName);
           setIsSubscribed(true);
         },
       }]
     );
-    AccessibilityInfo.announceForAccessibility(t.history.tokenRedeemed);
-    setTokenCode("");
+    AccessibilityInfo.announceForAccessibility(t.history.joinedAnnounce);
+    setInstitutionCode("");
   };
 
   return (
@@ -119,41 +122,90 @@ export default function RiwayatScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.redeemSection}>
-              <View style={styles.redeemHeader}>
-                <Ionicons name="gift" size={24} color={Colors.primaryLight} />
-                <Text style={styles.redeemTitle} accessibilityRole="header">{t.history.redeemToken}</Text>
+            <View style={styles.institutionSection}>
+              <View style={styles.institutionHeader}>
+                <View style={styles.institutionIconCircle}>
+                  <Ionicons name="school" size={24} color="#FFFFFF" />
+                </View>
+                <View style={styles.institutionHeaderText}>
+                  <Text style={styles.institutionTitle} accessibilityRole="header">
+                    {t.history.fromInstitution}
+                  </Text>
+                  <Text style={styles.institutionDesc}>{t.history.fromInstitutionDesc}</Text>
+                </View>
               </View>
-              <Text style={styles.redeemDesc}>{t.history.redeemDesc}</Text>
-              <View style={styles.redeemInputRow}>
-                <TextInput
-                  style={styles.redeemInput}
-                  placeholder={t.history.tokenPlaceholder}
-                  placeholderTextColor={Colors.borderStrong}
-                  value={tokenCode}
-                  onChangeText={setTokenCode}
-                  autoCapitalize="characters"
-                  accessibilityLabel="Token code"
-                  accessibilityHint="Enter the token code from your institution"
+
+              {joinedInstitution ? (
+                <View style={styles.joinedBadge}>
+                  <Ionicons name="checkmark-circle" size={20} color={Colors.studentPrimary} />
+                  <Text style={styles.joinedText}>{joinedInstitution}</Text>
+                </View>
+              ) : (
+                <View style={styles.joinInputRow}>
+                  <TextInput
+                    style={styles.joinInput}
+                    placeholder={t.history.joinInstitutionCodePlaceholder}
+                    placeholderTextColor={Colors.borderStrong}
+                    value={institutionCode}
+                    onChangeText={setInstitutionCode}
+                    autoCapitalize="characters"
+                    accessibilityLabel={t.history.joinInstitutionCode}
+                    accessibilityHint="Enter the code from your school or institution"
+                  />
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.joinButton,
+                      { opacity: pressed ? 0.85 : 1 },
+                    ]}
+                    onPress={handleJoinInstitution}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.history.joinButton}
+                    accessibilityHint="Double tap to join the institution"
+                  >
+                    <Text style={styles.joinButtonText}>{t.history.joinButton}</Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {institutionBookIds.length > 0 ? (
+                <FlatList
+                  horizontal
+                  data={institutionBookIds.map((id) => sampleBooks.find((b) => b.id === id)).filter(Boolean)}
+                  keyExtractor={(item) => item!.id}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.horizontalList}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.bookThumb,
+                        { opacity: pressed ? 0.85 : 1 },
+                      ]}
+                      onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: item!.id } })}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item!.title} by ${item!.author}. Assigned by ${joinedInstitution}`}
+                      accessibilityHint="Double tap to read this book for free"
+                    >
+                      <View style={[styles.bookCover, { backgroundColor: item!.coverColor }]}>
+                        <Ionicons name="book" size={24} color="#FFFFFF" />
+                        <View style={styles.freeBadge}>
+                          <Text style={styles.freeBadgeText}>FREE</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.bookThumbTitle} numberOfLines={2}>{item!.title}</Text>
+                    </Pressable>
+                  )}
                 />
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.redeemButton,
-                    { opacity: pressed ? 0.85 : 1 },
-                  ]}
-                  onPress={handleRedeemToken}
-                  accessibilityRole="button"
-                  accessibilityLabel="Submit token"
-                  accessibilityHint="Double tap to redeem the token code"
-                >
-                  <Text style={styles.redeemButtonText}>{t.history.redeemButton}</Text>
-                </Pressable>
-              </View>
+              ) : (
+                <View style={styles.emptyInstitution}>
+                  <Ionicons name="library-outline" size={32} color={Colors.borderStrong} />
+                  <Text style={styles.emptyTitle}>{t.history.noInstitutionBooks}</Text>
+                  <Text style={styles.emptySub}>{t.history.noInstitutionBooksSub}</Text>
+                </View>
+              )}
             </View>
 
             <HorizontalBookRow bookIds={recentBookIds} label={t.history.recentlyRead} />
             <HorizontalBookRow bookIds={bookmarkedBookIds} label={t.history.bookmarked} />
-            <HorizontalBookRow bookIds={institutionBookIds} label={t.history.fromInstitution} />
           </ScrollView>
         </View>
 
@@ -229,35 +281,62 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: "center",
   },
-  redeemSection: {
+  institutionSection: {
     backgroundColor: Colors.voiceBarBg,
     borderRadius: 18,
     padding: 20,
-    gap: 12,
+    gap: 16,
     borderWidth: 2,
-    borderColor: Colors.primaryLight,
+    borderColor: "#E65100",
   },
-  redeemHeader: {
+  institutionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 14,
   },
-  redeemTitle: {
+  institutionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#E65100",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  institutionHeaderText: {
+    flex: 1,
+    gap: 2,
+  },
+  institutionTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 20,
-    color: Colors.primaryLight,
+    color: "#E65100",
   },
-  redeemDesc: {
+  institutionDesc: {
     fontFamily: "Inter_500Medium",
-    fontSize: 18,
+    fontSize: 14,
     color: Colors.textSecondary,
-    lineHeight: 24,
   },
-  redeemInputRow: {
+  joinedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(46,125,50,0.1)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "rgba(46,125,50,0.3)",
+  },
+  joinedText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.studentPrimary,
+  },
+  joinInputRow: {
     flexDirection: "row",
     gap: 8,
   },
-  redeemInput: {
+  joinInput: {
     flex: 1,
     minWidth: 0,
     fontFamily: "Inter_500Medium",
@@ -271,8 +350,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     minHeight: 56,
   },
-  redeemButton: {
-    backgroundColor: Colors.primaryLight,
+  joinButton: {
+    backgroundColor: "#E65100",
     borderRadius: 14,
     paddingHorizontal: 18,
     alignItems: "center",
@@ -280,10 +359,40 @@ const styles = StyleSheet.create({
     minHeight: 56,
     flexShrink: 0,
   },
-  redeemButtonText: {
+  joinButtonText: {
     fontFamily: "Inter_700Bold",
     fontSize: 18,
     color: "#FFFFFF",
+  },
+  freeBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.studentPrimary,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  freeBadgeText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+  emptyInstitution: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 16,
+  },
+  emptyTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  emptySub: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    color: Colors.borderStrong,
+    textAlign: "center",
   },
   freezeZone: {
     flex: 1,

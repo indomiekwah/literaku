@@ -11,7 +11,7 @@ export type VoiceIntent =
   | "nav_history"
   | "nav_guide"
   | "nav_settings"
-  | "nav_redeem"
+  | "nav_join_institution"
   | "nav_back"
   | "nav_login"
   | "reader_next"
@@ -36,7 +36,7 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b((?:open\s*)?(?:the\s*)?history|riwayat|buka\s*riwayat|(?:reading\s*)?history)\b/i, intent: "nav_history" },
   { pattern: /\b((?:open\s*)?(?:the\s*)?guide|panduan|buka\s*panduan|help|bantuan|voice\s*guide)\b/i, intent: "nav_guide" },
   { pattern: /\b((?:open\s*)?(?:the\s*)?settings|pengaturan|buka\s*pengaturan|setelan)\b/i, intent: "nav_settings" },
-  { pattern: /\b(redeem|token|redeem\s*token|tukar\s*token|kode\s*token)\b/i, intent: "nav_redeem" },
+  { pattern: /\b(join\s*(?:my\s*)?institution|gabung\s*institusi|institusi|institution|sekolah\s*saya|my\s*school)\b/i, intent: "nav_join_institution" },
   { pattern: /\b(go\s*back|back|kembali|mundur|balik)\b/i, intent: "nav_back" },
   { pattern: /\b(sign\s*(?:in|out)|log\s*(?:in|out)|masuk|keluar|login|logout)\b/i, intent: "nav_login" },
 
@@ -100,8 +100,8 @@ export function executeGlobalNavigation(intent: VoiceIntent, voice: string): boo
       confirm("Opening the settings page");
       router.push("/student/settings");
       return true;
-    case "nav_redeem":
-      confirm("Opening the redeem token page");
+    case "nav_join_institution":
+      confirm("Opening the institution page");
       router.push("/student/riwayat");
       return true;
     case "nav_back":
