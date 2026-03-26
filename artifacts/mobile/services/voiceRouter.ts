@@ -19,6 +19,7 @@ export type VoiceIntent =
   | "reader_play"
   | "reader_pause"
   | "reader_stop"
+  | "reader_summarize"
   | "search_book"
   | "open_book"
   | "speed_change"
@@ -35,7 +36,7 @@ const VALID_INTENTS = new Set<string>([
   "nav_home", "nav_explorer", "nav_collection", "nav_history",
   "nav_guide", "nav_settings", "nav_join_institution", "nav_back",
   "nav_login", "reader_next", "reader_prev", "reader_play",
-  "reader_pause", "reader_stop", "search_book", "open_book", "speed_change",
+  "reader_pause", "reader_stop", "reader_summarize", "search_book", "open_book", "speed_change",
 ]);
 
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
@@ -53,6 +54,7 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(prev(?:ious)?\s*page|halaman\s*(?:sebelumnya|sebelum)|sebelum(?:nya)?)\b/i, intent: "reader_prev" },
   { pattern: /\b(play|putar|mulai|start|continue|lanjutkan|resume)\b/i, intent: "reader_play" },
   { pattern: /\b(pause|jeda|berhenti|stop|hentikan)\b/i, intent: "reader_pause" },
+  { pattern: /\b(summarize|summary|ringkas(?:an|kan)?|rangkum(?:an|kan)?|inti(?:sari)?|kesimpulan)\b/i, intent: "reader_summarize" },
 
   { pattern: /\bsearch\s+(.+)/i, intent: "search_book", paramGroup: 1 },
   { pattern: /\bcari\s+(.+)/i, intent: "search_book", paramGroup: 1 },

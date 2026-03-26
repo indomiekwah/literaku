@@ -43,8 +43,8 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Azure voice map: v1=id-ID-GadisNeural, v2=id-ID-ArdiNeural, v3=en-US-EmmaMultilingualNeural, v4=en-US-AndrewMultilingualNeural.
     - STT flow: `AudioRecorder.start()` → mic → `stop()` returns Blob(web/webm) or URI(native/m4a on Android, wav on iOS) → `speechToText/speechToTextFromUri` with correct MIME types → `POST /api/speech/stt` → server ffmpeg converts to WAV PCM → Azure STT.
     - TTS flow: `speakText()` → `POST /api/speech/tts` → MP3 bytes → web: HTMLAudioElement; native: expo-av base64 data URI.
-    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_join_institution, nav_back, reader_next, reader_prev, reader_play, reader_pause, search_book, open_book, speed_change.
-    - Reader-specific voice commands: play/pause/next/prev page handled via `onTranscription` callback.
+    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_join_institution, nav_back, reader_next, reader_prev, reader_play, reader_pause, reader_summarize, search_book, open_book, speed_change.
+    - Reader-specific voice commands: play/pause/next/prev page/summarize handled via `onTranscription` callback.
     - Explorer/Collection voice commands: search_book and open_book handled via screen-specific callbacks.
     - ANNOUNCE_SPEED = 0.85 for mount/feedback announcements.
 - **Business Model**:
@@ -68,6 +68,9 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - `POST /api/speech/clu` - Azure CLU intent analysis (text → intent + entities + confidence).
     - `GET /api/speech/clu/status` - Check if CLU deployment is available.
 - **CLU Setup Script**: `scripts/setup-clu.ts` - Creates CLU project, imports 150+ bilingual utterances (16 intents, 3 entities), trains & deploys model. Run with `npx tsx scripts/setup-clu.ts`.
+- **AI Summarize Routes**:
+    - `POST /api/ai/summarize` - Azure OpenAI text summarization (bilingual EN/ID system prompts, GPT-4.1-mini, 30s timeout, 10K char limit).
+    - `GET /api/ai/status` - Check Azure OpenAI configuration status.
 - **Data Validation**: Uses Zod schemas generated from OpenAPI spec for request and response validation.
 - **Build**: Uses esbuild for production bundling.
 - **Deployment**: Replit (dev) → Azure App Service B1/B2 (prod). ffmpeg required for audio conversion.
@@ -78,6 +81,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - Azure PostgreSQL Burstable B1ms: User data, books, assignments (~$15/mo)
 - Azure Blob Storage: Books, covers, audio cache (~$5/mo)
 - Azure CDN: Jakarta node for Indonesia (~$2/mo)
+- Azure OpenAI Service: GPT-4.1-mini for text summarization (~$5-15/mo depending on usage)
 - Azure Key Vault: Secrets management, planned (~$1/mo)
 - Azure Communication Services: Email notifications (~$3/mo)
 - Total estimated: $119-202/mo at 100 B2C users + 1-2 B2B institutions

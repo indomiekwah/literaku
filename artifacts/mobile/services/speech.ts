@@ -256,6 +256,27 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+export interface SummarizeResult {
+  summary: string;
+  language: string;
+}
+
+export async function summarizeText(
+  text: string,
+  language: string = "en"
+): Promise<SummarizeResult> {
+  const res = await fetch(`${API_BASE}/ai/summarize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, language }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({ error: "Summarization failed" }));
+    throw new Error(errData.error || "Summarization failed");
+  }
+  return res.json();
+}
+
 export interface CLUResult {
   intent: string;
   confidence: number;

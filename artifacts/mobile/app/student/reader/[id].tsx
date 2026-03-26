@@ -4,6 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   AccessibilityInfo,
+  ActivityIndicator,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -21,7 +23,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
-import { speakText, stopTTSPlayback } from "@/services/speech";
+import { speakText, stopTTSPlayback, summarizeText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function StudentReaderScreen() {
@@ -30,7 +32,7 @@ export default function StudentReaderScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { speed, textSize, isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
+  const { speed, textSize, isVoiceOnly, isSubscribed, selectedVoice, language } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
@@ -39,6 +41,11 @@ export default function StudentReaderScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
   const ttsAbortRef = useRef(false);
+
+  const [showSummary, setShowSummary] = useState(false);
+  const [summaryText, setSummaryText] = useState("");
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState(false);
 
   const isPreviewMode = preview === "true" && !isSubscribed;
   const totalPages = book ? (isPreviewMode ? 1 : book.content.length) : 0;
@@ -82,6 +89,46 @@ export default function StudentReaderScreen() {
       AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
     }
   }, [maxPage, totalPages, t]);
+
+  const handleSummarize = useCallback(async () => {
+    if (!book || isSummarizing) return;
+    const pageText = book.content[currentPage];
+    if (!pageText) return;
+
+    stopTTSPlayback();
+    ttsAbortRef.current = true;
+    setIsPlaying(false);
+    setIsSummarizing(true);
+    setSummaryError(false);
+    setSummaryText("");
+    setShowSummary(true);
+    AccessibilityInfo.announceForAccessibility(t.reader.summaryLoading);
+
+    try {
+      const result = await summarizeText(pageText, language);
+      setSummaryText(result.summary);
+      AccessibilityInfo.announceForAccessibility(result.summary);
+    } catch (err) {
+      console.error("Summarize error:", err);
+      setSummaryError(true);
+      AccessibilityInfo.announceForAccessibility(t.reader.summaryError);
+    } finally {
+      setIsSummarizing(false);
+    }
+  }, [book, currentPage, language, isSummarizing, t]);
+
+  const handleReadSummaryAloud = useCallback(() => {
+    if (summaryText) {
+      speakText(summaryText, selectedVoice, 1).catch(() => {});
+    }
+  }, [summaryText, selectedVoice]);
+
+  const handleCloseSummary = useCallback(() => {
+    stopTTSPlayback();
+    setShowSummary(false);
+    setSummaryText("");
+    setSummaryError(false);
+  }, []);
 
   useTTSAnnounce(book ? t.reader.mountAnnounce(book.title) : "");
 
@@ -129,9 +176,12 @@ export default function StudentReaderScreen() {
             AccessibilityInfo.announceForAccessibility(t.reader.paused);
           }
           break;
+        case "reader_summarize":
+          handleSummarize();
+          break;
       }
     });
-  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, t]);
+  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, t]);
 
   if (!book) {
     return (
@@ -208,15 +258,17 @@ export default function StudentReaderScreen() {
               </Text>
             </View>
             <Pressable
-              style={styles.summarizeHeaderButton}
-              onPress={() => {
-                AccessibilityInfo.announceForAccessibility(t.reader.summarizing);
-              }}
+              style={[styles.summarizeHeaderButton, isSummarizing && { opacity: 0.5 }]}
+              onPress={handleSummarize}
+              disabled={isSummarizing}
               accessibilityRole="button"
               accessibilityLabel={t.reader.summarize}
               accessibilityHint={t.reader.summarizeA11yHint}
             >
-              <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
+              {isSummarizing
+                ? <ActivityIndicator size="small" color={Colors.primaryLight} />
+                : <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
+              }
             </Pressable>
           </View>
 
@@ -351,6 +403,77 @@ export default function StudentReaderScreen() {
         </View>
 
         <SwipeHintBar hints={voiceHints.reader} />
+
+        <Modal
+          visible={showSummary}
+          animationType="slide"
+          transparent
+          onRequestClose={handleCloseSummary}
+          accessibilityViewIsModal
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Ionicons name="sparkles" size={22} color={Colors.primaryLight} />
+                <Text style={styles.modalTitle} accessibilityRole="header">
+                  {t.reader.summaryTitle}
+                </Text>
+                <Pressable
+                  style={styles.modalCloseButton}
+                  onPress={handleCloseSummary}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.reader.summaryClose}
+                >
+                  <Ionicons name="close" size={24} color={Colors.text} />
+                </Pressable>
+              </View>
+
+              <ScrollView style={styles.modalScrollView}>
+                {isSummarizing ? (
+                  <View style={styles.modalLoadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.primaryLight} />
+                    <Text style={styles.modalLoadingText}>{t.reader.summaryLoading}</Text>
+                  </View>
+                ) : summaryError ? (
+                  <View style={styles.modalErrorContainer}>
+                    <Ionicons name="alert-circle" size={32} color="#E65100" />
+                    <Text style={styles.modalErrorText}>{t.reader.summaryError}</Text>
+                    <Pressable
+                      style={styles.retryButton}
+                      onPress={handleSummarize}
+                      accessibilityRole="button"
+                    >
+                      <Ionicons name="refresh" size={20} color="#FFF" />
+                      <Text style={styles.retryButtonText}>
+                        {t.reader.summaryRetry}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Text
+                    style={styles.modalSummaryText}
+                    accessibilityRole="text"
+                    accessibilityLabel={summaryText}
+                  >
+                    {summaryText}
+                  </Text>
+                )}
+              </ScrollView>
+
+              {summaryText && !isSummarizing && (
+                <Pressable
+                  style={styles.readAloudButton}
+                  onPress={handleReadSummaryAloud}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.reader.summaryReadAloud}
+                >
+                  <Ionicons name="volume-high" size={22} color="#FFF" />
+                  <Text style={styles.readAloudButtonText}>{t.reader.summaryReadAloud}</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        </Modal>
       </View>
     </SwipeVoiceWrapper>
   );
@@ -590,5 +713,103 @@ const styles = StyleSheet.create({
   },
   frozen: {
     opacity: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: "70%",
+    minHeight: 250,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    flex: 1,
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
+    color: Colors.text,
+  },
+  modalCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalScrollView: {
+    flex: 1,
+    marginVertical: 16,
+  },
+  modalLoadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+    paddingVertical: 40,
+  },
+  modalLoadingText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  modalErrorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingVertical: 24,
+  },
+  modalErrorText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: "#E65100",
+    textAlign: "center",
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  retryButtonText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: "#FFF",
+  },
+  modalSummaryText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 18,
+    color: Colors.text,
+    lineHeight: 30,
+  },
+  readAloudButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: Colors.studentPrimary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    minHeight: 56,
+  },
+  readAloudButtonText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: "#FFF",
   },
 });
