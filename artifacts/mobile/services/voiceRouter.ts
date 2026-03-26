@@ -13,6 +13,7 @@ export type VoiceIntent =
   | "nav_guide"
   | "nav_settings"
   | "nav_join_institution"
+  | "join_institution_code"
   | "nav_back"
   | "nav_login"
   | "nav_subscription"
@@ -43,8 +44,8 @@ export interface MatchResult {
 
 const VALID_INTENTS = new Set<string>([
   "nav_home", "nav_explorer", "nav_collection", "nav_history",
-  "nav_guide", "nav_settings", "nav_join_institution", "nav_back",
-  "nav_login", "nav_subscription", "nav_logout",
+  "nav_guide", "nav_settings", "nav_join_institution", "join_institution_code",
+  "nav_back", "nav_login", "nav_subscription", "nav_logout",
   "reader_next", "reader_prev", "reader_play",
   "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
   "search_book", "open_book", "open_preview", "read_full",
@@ -90,6 +91,8 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
 
   { pattern: /\b(?:repeat\s*(?:the\s*)?(?:navigation\s*)?commands?|what\s*can\s*i\s*say|available\s*commands?|help\s*(?:me\s*)?commands?|show\s*commands?)\b/i, intent: "repeat_commands" },
   { pattern: /\b(?:ulangi?\s*(?:perintah|navigasi|komando)|perintah\s*(?:apa\s*saja|yang\s*tersedia|navigasi)|apa\s*(?:saja\s*)?(?:yang\s*bisa\s*(?:di)?ucap(?:kan)?|perintah(?:nya)?))\b/i, intent: "repeat_commands" },
+
+  { pattern: /\b(?:join|request|gabung|daftar)\s+(.+)/i, intent: "join_institution_code", paramGroup: 1 },
 
   { pattern: /\bsearch\s+(.+)/i, intent: "search_book", paramGroup: 1 },
   { pattern: /\bcari\s+(.+)/i, intent: "search_book", paramGroup: 1 },

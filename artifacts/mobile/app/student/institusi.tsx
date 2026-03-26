@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   AccessibilityInfo,
-  Alert,
   FlatList,
   Platform,
   Pressable,
@@ -19,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, voiceHints } from "@/constants/data";
+import { sampleBooks, voiceHints, findInstitutionByCode } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -53,8 +52,30 @@ export default function InstitusiScreen() {
     : t.institution.mountAnnounceNotRegistered;
   useTTSAnnounce(announceText);
 
+  const tryJoinWithCode = React.useCallback((code: string) => {
+    const institution = findInstitutionByCode(code);
+    if (institution) {
+      setJoinedInstitution({
+        name: institution.name,
+        type: institution.type,
+        location: institution.location,
+        admin: institution.admin,
+        studentCount: institution.studentCount,
+        tier: institution.tier,
+      });
+      setInstitutionCode("");
+      const msg = t.institution.joinSuccess(institution.name);
+      AccessibilityInfo.announceForAccessibility(msg);
+      speakText(msg, selectedVoice, 1).catch(() => {});
+    } else {
+      const msg = t.institution.invalidCode(code);
+      AccessibilityInfo.announceForAccessibility(msg);
+      speakText(msg, selectedVoice, 1).catch(() => {});
+    }
+  }, [t, selectedVoice]);
+
   React.useEffect(() => {
-    onTranscription((_text: string, intent: VoiceIntent) => {
+    onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         const msg = joinedInstitution
           ? t.institution.pageCommandsRegistered
@@ -63,36 +84,27 @@ export default function InstitusiScreen() {
         speakText(msg, selectedVoice, 1).catch(() => {});
         return true;
       }
+      if (intent === "join_institution_code" && param) {
+        if (joinedInstitution) {
+          const msg = t.institution.alreadyRegistered(joinedInstitution.name);
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
+        } else {
+          tryJoinWithCode(param);
+        }
+        return true;
+      }
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t, joinedInstitution]);
+  }, [selectedVoice, t, joinedInstitution, tryJoinWithCode]);
 
   const handleJoinRequest = () => {
     if (!institutionCode.trim()) {
       AccessibilityInfo.announceForAccessibility(t.institution.codeEmpty);
       return;
     }
-    const code = institutionCode.trim();
-    Alert.alert(
-      t.institution.requestSent,
-      t.institution.requestSentMsg(code),
-      [{
-        text: "OK",
-        onPress: () => {
-          setJoinedInstitution({
-            name: code,
-            type: "School",
-            location: "Jakarta, Indonesia",
-            admin: "Admin",
-            studentCount: 120,
-            tier: "Standard",
-          });
-          setInstitutionCode("");
-        },
-      }]
-    );
-    AccessibilityInfo.announceForAccessibility(t.institution.requestSentAnnounce);
+    tryJoinWithCode(institutionCode.trim());
   };
 
   return (

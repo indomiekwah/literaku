@@ -291,9 +291,9 @@ const en = {
     title: "Institution",
     backA11yLabel: "Back to home",
     mountAnnounceRegistered: (name: string) => `Institution page. You are a member of ${name}.`,
-    mountAnnounceNotRegistered: "Institution page. You are not registered with any institution.",
+    mountAnnounceNotRegistered: "Institution page. You are not registered with any institution. Say 'Join' followed by your institution code to register. For example, 'Join SMAN5-JKT'.",
     pageCommandsRegistered: "This is your Institution page. Here you can see: Institution details, Membership status, and Assigned books.",
-    pageCommandsNotRegistered: "This is the Institution page. You are not registered. You can request to join a partner institution.",
+    pageCommandsNotRegistered: "This is the Institution page. You are not registered. Say 'Join' followed by your institution code, for example: 'Join SMAN5-JKT' or 'Request SMPN3-BDG'.",
     activeMember: "Active member",
     typeLabel: "Type",
     locationLabel: "Location",
@@ -313,6 +313,9 @@ const en = {
     requestSent: "Request Sent",
     requestSentMsg: (code: string) => `Your request to join institution with code "${code}" has been sent. You will be notified when approved.`,
     requestSentAnnounce: "Join request sent successfully",
+    invalidCode: (code: string) => `The institution code "${code}" is not recognized. Please check the code and try again. Ask your school administrator for the correct code.`,
+    joinSuccess: (name: string) => `You have successfully joined ${name}! You now have access to assigned books.`,
+    alreadyRegistered: (name: string) => `You are already registered with ${name}.`,
   },
 };
 
@@ -607,9 +610,9 @@ const id: typeof en = {
     title: "Institusi",
     backA11yLabel: "Kembali ke beranda",
     mountAnnounceRegistered: (name: string) => `Halaman institusi. Anda terdaftar di ${name}.`,
-    mountAnnounceNotRegistered: "Halaman institusi. Anda belum terdaftar di institusi mana pun.",
+    mountAnnounceNotRegistered: "Halaman institusi. Anda belum terdaftar di institusi mana pun. Ucapkan 'Gabung' diikuti kode institusi Anda untuk mendaftar. Contoh, 'Gabung SMAN5-JKT'.",
     pageCommandsRegistered: "Ini halaman Institusi Anda. Di sini Anda dapat melihat: Detail institusi, Status keanggotaan, dan Buku yang ditugaskan.",
-    pageCommandsNotRegistered: "Ini halaman Institusi. Anda belum terdaftar. Anda dapat mengajukan permintaan bergabung dengan institusi mitra.",
+    pageCommandsNotRegistered: "Ini halaman Institusi. Anda belum terdaftar. Ucapkan 'Gabung' diikuti kode institusi Anda, contoh: 'Gabung SMAN5-JKT' atau 'Daftar SMPN3-BDG'.",
     activeMember: "Anggota aktif",
     typeLabel: "Jenis",
     locationLabel: "Lokasi",
@@ -629,6 +632,9 @@ const id: typeof en = {
     requestSent: "Permintaan Terkirim",
     requestSentMsg: (code: string) => `Permintaan bergabung dengan institusi kode "${code}" telah dikirim. Anda akan diberitahu saat disetujui.`,
     requestSentAnnounce: "Permintaan bergabung berhasil dikirim",
+    invalidCode: (code: string) => `Kode institusi "${code}" tidak dikenali. Silakan periksa kode dan coba lagi. Tanyakan kode yang benar kepada administrator sekolah Anda.`,
+    joinSuccess: (name: string) => `Anda berhasil bergabung dengan ${name}! Sekarang Anda memiliki akses ke buku yang ditugaskan.`,
+    alreadyRegistered: (name: string) => `Anda sudah terdaftar di ${name}.`,
   },
 };
 

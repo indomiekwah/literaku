@@ -1,3 +1,26 @@
+export interface InstitutionInfo {
+  code: string;
+  name: string;
+  type: string;
+  location: string;
+  admin: string;
+  studentCount: number;
+  tier: string;
+}
+
+export const validInstitutions: InstitutionInfo[] = [
+  { code: "SMAN5-JKT", name: "SMAN 5 Jakarta", type: "Senior High School", location: "Jakarta, Indonesia", admin: "Ibu Sari Rahayu", studentCount: 320, tier: "Standard" },
+  { code: "SMPN3-BDG", name: "SMPN 3 Bandung", type: "Junior High School", location: "Bandung, Indonesia", admin: "Pak Budi Santoso", studentCount: 280, tier: "Standard" },
+  { code: "UGM-YK", name: "Universitas Gadjah Mada", type: "University", location: "Yogyakarta, Indonesia", admin: "Dr. Andi Wijaya", studentCount: 1500, tier: "Premium" },
+  { code: "SLB-A-BDG", name: "SLB-A Wyata Guna Bandung", type: "Special Needs School", location: "Bandung, Indonesia", admin: "Ibu Maya Putri", studentCount: 85, tier: "Premium" },
+  { code: "BLINDF-SG", name: "Singapore Blind Foundation", type: "Foundation", location: "Singapore", admin: "Mr. James Lee", studentCount: 200, tier: "Enterprise" },
+];
+
+export function findInstitutionByCode(code: string): InstitutionInfo | undefined {
+  const cleaned = code.replace(/[.,!?'";\-:\s()]/g, "").toUpperCase();
+  return validInstitutions.find((inst) => inst.code.replace(/[\-\s]/g, "").toUpperCase() === cleaned);
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -306,8 +329,8 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Go back to home", intent: "Go back to home" },
   ],
   institusi: [
-    { example: "Join institution", intent: "Request to join an institution" },
-    { example: "Books from school", intent: "View institution books" },
+    { example: "Join SMAN5-JKT", intent: "Join with institution code" },
+    { example: "Request SMPN3-BDG", intent: "Request to join an institution" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
   reader: [
