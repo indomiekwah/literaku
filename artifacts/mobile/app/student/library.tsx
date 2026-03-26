@@ -74,7 +74,7 @@ export default function KoleksiScreen() {
 
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
 
-  useTTSAnnounce(t.collection.mountAnnounce(totalCount));
+  useTTSAnnounce(t.collection.mountAnnounce(purchasedBooks.length, assignedBooks.length));
 
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {

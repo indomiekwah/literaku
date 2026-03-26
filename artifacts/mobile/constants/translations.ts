@@ -119,7 +119,14 @@ const en = {
   },
   collection: {
     title: "Collection",
-    mountAnnounce: (count: number) => `Your Collection. ${count} books in your reading list.`,
+    mountAnnounce: (purchased: number, assigned: number) => {
+      const parts = [`Your Collection.`];
+      if (purchased > 0) parts.push(`${purchased} purchased book${purchased === 1 ? "" : "s"}.`);
+      else parts.push(`No purchased books yet.`);
+      if (assigned > 0) parts.push(`${assigned} institution assigned book${assigned === 1 ? "" : "s"}.`);
+      else parts.push(`No institution assigned books yet.`);
+      return parts.join(" ");
+    },
     pageCommands: "This is your Collection. Say 'Paid books' to hear your purchased books, or 'Assigned books' to hear institution books.",
     backA11yLabel: "Back to home",
     searchPlaceholder: "Search collection...",
@@ -458,7 +465,14 @@ const id: typeof en = {
   },
   collection: {
     title: "Koleksi",
-    mountAnnounce: (count: number) => `Koleksi Anda. ${count} buku di daftar bacaan.`,
+    mountAnnounce: (purchased: number, assigned: number) => {
+      const parts = [`Koleksi Anda.`];
+      if (purchased > 0) parts.push(`${purchased} buku yang dibeli.`);
+      else parts.push(`Belum ada buku yang dibeli.`);
+      if (assigned > 0) parts.push(`${assigned} buku dari institusi.`);
+      else parts.push(`Belum ada buku dari institusi.`);
+      return parts.join(" ");
+    },
     pageCommands: "Ini halaman Koleksi Anda. Ucapkan 'Buku yang dibayar' untuk mendengar daftar buku yang dibeli, atau 'Buku institusi' untuk mendengar buku yang ditugaskan.",
     backA11yLabel: "Kembali ke beranda",
     searchPlaceholder: "Cari di koleksi...",
