@@ -247,6 +247,157 @@ export async function speakText(
   }
 }
 
+export type TTSProgressCallback = (currentTimeMs: number, durationMs: number) => void;
+
+export async function speakTextWithProgress(
+  text: string,
+  voiceId: string = "v3",
+  rate: number = 1,
+  onProgress?: TTSProgressCallback,
+): Promise<void> {
+  stopTTSPlayback();
+
+  const myGeneration = ttsGeneration;
+  const abortController = new AbortController();
+  currentAbortController = abortController;
+
+  const azureVoice = getAzureVoiceName(voiceId);
+
+  if (Platform.OS === "web") {
+    let audioBuffer: ArrayBuffer;
+    try {
+      const res = await fetch(`${API_BASE}/speech/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: azureVoice, rate }),
+        signal: abortController.signal,
+      });
+      if (!res.ok) throw new Error("TTS request failed");
+      audioBuffer = await res.arrayBuffer();
+    } catch (err: any) {
+      if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      throw err;
+    }
+
+    if (myGeneration !== ttsGeneration) return;
+
+    const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
+    const url = URL.createObjectURL(blob);
+
+    return new Promise((resolve, reject) => {
+      if (myGeneration !== ttsGeneration) {
+        URL.revokeObjectURL(url);
+        resolve();
+        return;
+      }
+
+      const audio = new Audio(url);
+      currentAudioWeb = audio;
+
+      let progressInterval: ReturnType<typeof setInterval> | null = null;
+
+      const cleanup = () => {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+        URL.revokeObjectURL(url);
+        if (currentAudioWeb === audio) currentAudioWeb = null;
+      };
+
+      if (onProgress) {
+        audio.addEventListener("loadedmetadata", () => {
+          progressInterval = setInterval(() => {
+            if (myGeneration !== ttsGeneration) {
+              cleanup();
+              resolve();
+              return;
+            }
+            if (audio.duration && !isNaN(audio.duration)) {
+              onProgress(audio.currentTime * 1000, audio.duration * 1000);
+            }
+          }, 60);
+        });
+      }
+
+      audio.onended = () => {
+        if (onProgress && audio.duration && !isNaN(audio.duration)) {
+          onProgress(audio.duration * 1000, audio.duration * 1000);
+        }
+        cleanup();
+        resolve();
+      };
+      audio.onerror = () => {
+        cleanup();
+        reject(new Error("Audio playback failed"));
+      };
+      audio.play().catch((err) => {
+        cleanup();
+        if (myGeneration !== ttsGeneration) resolve();
+        else reject(err);
+      });
+    });
+  } else {
+    const { Audio } = await import("expo-av");
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+    });
+
+    let arrayBuffer: ArrayBuffer;
+    try {
+      const res = await fetch(`${API_BASE}/speech/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: azureVoice, rate }),
+        signal: abortController.signal,
+      });
+      if (!res.ok) throw new Error("TTS request failed");
+      arrayBuffer = await res.arrayBuffer();
+    } catch (err: any) {
+      if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      throw err;
+    }
+
+    if (myGeneration !== ttsGeneration) return;
+
+    const base64 = arrayBufferToBase64(arrayBuffer);
+    const dataUri = `data:audio/mpeg;base64,${base64}`;
+
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: dataUri },
+      { shouldPlay: true, progressUpdateIntervalMillis: 60 }
+    );
+
+    if (myGeneration !== ttsGeneration) {
+      sound.stopAsync().catch(() => {});
+      sound.unloadAsync().catch(() => {});
+      return;
+    }
+
+    currentSoundNative = sound;
+
+    return new Promise((resolve) => {
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (!status.isLoaded) {
+          if (currentSoundNative === sound) currentSoundNative = null;
+          resolve();
+          return;
+        }
+        if (onProgress && status.durationMillis) {
+          onProgress(status.positionMillis || 0, status.durationMillis);
+        }
+        if (status.didJustFinish) {
+          sound.unloadAsync().catch(() => {});
+          if (currentSoundNative === sound) currentSoundNative = null;
+          resolve();
+        }
+      });
+    });
+  }
+}
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";

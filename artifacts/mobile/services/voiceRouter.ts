@@ -89,8 +89,8 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b((?:open|go\s*to|buka)\s*(?:the\s*)?subscri(?:ption|be)|berlangganan|langganan)\b/i, intent: "nav_subscription" },
   { pattern: /\b(log\s*out|sign\s*out|keluar|logout)\b/i, intent: "nav_logout" },
 
-  { pattern: /\b(next\s*page|halaman\s*(?:selanjutnya|berikut|lanjut)|lanjut|forward)\b/i, intent: "reader_next" },
-  { pattern: /\b(prev(?:ious)?\s*page|halaman\s*(?:sebelumnya|sebelum)|sebelum(?:nya)?)\b/i, intent: "reader_prev" },
+  { pattern: /\b(next\s*(?:page|section|part)|bagian\s*(?:selanjutnya|berikut|lanjut)|halaman\s*(?:selanjutnya|berikut|lanjut)|lanjut|forward)\b/i, intent: "reader_next" },
+  { pattern: /\b(prev(?:ious)?\s*(?:page|section|part)|bagian\s*(?:sebelumnya|sebelum)|halaman\s*(?:sebelumnya|sebelum)|sebelum(?:nya)?)\b/i, intent: "reader_prev" },
   { pattern: /\b(play|putar|mulai|start|continue|lanjutkan|resume)\b/i, intent: "reader_play" },
   { pattern: /\b(pause|jeda|berhenti|stop|hentikan)\b/i, intent: "reader_pause" },
   { pattern: /\b(summarize|summary|ringkas(?:an|kan)?|rangkum(?:an|kan)?|inti(?:sari)?|kesimpulan)\b/i, intent: "reader_summarize" },

@@ -1,10 +1,11 @@
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
+  LayoutChangeEvent,
   Modal,
   Platform,
   Pressable,
@@ -23,8 +24,47 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
-import { speakText, stopTTSPlayback, summarizeText } from "@/services/speech";
+import { speakText, stopTTSPlayback, speakTextWithProgress, summarizeText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
+
+interface WordToken {
+  word: string;
+  globalIndex: number;
+  sectionIndex: number;
+}
+
+function buildWordMap(sections: string[]): { tokens: WordToken[]; sectionWordCounts: number[] } {
+  const tokens: WordToken[] = [];
+  const sectionWordCounts: number[] = [];
+  let globalIndex = 0;
+  for (let s = 0; s < sections.length; s++) {
+    const words = sections[s].split(/\s+/).filter(Boolean);
+    sectionWordCounts.push(words.length);
+    for (const word of words) {
+      tokens.push({ word, globalIndex, sectionIndex: s });
+      globalIndex++;
+    }
+  }
+  return { tokens, sectionWordCounts };
+}
+
+function estimateWordIndex(
+  currentTimeMs: number,
+  durationMs: number,
+  wordCount: number,
+  wordLengths: number[],
+): number {
+  if (durationMs <= 0 || wordCount === 0) return 0;
+  const fraction = Math.min(currentTimeMs / durationMs, 1);
+  const totalChars = wordLengths.reduce((a, b) => a + b, 0);
+  if (totalChars === 0) return 0;
+  let cumChars = 0;
+  for (let i = 0; i < wordCount; i++) {
+    cumChars += wordLengths[i];
+    if (cumChars / totalChars >= fraction) return i;
+  }
+  return wordCount - 1;
+}
 
 export default function StudentReaderScreen() {
   const insets = useSafeAreaInsets();
@@ -37,7 +77,28 @@ export default function StudentReaderScreen() {
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
-  const [currentPage, setCurrentPage] = useState(0);
+  const isPreviewMode = preview === "true" && !isSubscribed;
+
+  const visibleSections = useMemo(() => {
+    if (!book) return [];
+    return isPreviewMode ? [book.content[0]] : book.content;
+  }, [book, isPreviewMode]);
+
+  const { tokens, sectionWordCounts } = useMemo(
+    () => buildWordMap(visibleSections),
+    [visibleSections],
+  );
+
+  const sectionWordOffsets = useMemo(() => {
+    const offsets: number[] = [0];
+    for (let i = 0; i < sectionWordCounts.length; i++) {
+      offsets.push(offsets[i] + sectionWordCounts[i]);
+    }
+    return offsets;
+  }, [sectionWordCounts]);
+
+  const [currentSection, setCurrentSection] = useState(0);
+  const [highlightedWordGlobal, setHighlightedWordGlobal] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
   const ttsAbortRef = useRef(false);
@@ -47,57 +108,136 @@ export default function StudentReaderScreen() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState(false);
 
-  const isPreviewMode = preview === "true" && !isSubscribed;
-  const totalPages = book ? (isPreviewMode ? 1 : book.content.length) : 0;
-  const maxPage = Math.max(0, totalPages - 1);
-  const progress = totalPages > 0 ? ((currentPage + 1) / totalPages) * 100 : 0;
+  const scrollViewRef = useRef<ScrollView>(null);
+  const wordLayoutsRef = useRef<Map<number, number>>(new Map());
+  const sectionLayoutsRef = useRef<Map<number, number>>(new Map());
+  const scrollContentOffsetRef = useRef(0);
+  const scrollViewHeightRef = useRef(0);
 
-  const startTTS = useCallback(async (pageIndex: number) => {
-    if (!book) return;
-    const pageText = book.content[pageIndex];
-    if (!pageText) return;
+  const totalSections = visibleSections.length;
+  const progress = totalSections > 0 ? ((currentSection + 1) / totalSections) * 100 : 0;
+
+  const scrollToWord = useCallback((globalWordIdx: number) => {
+    const yPos = wordLayoutsRef.current.get(globalWordIdx);
+    if (yPos != null && scrollViewRef.current) {
+      const targetScroll = yPos - scrollViewHeightRef.current / 3;
+      scrollViewRef.current.scrollTo({
+        y: Math.max(0, targetScroll),
+        animated: true,
+      });
+    }
+  }, []);
+
+  const startTTSForSection = useCallback(async (sectionIdx: number) => {
+    if (!book || sectionIdx >= visibleSections.length) {
+      setIsPlaying(false);
+      setIsTTSLoading(false);
+      return;
+    }
+
+    const sectionText = visibleSections[sectionIdx];
+    if (!sectionText) {
+      setIsPlaying(false);
+      return;
+    }
 
     ttsAbortRef.current = false;
+    setCurrentSection(sectionIdx);
     setIsTTSLoading(true);
     setIsPlaying(true);
-    AccessibilityInfo.announceForAccessibility(t.reader.playing);
+    AccessibilityInfo.announceForAccessibility(t.reader.readingSection(sectionIdx + 1));
+
+    const sectionWords = sectionText.split(/\s+/).filter(Boolean);
+    const wordLengths = sectionWords.map((w) => w.length);
+    const globalOffset = sectionWordOffsets[sectionIdx] || 0;
 
     try {
-      await speakText(pageText, selectedVoice, speed);
+      await speakTextWithProgress(
+        sectionText,
+        selectedVoice,
+        speed,
+        (currentTimeMs, durationMs) => {
+          setIsTTSLoading(false);
+          const localIdx = estimateWordIndex(currentTimeMs, durationMs, sectionWords.length, wordLengths);
+          const globalIdx = globalOffset + localIdx;
+          setHighlightedWordGlobal(globalIdx);
+          scrollToWord(globalIdx);
+        },
+      );
+
       setIsTTSLoading(false);
       if (!ttsAbortRef.current) {
-        setIsPlaying(false);
-        if (pageIndex < maxPage) {
-          const nextPage = pageIndex + 1;
-          setCurrentPage(nextPage);
-          startTTS(nextPage);
+        if (sectionIdx < visibleSections.length - 1) {
+          startTTSForSection(sectionIdx + 1);
+        } else {
+          setIsPlaying(false);
+          setHighlightedWordGlobal(-1);
         }
       }
     } catch (err) {
       console.error("TTS error:", err);
       setIsTTSLoading(false);
       setIsPlaying(false);
+      setHighlightedWordGlobal(-1);
       AccessibilityInfo.announceForAccessibility("Voice playback failed.");
     }
-  }, [book, selectedVoice, speed, maxPage, t]);
+  }, [book, visibleSections, selectedVoice, speed, sectionWordOffsets, scrollToWord, t]);
 
-  const goToPage = useCallback((page: number) => {
-    if (page >= 0 && page <= maxPage) {
+  const handlePlayPause = useCallback(() => {
+    if (isPlaying) {
+      ttsAbortRef.current = true;
       stopTTSPlayback();
       setIsPlaying(false);
-      setCurrentPage(page);
-      AccessibilityInfo.announceForAccessibility(t.reader.pageOf(page + 1, totalPages));
+      setIsTTSLoading(false);
+      AccessibilityInfo.announceForAccessibility(t.reader.paused);
+    } else {
+      startTTSForSection(currentSection);
     }
-  }, [maxPage, totalPages, t]);
+  }, [isPlaying, currentSection, startTTSForSection, t]);
+
+  const handlePrevSection = useCallback(() => {
+    if (currentSection > 0) {
+      ttsAbortRef.current = true;
+      stopTTSPlayback();
+      setIsPlaying(false);
+      setIsTTSLoading(false);
+      setHighlightedWordGlobal(-1);
+      const prev = currentSection - 1;
+      setCurrentSection(prev);
+      AccessibilityInfo.announceForAccessibility(t.reader.sectionOf(prev + 1, totalSections));
+      const yPos = sectionLayoutsRef.current.get(prev);
+      if (yPos != null && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: Math.max(0, yPos - 20), animated: true });
+      }
+    }
+  }, [currentSection, totalSections, t]);
+
+  const handleNextSection = useCallback(() => {
+    if (currentSection < totalSections - 1) {
+      ttsAbortRef.current = true;
+      stopTTSPlayback();
+      setIsPlaying(false);
+      setIsTTSLoading(false);
+      setHighlightedWordGlobal(-1);
+      const next = currentSection + 1;
+      setCurrentSection(next);
+      AccessibilityInfo.announceForAccessibility(t.reader.sectionOf(next + 1, totalSections));
+      const yPos = sectionLayoutsRef.current.get(next);
+      if (yPos != null && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: Math.max(0, yPos - 20), animated: true });
+      }
+    }
+  }, [currentSection, totalSections, t]);
 
   const handleSummarize = useCallback(async () => {
     if (!book || isSummarizing) return;
-    const pageText = book.content[currentPage];
-    if (!pageText) return;
+    const sectionText = visibleSections[currentSection];
+    if (!sectionText) return;
 
     stopTTSPlayback();
     ttsAbortRef.current = true;
     setIsPlaying(false);
+    setHighlightedWordGlobal(-1);
     setIsSummarizing(true);
     setSummaryError(false);
     setSummaryText("");
@@ -105,7 +245,7 @@ export default function StudentReaderScreen() {
     AccessibilityInfo.announceForAccessibility(t.reader.summaryLoading);
 
     try {
-      const result = await summarizeText(pageText, language);
+      const result = await summarizeText(sectionText, language);
       setSummaryText(result.summary);
       AccessibilityInfo.announceForAccessibility(result.summary);
     } catch (err) {
@@ -115,7 +255,7 @@ export default function StudentReaderScreen() {
     } finally {
       setIsSummarizing(false);
     }
-  }, [book, currentPage, language, isSummarizing, t]);
+  }, [book, visibleSections, currentSection, language, isSummarizing, t]);
 
   const handleReadSummaryAloud = useCallback(() => {
     if (summaryText) {
@@ -149,28 +289,16 @@ export default function StudentReaderScreen() {
       }
       switch (intent) {
         case "reader_next":
-          if (currentPage < maxPage) {
-            ttsAbortRef.current = true;
-            stopTTSPlayback();
-            setIsPlaying(false);
-            setCurrentPage(currentPage + 1);
-            AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage + 2, totalPages));
-          }
+          handleNextSection();
           return true;
         case "reader_prev":
-          if (currentPage > 0) {
-            ttsAbortRef.current = true;
-            stopTTSPlayback();
-            setIsPlaying(false);
-            setCurrentPage(currentPage - 1);
-            AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage, totalPages));
-          }
+          handlePrevSection();
           return true;
         case "reader_play":
           ttsAbortRef.current = true;
           stopTTSPlayback();
           setIsPlaying(false);
-          setTimeout(() => startTTS(currentPage), 100);
+          setTimeout(() => startTTSForSection(currentSection), 100);
           return true;
         case "reader_pause":
         case "reader_stop":
@@ -178,6 +306,7 @@ export default function StudentReaderScreen() {
           stopTTSPlayback();
           setIsPlaying(false);
           setIsTTSLoading(false);
+          setHighlightedWordGlobal(-1);
           AccessibilityInfo.announceForAccessibility(t.reader.paused);
           return true;
         case "reader_summarize":
@@ -195,7 +324,15 @@ export default function StudentReaderScreen() {
       }
     });
     return () => clearTranscriptionCallback();
-  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, summaryText, selectedVoice, t]));
+  }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleNextSection, handlePrevSection, summaryText, selectedVoice, t]));
+
+  const handleSectionLayout = useCallback((sectionIdx: number, e: LayoutChangeEvent) => {
+    sectionLayoutsRef.current.set(sectionIdx, e.nativeEvent.layout.y);
+  }, []);
+
+  const handleWordLayout = useCallback((globalIdx: number, y: number) => {
+    wordLayoutsRef.current.set(globalIdx, y);
+  }, []);
 
   if (!book) {
     return (
@@ -209,42 +346,6 @@ export default function StudentReaderScreen() {
     );
   }
 
-  const handleRewind = useCallback(() => {
-    if (currentPage > 0) {
-      stopTTSPlayback();
-      const prevPage = currentPage - 1;
-      setCurrentPage(prevPage);
-      setIsPlaying(false);
-      AccessibilityInfo.announceForAccessibility(t.reader.rewind);
-    } else {
-      AccessibilityInfo.announceForAccessibility(t.reader.rewind);
-    }
-  }, [currentPage, t]);
-
-  const handleForward = useCallback(() => {
-    if (currentPage < maxPage) {
-      stopTTSPlayback();
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-      setIsPlaying(false);
-      AccessibilityInfo.announceForAccessibility(t.reader.forward);
-    } else {
-      AccessibilityInfo.announceForAccessibility(t.reader.forward);
-    }
-  }, [currentPage, maxPage, t]);
-
-  const handlePlayPause = useCallback(() => {
-    if (isPlaying) {
-      ttsAbortRef.current = true;
-      stopTTSPlayback();
-      setIsPlaying(false);
-      setIsTTSLoading(false);
-      AccessibilityInfo.announceForAccessibility(t.reader.paused);
-    } else {
-      startTTS(currentPage);
-    }
-  }, [isPlaying, currentPage, startTTS, t]);
-
   return (
     <SwipeVoiceWrapper>
       <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
@@ -254,7 +355,13 @@ export default function StudentReaderScreen() {
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => {
+                ttsAbortRef.current = true;
+                stopTTSPlayback();
+                setIsPlaying(false);
+                setHighlightedWordGlobal(-1);
+                router.back();
+              }}
               accessibilityRole="button"
               accessibilityLabel={t.reader.backA11yLabel}
               accessibilityHint="Double tap to go back"
@@ -268,7 +375,7 @@ export default function StudentReaderScreen() {
               <Text style={styles.headerSubtitle}>
                 {isPreviewMode
                   ? t.bookDetail.freePreview
-                  : t.reader.pageOf(currentPage + 1, totalPages)}
+                  : t.reader.sectionOf(currentSection + 1, totalSections)}
               </Text>
             </View>
             <Pressable
@@ -304,19 +411,57 @@ export default function StudentReaderScreen() {
           </View>
 
           <ScrollView
+            ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            onScroll={(e) => {
+              scrollContentOffsetRef.current = e.nativeEvent.contentOffset.y;
+            }}
+            onLayout={(e) => {
+              scrollViewHeightRef.current = e.nativeEvent.layout.height;
+            }}
+            scrollEventThrottle={16}
           >
-            <View
-              style={styles.readerCard}
-              accessibilityRole="text"
-              accessibilityLabel={`${t.reader.pageOf(currentPage + 1, totalPages)}. ${book.content[currentPage]}`}
-            >
-              <Text style={[styles.pageContent, { fontSize: textSize, lineHeight: textSize * 1.7 }]}>
-                {book.content[currentPage]}
-              </Text>
-            </View>
+            {visibleSections.map((sectionText, sectionIdx) => {
+              const words = sectionText.split(/\s+/).filter(Boolean);
+              const globalOffset = sectionWordOffsets[sectionIdx] || 0;
+              const isCurrent = sectionIdx === currentSection;
+
+              return (
+                <View
+                  key={sectionIdx}
+                  style={[
+                    styles.sectionCard,
+                    isCurrent && isPlaying && styles.sectionCardActive,
+                  ]}
+                  onLayout={(e) => handleSectionLayout(sectionIdx, e)}
+                  accessibilityRole="text"
+                  accessibilityLabel={t.reader.sectionOf(sectionIdx + 1, totalSections)}
+                >
+                  <Text style={[styles.sectionContent, { fontSize: textSize, lineHeight: textSize * 1.8 }]}>
+                    {words.map((word, wIdx) => {
+                      const globalIdx = globalOffset + wIdx;
+                      const isHighlighted = globalIdx === highlightedWordGlobal;
+                      return (
+                        <Text
+                          key={globalIdx}
+                          onLayout={(e) => {
+                            handleWordLayout(globalIdx, e.nativeEvent.layout.y + (sectionLayoutsRef.current.get(sectionIdx) || 0));
+                          }}
+                          style={isHighlighted ? [
+                            styles.highlightedWord,
+                            { fontSize: textSize, lineHeight: textSize * 1.8 },
+                          ] : undefined}
+                        >
+                          {word}{wIdx < words.length - 1 ? " " : ""}
+                        </Text>
+                      );
+                    })}
+                  </Text>
+                </View>
+              );
+            })}
 
             {isPreviewMode && (
               <View style={styles.paywallCard}>
@@ -328,9 +473,7 @@ export default function StudentReaderScreen() {
                     styles.paywallButton,
                     { opacity: pressed ? 0.85 : 1 },
                   ]}
-                  onPress={() => {
-                    router.back();
-                  }}
+                  onPress={() => router.back()}
                   accessibilityRole="button"
                   accessibilityLabel={t.bookDetail.subscribeCta}
                 >
@@ -344,13 +487,14 @@ export default function StudentReaderScreen() {
           <View style={styles.controlsSection}>
             <View style={styles.narrationRow}>
               <Pressable
-                style={styles.rewindButton}
-                onPress={handleRewind}
+                style={[styles.skipButton, currentSection === 0 && styles.skipButtonDisabled]}
+                onPress={handlePrevSection}
+                disabled={currentSection === 0}
                 accessibilityRole="button"
-                accessibilityLabel={t.reader.rewind}
-                accessibilityHint="Double tap to rewind 10 seconds"
+                accessibilityLabel={t.reader.prevSection}
+                accessibilityState={{ disabled: currentSection === 0 }}
               >
-                <MaterialIcons name="replay-10" size={32} color={Colors.text} />
+                <Ionicons name="play-skip-back" size={28} color={currentSection === 0 ? Colors.borderStrong : Colors.text} />
               </Pressable>
 
               <Pressable
@@ -360,58 +504,32 @@ export default function StudentReaderScreen() {
                 accessibilityLabel={isPlaying ? t.reader.pauseNarration : t.reader.playNarration}
                 accessibilityHint={isPlaying ? "Double tap to pause" : "Double tap to play"}
               >
-                <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
+                {isTTSLoading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Ionicons name={isPlaying ? "pause" : "play"} size={36} color="#FFF" />
+                )}
               </Pressable>
 
               <Pressable
-                style={styles.forwardButton}
-                onPress={handleForward}
+                style={[styles.skipButton, currentSection >= totalSections - 1 && styles.skipButtonDisabled]}
+                onPress={handleNextSection}
+                disabled={currentSection >= totalSections - 1}
                 accessibilityRole="button"
-                accessibilityLabel={t.reader.forward}
-                accessibilityHint="Double tap to forward 10 seconds"
+                accessibilityLabel={t.reader.nextSection}
+                accessibilityState={{ disabled: currentSection >= totalSections - 1 }}
               >
-                <MaterialIcons name="forward-10" size={32} color={Colors.text} />
+                <Ionicons name="play-skip-forward" size={28} color={currentSection >= totalSections - 1 ? Colors.borderStrong : Colors.text} />
               </Pressable>
             </View>
 
-            {!isPreviewMode && (
-              <View style={styles.pageNavRow}>
-                <Pressable
-                  style={[styles.pageButton, currentPage === 0 && styles.pageButtonDisabled]}
-                  onPress={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 0}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.reader.prevPage}
-                  accessibilityState={{ disabled: currentPage === 0 }}
-                >
-                  <Ionicons name="chevron-back" size={24} color={currentPage === 0 ? Colors.borderStrong : Colors.text} />
-                  <Text style={[styles.pageButtonText, currentPage === 0 && styles.pageButtonTextDisabled]}>{t.reader.prev}</Text>
-                </Pressable>
-
-                <Text style={styles.pageIndicator} accessibilityLiveRegion="polite">
-                  {currentPage + 1} / {totalPages}
-                </Text>
-
-                <Pressable
-                  style={[styles.pageButton, currentPage === totalPages - 1 && styles.pageButtonDisabled]}
-                  onPress={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages - 1}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.reader.nextPage}
-                  accessibilityState={{ disabled: currentPage === totalPages - 1 }}
-                >
-                  <Text style={[styles.pageButtonText, currentPage === totalPages - 1 && styles.pageButtonTextDisabled]}>{t.reader.next}</Text>
-                  <Ionicons name="chevron-forward" size={24} color={currentPage === totalPages - 1 ? Colors.borderStrong : Colors.text} />
-                </Pressable>
-              </View>
-            )}
-
             <View style={styles.infoRow}>
+              <Text style={styles.sectionIndicator} accessibilityLiveRegion="polite">
+                {t.reader.sectionOf(currentSection + 1, totalSections)}
+              </Text>
+              <Text style={styles.infoDot}>·</Text>
               <Ionicons name="speedometer-outline" size={18} color={Colors.textSecondary} />
               <Text style={styles.infoText}>{speed}x</Text>
-              <Text style={styles.infoDot}>·</Text>
-              <Ionicons name="settings-outline" size={18} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>{t.reader.changeInSettings}</Text>
             </View>
           </View>
         </View>
@@ -573,19 +691,30 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingVertical: 8,
-    gap: 16,
+    gap: 20,
   },
-  readerCard: {
+  sectionCard: {
     backgroundColor: Colors.background,
     borderRadius: 18,
     padding: 22,
     borderWidth: 2,
     borderColor: Colors.border,
-    minHeight: 200,
   },
-  pageContent: {
+  sectionCardActive: {
+    borderColor: Colors.studentPrimary,
+    backgroundColor: "#F1F8E9",
+  },
+  sectionContent: {
     fontFamily: "Inter_400Regular",
     color: Colors.text,
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  highlightedWord: {
+    backgroundColor: "#BBDEFB",
+    borderRadius: 4,
+    fontFamily: "Inter_700Bold",
+    color: "#0D47A1",
   },
   paywallCard: {
     backgroundColor: "#FFF3E0",
@@ -628,23 +757,27 @@ const styles = StyleSheet.create({
   },
   controlsSection: {
     paddingTop: 8,
-    gap: 8,
+    gap: 6,
+    paddingBottom: 4,
   },
   narrationRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 20,
+    gap: 24,
   },
-  rewindButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  skipButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.background,
     borderWidth: 2,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
+  },
+  skipButtonDisabled: {
+    opacity: 0.35,
   },
   playButton: {
     width: 72,
@@ -654,48 +787,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  forwardButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.background,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pageNavRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 4,
-  },
-  pageButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    minHeight: 48,
-  },
-  pageButtonDisabled: {
-    opacity: 0.35,
-  },
-  pageButtonText: {
+  sectionIndicator: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.text,
-  },
-  pageButtonTextDisabled: {
-    color: Colors.borderStrong,
-  },
-  pageIndicator: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.textSecondary,
   },
   infoRow: {
@@ -703,16 +797,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   infoText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.textSecondary,
   },
   infoDot: {
     fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.borderStrong,
   },
   errorText: {
