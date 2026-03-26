@@ -55,7 +55,7 @@ export default function StudentSettingsScreen() {
     onTranscription((text: string, intent: VoiceIntent) => {
       const lower = text.toLowerCase();
 
-      if (lower.match(/\b(voice|suara|narration|narasi)\b/) && !lower.match(/\b(mode|only|saja)\b/)) {
+      if (lower.match(/\b(voice|voices|suara|narration|narasi|narrator|narator)\b/) && !lower.match(/\b(mode|only|saja|command|perintah)\b/)) {
         const voiceList = VOICE_OPTIONS.map(v => `${v.label}, ${v.lang}`).join(". ");
         const current = VOICE_OPTIONS.find(v => v.id === selectedVoice);
         const msg = language === "id"

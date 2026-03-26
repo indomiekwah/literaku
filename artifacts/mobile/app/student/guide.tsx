@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   Platform,
   Pressable,
   ScrollView,
@@ -17,46 +18,11 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
-
-interface ExampleGroupProps {
-  title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  examples: { phrase: string; result: string }[];
-  exampleA11y: (phrase: string, result: string) => string;
-}
-
-function ExampleGroup({ title, icon, examples, exampleA11y }: ExampleGroupProps) {
-  return (
-    <View style={styles.exampleSection}>
-      <View style={styles.exampleHeader}>
-        <Ionicons name={icon} size={24} color={Colors.studentPrimary} />
-        <Text style={styles.exampleTitle} accessibilityRole="header">{title}</Text>
-      </View>
-      <View style={styles.exampleList}>
-        {examples.map((item, index) => (
-          <View
-            key={index}
-            style={styles.exampleCard}
-            accessible
-            accessibilityRole="text"
-            accessibilityLabel={exampleA11y(item.phrase, item.result)}
-          >
-            <View style={styles.speechBubble}>
-              <Ionicons name="chatbubble-ellipses" size={18} color={Colors.studentPrimary} />
-              <Text style={styles.phraseText}>"{item.phrase}"</Text>
-            </View>
-            <View style={styles.resultRow}>
-              <Ionicons name="arrow-forward" size={16} color={Colors.textSecondary} />
-              <Text style={styles.resultText}>{item.result}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
+import { speakText } from "@/services/speech";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 interface InfoSectionProps {
   title: string;
@@ -65,17 +31,25 @@ interface InfoSectionProps {
   bgColor: string;
   borderColor: string;
   iconColor?: string;
+  onPress?: () => void;
 }
 
-function InfoSection({ title, text, icon, bgColor, borderColor, iconColor }: InfoSectionProps) {
+function InfoSection({ title, text, icon, bgColor, borderColor, iconColor, onPress }: InfoSectionProps) {
   return (
-    <View style={[styles.infoSection, { backgroundColor: bgColor, borderColor }]}>
+    <Pressable
+      style={[styles.infoSection, { backgroundColor: bgColor, borderColor }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${text}. Double tap to hear full explanation.`}
+      accessibilityHint="Double tap to hear this section explained by voice"
+    >
       <View style={styles.infoHeader}>
         <Ionicons name={icon} size={28} color={iconColor || Colors.primaryLight} />
         <Text style={styles.infoTitle} accessibilityRole="header">{title}</Text>
+        <Ionicons name="volume-high-outline" size={22} color={iconColor || Colors.primaryLight} />
       </View>
       <Text style={styles.infoText}>{text}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -84,10 +58,62 @@ export default function StudentGuideScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly } = useReadingPreferences();
+  const { isVoiceOnly, selectedVoice, language } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
   useTTSAnnounce(t.guide.mountAnnounce);
+
+  const speakSection = React.useCallback((text: string) => {
+    AccessibilityInfo.announceForAccessibility(text);
+    speakText(text, selectedVoice, 1).catch(() => {});
+  }, [selectedVoice]);
+
+  const matchSection = React.useCallback((text: string): boolean => {
+    const lower = text.toLowerCase();
+
+    if (lower.match(/\b(about|tentang)\b.*\b(literaku|app|aplikasi)\b/) || lower.match(/\bliteraku\b/) && lower.length < 30) {
+      speakSection(t.guide.aboutSpeech);
+      return true;
+    }
+    if (lower.match(/\b(voice\s*command|perintah\s*suara|how\s*voice|cara\s*kerja|command|perintah)\b/)) {
+      speakSection(t.guide.voiceCommandSpeech);
+      return true;
+    }
+    if (lower.match(/\b(voice\s*mode|touch\s*mode|mode\s*suara|mode\s*sentuh|modes|interaction\s*mode)\b/)) {
+      speakSection(t.guide.modesSpeech);
+      return true;
+    }
+    if (lower.match(/\b(context|konteks|kontekstual|context.aware|aware)\b/)) {
+      speakSection(t.guide.contextSpeech);
+      return true;
+    }
+    if (lower.match(/\b(talkback|voiceover|screen\s*reader|talk\s*back|voice\s*over)\b/)) {
+      speakSection(t.guide.talkbackSpeech);
+      return true;
+    }
+    if (lower.match(/\b(language|bahasa|voice\s*lang|bahasa\s*suara)\b/)) {
+      speakSection(t.guide.voiceLangSpeech);
+      return true;
+    }
+
+    return false;
+  }, [t, speakSection]);
+
+  React.useEffect(() => {
+    onTranscription((text: string, intent: VoiceIntent) => {
+      if (matchSection(text)) {
+        return true;
+      }
+      const navIntents = ["nav_home", "nav_explorer", "nav_collection", "nav_history", "nav_settings", "nav_guide", "nav_subscription", "nav_logout", "nav_back", "nav_login"];
+      if (navIntents.includes(intent.intent)) {
+        return false;
+      }
+      speakSection(t.guide.sectionNotFound);
+      return true;
+    });
+    return () => clearTranscriptionCallback();
+  }, [matchSection, t, speakSection]);
 
   return (
     <SwipeVoiceWrapper>
@@ -125,6 +151,7 @@ export default function StudentGuideScreen() {
               bgColor={Colors.successLight}
               borderColor={Colors.studentPrimary}
               iconColor={Colors.studentPrimary}
+              onPress={() => speakSection(t.guide.aboutSpeech)}
             />
 
             <InfoSection
@@ -133,20 +160,8 @@ export default function StudentGuideScreen() {
               icon="mic"
               bgColor={Colors.voiceBarBg}
               borderColor={Colors.primaryLight}
+              onPress={() => speakSection(t.guide.voiceCommandSpeech)}
             />
-
-            <View style={[styles.infoSection, { backgroundColor: Colors.voiceBarBg, borderColor: Colors.primaryLight }]}>
-              <View style={styles.infoHeader}>
-                <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
-                <Text style={styles.infoTitle} accessibilityRole="header">{t.guide.exampleLabel}</Text>
-              </View>
-              <View style={styles.aiExample}>
-                <Text style={styles.aiExampleText}>"Open the book explorer"</Text>
-                <Text style={styles.aiExampleText}>"Show my collection"</Text>
-                <Text style={styles.aiExampleText}>"Read the next page please"</Text>
-                <Text style={styles.aiExampleText}>"Increase the speed"</Text>
-              </View>
-            </View>
 
             <InfoSection
               title={t.guide.modesTitle}
@@ -155,6 +170,7 @@ export default function StudentGuideScreen() {
               bgColor="#F3E5F5"
               borderColor="#9C27B0"
               iconColor="#9C27B0"
+              onPress={() => speakSection(t.guide.modesSpeech)}
             />
 
             <InfoSection
@@ -164,35 +180,49 @@ export default function StudentGuideScreen() {
               bgColor="#FFF8E1"
               borderColor="#F9A825"
               iconColor="#F9A825"
+              onPress={() => speakSection(t.guide.contextSpeech)}
             />
 
-            <ExampleGroup
-              title={t.guide.navTitle}
-              icon="compass"
-              examples={t.guide.navExamples}
-              exampleA11y={t.guide.exampleA11y}
-            />
-
-            <ExampleGroup
-              title={t.guide.readingTitle}
-              icon="book"
-              examples={t.guide.readingExamples}
-              exampleA11y={t.guide.exampleA11y}
-            />
-
-            <ExampleGroup
-              title={t.guide.purchaseTitle}
-              icon="cart"
-              examples={t.guide.purchaseExamples}
-              exampleA11y={t.guide.exampleA11y}
-            />
+            <View style={styles.exampleSection}>
+              <View style={styles.exampleHeader}>
+                <Ionicons name="book" size={24} color={Colors.studentPrimary} />
+                <Text style={styles.exampleTitle} accessibilityRole="header">{t.guide.readingTitle}</Text>
+              </View>
+              <View style={styles.exampleList}>
+                {t.guide.readingExamples.map((item, index) => (
+                  <View
+                    key={index}
+                    style={styles.exampleCard}
+                    accessible
+                    accessibilityRole="text"
+                    accessibilityLabel={t.guide.exampleA11y(item.phrase, item.result)}
+                  >
+                    <View style={styles.speechBubble}>
+                      <Ionicons name="chatbubble-ellipses" size={18} color={Colors.studentPrimary} />
+                      <Text style={styles.phraseText}>"{item.phrase}"</Text>
+                    </View>
+                    <View style={styles.resultRow}>
+                      <Ionicons name="arrow-forward" size={16} color={Colors.textSecondary} />
+                      <Text style={styles.resultText}>{item.result}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
 
             <View style={styles.talkbackSection}>
-              <View style={styles.talkbackHeader}>
-                <Ionicons name="accessibility" size={28} color="#FFFFFF" />
-                <Text style={styles.talkbackTitle} accessibilityRole="header">{t.guide.talkbackTitle}</Text>
-              </View>
-              <Text style={styles.talkbackText}>{t.guide.talkbackText}</Text>
+              <Pressable
+                onPress={() => speakSection(t.guide.talkbackSpeech)}
+                accessibilityRole="button"
+                accessibilityLabel={`${t.guide.talkbackTitle}. ${t.guide.talkbackText}. Double tap to hear full explanation.`}
+              >
+                <View style={styles.talkbackHeader}>
+                  <Ionicons name="accessibility" size={28} color="#FFFFFF" />
+                  <Text style={styles.talkbackTitle} accessibilityRole="header">{t.guide.talkbackTitle}</Text>
+                  <Ionicons name="volume-high-outline" size={22} color="rgba(255,255,255,0.7)" />
+                </View>
+                <Text style={styles.talkbackText}>{t.guide.talkbackText}</Text>
+              </Pressable>
               <View style={styles.talkbackSteps}>
                 <View style={styles.talkbackStep} accessible accessibilityRole="text" accessibilityLabel={`${t.guide.step} 1: ${t.guide.talkbackStep1}`}>
                   <View style={styles.stepNumber}>
@@ -221,13 +251,15 @@ export default function StudentGuideScreen() {
               </View>
             </View>
 
-            <View style={styles.langSection}>
-              <View style={styles.langHeader}>
-                <Ionicons name="language" size={24} color={Colors.primaryLight} />
-                <Text style={styles.langTitle} accessibilityRole="header">{t.guide.voiceLangTitle}</Text>
-              </View>
-              <Text style={styles.langText}>{t.guide.voiceLangText}</Text>
-            </View>
+            <InfoSection
+              title={t.guide.voiceLangTitle}
+              text={t.guide.voiceLangText}
+              icon="language"
+              bgColor={Colors.successLight}
+              borderColor={Colors.studentPrimary}
+              iconColor={Colors.studentPrimary}
+              onPress={() => speakSection(t.guide.voiceLangSpeech)}
+            />
 
             <View style={styles.azureBadge}>
               <Ionicons name="cloud" size={24} color={Colors.primaryLight} />
@@ -334,18 +366,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
   },
-  aiExample: {
-    backgroundColor: "rgba(255,255,255,0.7)",
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-  },
-  aiExampleText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.studentPrimary,
-    fontStyle: "italic",
-  },
   exampleSection: {
     gap: 10,
   },
@@ -392,30 +412,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.textSecondary,
   },
-  langSection: {
-    backgroundColor: Colors.successLight,
-    borderRadius: 16,
-    padding: 18,
-    gap: 10,
-    borderWidth: 2,
-    borderColor: Colors.studentPrimary,
-  },
-  langHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  langTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: Colors.text,
-  },
-  langText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-    lineHeight: 26,
-  },
   azureBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -460,6 +456,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "rgba(255,255,255,0.8)",
     lineHeight: 26,
+    marginTop: 8,
   },
   talkbackSteps: {
     gap: 10,

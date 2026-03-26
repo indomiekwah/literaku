@@ -38,8 +38,8 @@ export default function LoginScreen() {
 
   React.useEffect(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
-      if (intent === "nav_login") {
-        const lower = text.toLowerCase();
+      const lower = text.toLowerCase();
+      if (intent === "nav_login" || lower.includes("sign in") || lower.includes("log in") || lower.includes("masuk") || lower.includes("google") || lower.includes("microsoft")) {
         if (lower.includes("google")) {
           handleOAuth("Google");
         } else if (lower.includes("microsoft")) {

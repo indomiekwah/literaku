@@ -315,8 +315,10 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Read aloud", intent: "Read summary aloud" },
   ],
   studentGuide: [
-    { example: "Go back to home", intent: "Go back to home" },
-    { example: "Read a book", intent: "Start reading a book" },
+    { example: "About Literaku", intent: "Hear about the app" },
+    { example: "Voice commands", intent: "How voice works" },
+    { example: "Voice mode", intent: "Modes explained" },
+    { example: "TalkBack", intent: "Screen reader help" },
   ],
   studentSettings: [
     { example: "Voice", intent: "List voice options" },

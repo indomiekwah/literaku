@@ -65,11 +65,14 @@ export default function StudentHomeScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly } = useReadingPreferences();
+  const { isVoiceOnly, interactionMode, language } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
-  useTTSAnnounce(t.home.mountAnnounce);
+  const modeLabel = language === "id"
+    ? (interactionMode === "voice" ? "suara" : "sentuh")
+    : (interactionMode === "voice" ? "voice" : "touch");
+  useTTSAnnounce(t.home.mountAnnounce(modeLabel));
 
   React.useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
