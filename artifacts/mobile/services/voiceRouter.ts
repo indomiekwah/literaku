@@ -26,6 +26,7 @@ export type VoiceIntent =
   | "reader_stop"
   | "reader_summarize"
   | "reader_read_aloud"
+  | "reader_goto_page"
   | "search_book"
   | "open_book"
   | "open_preview"
@@ -35,6 +36,8 @@ export type VoiceIntent =
   | "speed_increase"
   | "speed_decrease"
   | "repeat_commands"
+  | "switch_voice_mode"
+  | "switch_touch_mode"
   | "list_paid_books"
   | "list_assigned_books"
   | "list_recent_books"
@@ -54,16 +57,18 @@ const VALID_INTENTS = new Set<string>([
   "browse_category", "nav_back", "nav_login", "nav_subscription", "nav_logout",
   "reader_next", "reader_prev", "reader_play",
   "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
+  "reader_goto_page",
   "search_book", "open_book", "open_preview", "read_full", "read_synopsis",
   "speed_change", "speed_increase", "speed_decrease",
   "repeat_commands",
+  "switch_voice_mode", "switch_touch_mode",
   "list_paid_books", "list_assigned_books",
   "list_recent_books", "list_bookmarked_books",
 ]);
 
 export const READER_ONLY_INTENTS = new Set<VoiceIntent>([
   "reader_next", "reader_prev", "reader_play", "reader_pause",
-  "reader_stop", "reader_summarize", "reader_read_aloud",
+  "reader_stop", "reader_summarize", "reader_read_aloud", "reader_goto_page",
 ]);
 
 export const BOOK_DETAIL_ONLY_INTENTS = new Set<VoiceIntent>([
@@ -95,11 +100,17 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(pause|jeda|berhenti|stop|hentikan)\b/i, intent: "reader_pause" },
   { pattern: /\b(summarize|summary|ringkas(?:an|kan)?|rangkum(?:an|kan)?|inti(?:sari)?|kesimpulan)\b/i, intent: "reader_summarize" },
   { pattern: /\b(read\s*(?:it\s*)?aloud|read\s*(?:the\s*)?summary\s*(?:aloud)?|bacakan|baca\s*(?:keras|nyaring)|baca(?:kan)?\s*ringkasan)\b/i, intent: "reader_read_aloud" },
+  { pattern: /\b(?:go\s*(?:to\s*)?page|halaman)\s+(\d+)\b/i, intent: "reader_goto_page", paramGroup: 1 },
+  { pattern: /\b(?:ke\s*halaman|pindah\s*(?:ke\s*)?halaman)\s+(\d+)\b/i, intent: "reader_goto_page", paramGroup: 1 },
 
   { pattern: /\b(?:open|show|lihat|buka)\s*(?:the\s*)?preview\b/i, intent: "open_preview" },
   { pattern: /\b(?:preview\s*(?:the\s*)?book|preview\s*buku)\b/i, intent: "open_preview" },
   { pattern: /\b(?:read\s*(?:this\s*)?(?:full|now|the\s*book)|baca\s*(?:buku\s*)?(?:ini|sekarang|penuh|lengkap))\b/i, intent: "read_full" },
   { pattern: /\b(?:(?:read|tell|what(?:'s| is))\s*(?:the\s*)?synopsis|synopsis|sinopsis|bacakan?\s*sinopsis|apa\s*sinopsis(?:nya)?)\b/i, intent: "read_synopsis" },
+
+  { pattern: /\b(?:voice[\s-]*only\s*mode|switch\s*(?:to\s*)?voice|change\s*(?:to\s*)?voice\s*mode|mode\s*suara(?:\s*saja)?|ganti\s*(?:ke\s*)?mode\s*suara|aktifkan\s*mode\s*suara)\b/i, intent: "switch_voice_mode" },
+  { pattern: /\b(?:touch\s*mode|switch\s*(?:to\s*)?touch|change\s*(?:to\s*)?touch\s*mode|mode\s*sentuh|ganti\s*(?:ke\s*)?mode\s*sentuh|aktifkan\s*mode\s*sentuh)\b/i, intent: "switch_touch_mode" },
+  { pattern: /\b(?:change\s*(?:voice\s*)?mode|switch\s*mode|ganti\s*mode|ubah\s*mode)\b/i, intent: "switch_voice_mode" },
 
   { pattern: /\b(?:increase\s*(?:the\s*)?speed|speed\s*up|faster|lebih\s*cepat|percepat|naikkan?\s*kecepatan)\b/i, intent: "speed_increase" },
   { pattern: /\b(?:decrease\s*(?:the\s*)?speed|slow(?:er)?\s*(?:down)?|lebih\s*lambat|perlambat|(?:kurangi|turunkan)\s*kecepatan)\b/i, intent: "speed_decrease" },

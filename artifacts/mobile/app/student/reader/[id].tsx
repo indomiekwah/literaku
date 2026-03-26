@@ -281,7 +281,7 @@ export default function StudentReaderScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => {
-    onTranscription((_text: string, intent: VoiceIntent) => {
+    onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.reader.pageCommands);
         speakText(t.reader.pageCommands, selectedVoice, 1).catch(() => {});
@@ -294,6 +294,30 @@ export default function StudentReaderScreen() {
         case "reader_prev":
           handlePrevSection();
           return true;
+        case "reader_goto_page": {
+          const pageNum = parseInt(param || "", 10);
+          if (pageNum >= 1 && pageNum <= totalSections) {
+            ttsAbortRef.current = true;
+            stopTTSPlayback();
+            setIsPlaying(false);
+            setIsTTSLoading(false);
+            setHighlightedWordGlobal(-1);
+            const idx = pageNum - 1;
+            setCurrentSection(idx);
+            AccessibilityInfo.announceForAccessibility(t.reader.sectionOf(pageNum, totalSections));
+            const layout = sectionLayoutsRef.current.get(idx);
+            if (layout && scrollViewRef.current) {
+              scrollViewRef.current.scrollTo({ y: Math.max(0, layout.y - 20), animated: true });
+            }
+          } else {
+            const msg = language === "id"
+              ? `Halaman ${param} tidak tersedia. Buku ini memiliki ${totalSections} halaman.`
+              : `Page ${param} is not available. This book has ${totalSections} pages.`;
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+          }
+          return true;
+        }
         case "reader_play":
           ttsAbortRef.current = true;
           stopTTSPlayback();
@@ -324,7 +348,7 @@ export default function StudentReaderScreen() {
       }
     });
     return () => clearTranscriptionCallback();
-  }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleNextSection, handlePrevSection, summaryText, selectedVoice, t]));
+  }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleNextSection, handlePrevSection, summaryText, selectedVoice, language, t]));
 
   const handleSectionLayout = useCallback((sectionIdx: number, e: LayoutChangeEvent) => {
     sectionLayoutsRef.current.set(sectionIdx, {

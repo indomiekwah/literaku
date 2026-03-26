@@ -2,7 +2,7 @@ import React, { createContext, useContext, useCallback, useState, useRef } from 
 import { AccessibilityInfo, Platform } from "react-native";
 import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
-import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPreferences";
+import { useReadingPreferences, type SpeedValue, type InteractionMode } from "@/contexts/ReadingPreferences";
 import {
   matchVoiceIntent,
   executeGlobalNavigation,
@@ -51,7 +51,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const callbackRef = useRef<TranscriptionCallback | null>(null);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { speed, setSpeed, selectedVoice, language } = useReadingPreferences();
+  const { speed, setSpeed, selectedVoice, language, interactionMode, setInteractionMode } = useReadingPreferences();
 
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
@@ -131,6 +131,23 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             AccessibilityInfo.announceForAccessibility(msg);
             speakText(msg, selectedVoice, 1).catch(() => {});
           }
+          setIsVoiceActive(false);
+          return;
+        }
+
+        if (intent === "switch_voice_mode" || intent === "switch_touch_mode") {
+          let newMode: InteractionMode;
+          if (intent === "switch_touch_mode") {
+            newMode = "touch";
+          } else {
+            newMode = interactionMode === "voice" ? "touch" : "voice";
+          }
+          setInteractionMode(newMode);
+          const msg = newMode === "voice"
+            ? (language === "id" ? "Mode suara saja diaktifkan" : "Voice-only mode activated")
+            : (language === "id" ? "Mode sentuh diaktifkan" : "Touch mode activated");
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
           setIsVoiceActive(false);
           return;
         }

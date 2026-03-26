@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   AccessibilityInfo,
   Image,
@@ -72,7 +72,8 @@ export default function StudentHomeScreen() {
   const modeLabel = language === "id"
     ? (interactionMode === "voice" ? "suara" : "sentuh")
     : (interactionMode === "voice" ? "voice" : "touch");
-  useTTSAnnounce(t.home.mountAnnounce(modeLabel));
+  const homeAnnounce = useMemo(() => t.home.mountAnnounce(modeLabel), []);
+  useTTSAnnounce(homeAnnounce);
 
   useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
