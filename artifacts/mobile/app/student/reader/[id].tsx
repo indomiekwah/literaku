@@ -109,20 +109,19 @@ export default function StudentReaderScreen() {
   const [summaryError, setSummaryError] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const wordLayoutsRef = useRef<Map<number, number>>(new Map());
-  const sectionLayoutsRef = useRef<Map<number, number>>(new Map());
+  const sectionLayoutsRef = useRef<Map<number, { y: number; height: number }>>(new Map());
   const scrollContentOffsetRef = useRef(0);
   const scrollViewHeightRef = useRef(0);
 
   const totalSections = visibleSections.length;
   const progress = totalSections > 0 ? ((currentSection + 1) / totalSections) * 100 : 0;
 
-  const scrollToWord = useCallback((globalWordIdx: number) => {
-    const yPos = wordLayoutsRef.current.get(globalWordIdx);
-    if (yPos != null && scrollViewRef.current) {
-      const targetScroll = yPos - scrollViewHeightRef.current / 3;
+  const scrollToSectionProgress = useCallback((sectionIdx: number, fraction: number) => {
+    const layout = sectionLayoutsRef.current.get(sectionIdx);
+    if (layout && scrollViewRef.current) {
+      const targetY = layout.y + fraction * layout.height - scrollViewHeightRef.current / 3;
       scrollViewRef.current.scrollTo({
-        y: Math.max(0, targetScroll),
+        y: Math.max(0, targetY),
         animated: true,
       });
     }
@@ -158,10 +157,11 @@ export default function StudentReaderScreen() {
         speed,
         (currentTimeMs, durationMs) => {
           setIsTTSLoading(false);
+          const fraction = durationMs > 0 ? currentTimeMs / durationMs : 0;
           const localIdx = estimateWordIndex(currentTimeMs, durationMs, sectionWords.length, wordLengths);
           const globalIdx = globalOffset + localIdx;
           setHighlightedWordGlobal(globalIdx);
-          scrollToWord(globalIdx);
+          scrollToSectionProgress(sectionIdx, fraction);
         },
       );
 
@@ -181,7 +181,7 @@ export default function StudentReaderScreen() {
       setHighlightedWordGlobal(-1);
       AccessibilityInfo.announceForAccessibility("Voice playback failed.");
     }
-  }, [book, visibleSections, selectedVoice, speed, sectionWordOffsets, scrollToWord, t]);
+  }, [book, visibleSections, selectedVoice, speed, sectionWordOffsets, scrollToSectionProgress, t]);
 
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
@@ -205,9 +205,9 @@ export default function StudentReaderScreen() {
       const prev = currentSection - 1;
       setCurrentSection(prev);
       AccessibilityInfo.announceForAccessibility(t.reader.sectionOf(prev + 1, totalSections));
-      const yPos = sectionLayoutsRef.current.get(prev);
-      if (yPos != null && scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: Math.max(0, yPos - 20), animated: true });
+      const layout = sectionLayoutsRef.current.get(prev);
+      if (layout && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: Math.max(0, layout.y - 20), animated: true });
       }
     }
   }, [currentSection, totalSections, t]);
@@ -222,9 +222,9 @@ export default function StudentReaderScreen() {
       const next = currentSection + 1;
       setCurrentSection(next);
       AccessibilityInfo.announceForAccessibility(t.reader.sectionOf(next + 1, totalSections));
-      const yPos = sectionLayoutsRef.current.get(next);
-      if (yPos != null && scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: Math.max(0, yPos - 20), animated: true });
+      const layout = sectionLayoutsRef.current.get(next);
+      if (layout && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: Math.max(0, layout.y - 20), animated: true });
       }
     }
   }, [currentSection, totalSections, t]);
@@ -327,11 +327,10 @@ export default function StudentReaderScreen() {
   }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleNextSection, handlePrevSection, summaryText, selectedVoice, t]));
 
   const handleSectionLayout = useCallback((sectionIdx: number, e: LayoutChangeEvent) => {
-    sectionLayoutsRef.current.set(sectionIdx, e.nativeEvent.layout.y);
-  }, []);
-
-  const handleWordLayout = useCallback((globalIdx: number, y: number) => {
-    wordLayoutsRef.current.set(globalIdx, y);
+    sectionLayoutsRef.current.set(sectionIdx, {
+      y: e.nativeEvent.layout.y,
+      height: e.nativeEvent.layout.height,
+    });
   }, []);
 
   if (!book) {
@@ -446,9 +445,6 @@ export default function StudentReaderScreen() {
                       return (
                         <Text
                           key={globalIdx}
-                          onLayout={(e) => {
-                            handleWordLayout(globalIdx, e.nativeEvent.layout.y + (sectionLayoutsRef.current.get(sectionIdx) || 0));
-                          }}
                           style={isHighlighted ? [
                             styles.highlightedWord,
                             { fontSize: textSize, lineHeight: textSize * 1.8 },
