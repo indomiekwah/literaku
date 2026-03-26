@@ -36,7 +36,8 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Integrates Azure Cognitive Services for Speech-to-Text (STT) and Text-to-Speech (TTS).
     - `api-server` acts as a secure proxy for Azure Speech API tokens and requests.
     - `VoiceActivationContext` manages swipe-left voice activation, mic recording, STT, intent matching, and TTS feedback.
-    - `voiceRouter.ts` provides `matchVoiceIntent()` (regex-based, EN+ID patterns) and `executeGlobalNavigation()` for all screens.
+    - `voiceRouter.ts` provides `matchVoiceIntent()` (async, CLU-first with regex fallback) and `executeGlobalNavigation()` for all screens.
+    - Azure CLU (Conversational Language Understanding) integration: `POST /api/speech/clu` analyzes text → returns intent + entities + confidence. Requires Language Service in supported region (East US, West US 2, etc.). Falls back to regex when CLU unavailable.
     - `SwipeVoiceOverlay` for visual feedback during voice listening.
     - "Voice-Only Mode" freezes UI navigation, relying solely on voice commands.
     - Azure voice map: v1=id-ID-GadisNeural, v2=id-ID-ArdiNeural, v3=en-US-EmmaMultilingualNeural, v4=en-US-AndrewMultilingualNeural.
@@ -64,6 +65,9 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - `GET /api/speech/token` - Azure token proxy.
     - `POST /api/speech/stt` - STT with smart middleware (multer for multipart, express.raw for audio/*). Auto-converts non-WAV audio (webm, m4a, ogg, etc.) to 16kHz mono 16-bit PCM WAV using ffmpeg before sending to Azure.
     - `POST /api/speech/tts` - TTS proxy to Azure with SSML.
+    - `POST /api/speech/clu` - Azure CLU intent analysis (text → intent + entities + confidence).
+    - `GET /api/speech/clu/status` - Check if CLU deployment is available.
+- **CLU Setup Script**: `scripts/setup-clu.ts` - Creates CLU project, imports 150+ bilingual utterances (16 intents, 3 entities), trains & deploys model. Run with `npx tsx scripts/setup-clu.ts`.
 - **Data Validation**: Uses Zod schemas generated from OpenAPI spec for request and response validation.
 - **Build**: Uses esbuild for production bundling.
 - **Deployment**: Replit (dev) → Azure App Service B1/B2 (prod). ffmpeg required for audio conversion.
@@ -123,6 +127,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - **API Codegen**: Orval
 - **Mobile Framework**: Expo, React Native
 - **Speech Services**: Azure Cognitive Services (Speech-to-Text, Text-to-Speech)
+- **Language Understanding**: Azure CLU (Conversational Language Understanding) for voice intent recognition
 - **Authentication**: Google/Microsoft OAuth
 - **Build Tools**: esbuild, tsx, vite (for various packages)
 - **State Management (Mobile)**: React Context API

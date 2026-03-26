@@ -64,8 +64,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         setTranscribedText(text);
         AccessibilityInfo.announceForAccessibility(`You said: ${text}`);
 
-        const { intent, param } = matchVoiceIntent(text);
-        console.log(`Voice intent: ${intent}, param: ${param}, text: ${text}`);
+        const cluLang = language === "id" ? "id" : "en";
+        const { intent, param, confidence, source } = await matchVoiceIntent(text, cluLang);
+        console.log(`Voice intent: ${intent}, param: ${param}, confidence: ${confidence}, source: ${source}, text: ${text}`);
 
         if (intent === "speed_change" && param) {
           const mapped = SPEED_MAP[param];

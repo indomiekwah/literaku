@@ -201,6 +201,38 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
+export interface CLUResult {
+  intent: string;
+  confidence: number;
+  entities: { category: string; text: string; confidence: number }[];
+}
+
+export async function analyzeCLU(
+  text: string,
+  language: string = "en"
+): Promise<CLUResult> {
+  const res = await fetch(`${API_BASE}/speech/clu`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, language }),
+  });
+  if (!res.ok) {
+    throw new Error("CLU analysis failed");
+  }
+  return res.json();
+}
+
+export async function isCLUAvailable(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/speech/clu/status`);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.available === true;
+  } catch {
+    return false;
+  }
+}
+
 export function isTTSPlaying(): boolean {
   if (Platform.OS === "web") {
     return currentAudioWeb !== null && !currentAudioWeb.paused;
