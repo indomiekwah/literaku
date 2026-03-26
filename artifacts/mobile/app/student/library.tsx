@@ -22,6 +22,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 const savedBookIds = ["1", "2", "3", "5", "8", "11"];
@@ -78,7 +79,7 @@ export default function KoleksiScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly, isSubscribed } = useReadingPreferences();
+  const { isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
   const t = useT();
 
@@ -97,6 +98,11 @@ export default function KoleksiScreen() {
 
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.collection.pageCommands);
+        speakText(t.collection.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       if ((intent === "open_book" || intent === "search_book") && param) {
         const cleanQ = param.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
         const match = collectionBooks.find((b) =>
@@ -112,7 +118,7 @@ export default function KoleksiScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [collectionBooks]);
+  }, [selectedVoice, t, collectionBooks]);
 
   return (
     <SwipeVoiceWrapper>

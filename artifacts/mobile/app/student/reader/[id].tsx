@@ -142,6 +142,11 @@ export default function StudentReaderScreen() {
 
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.reader.pageCommands);
+        speakText(t.reader.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       switch (intent) {
         case "reader_next":
           if (currentPage < maxPage) {

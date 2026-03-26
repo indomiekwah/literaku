@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
+  AccessibilityInfo,
   Image,
   Platform,
   Pressable,
@@ -23,6 +24,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 import { findBookByTitle } from "@/services/voiceRouter";
 
@@ -65,7 +67,7 @@ export default function StudentHomeScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly, interactionMode, language } = useReadingPreferences();
+  const { isVoiceOnly, interactionMode, language, selectedVoice } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
@@ -76,6 +78,11 @@ export default function StudentHomeScreen() {
 
   React.useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.home.pageCommands);
+        speakText(t.home.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       if (intent === "open_book" && param) {
         const book = findBookByTitle(param);
         if (book) {
@@ -86,7 +93,7 @@ export default function StudentHomeScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, []);
+  }, [selectedVoice, t]);
 
   return (
     <SwipeVoiceWrapper>

@@ -102,6 +102,10 @@ export default function StudentGuideScreen() {
 
   React.useEffect(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        speakSection(t.guide.pageCommands);
+        return true;
+      }
       if (matchSection(text)) {
         return true;
       }

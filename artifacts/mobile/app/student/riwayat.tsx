@@ -21,8 +21,11 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, sampleHistory, sampleBookmarks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 function HorizontalBookRow({ bookIds, label }: { bookIds: string[]; label: string }) {
   const books = bookIds.map((id) => sampleBooks.find((b) => b.id === id)).filter(Boolean);
@@ -65,7 +68,8 @@ export default function RiwayatScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly, setIsSubscribed } = useReadingPreferences();
+  const { isVoiceOnly, setIsSubscribed, selectedVoice } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const [institutionCode, setInstitutionCode] = useState("");
   const [joinedInstitution, setJoinedInstitution] = useState<string | null>("SMAN 5 Jakarta");
   const t = useT();
@@ -75,6 +79,18 @@ export default function RiwayatScreen() {
   const institutionBookIds = joinedInstitution ? ["5", "6", "9"] : [];
 
   useTTSAnnounce(t.history.mountAnnounce);
+
+  React.useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.history.pageCommands);
+        speakText(t.history.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
+      return false;
+    });
+    return () => clearTranscriptionCallback();
+  }, [selectedVoice, t]);
 
   const handleJoinInstitution = () => {
     if (!institutionCode.trim()) {

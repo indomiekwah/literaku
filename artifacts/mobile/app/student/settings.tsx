@@ -138,6 +138,11 @@ export default function StudentSettingsScreen() {
         return true;
       }
 
+      if (intent === "repeat_commands") {
+        speak(t.settings.pageCommands);
+        return true;
+      }
+
       return false;
     });
     return () => clearTranscriptionCallback();

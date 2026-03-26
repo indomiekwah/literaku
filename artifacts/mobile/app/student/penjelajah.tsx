@@ -22,6 +22,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 function BookListItem({ book, t }: { book: Book; t: ReturnType<typeof useT> }) {
@@ -58,7 +59,7 @@ export default function PenjelajahScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly } = useReadingPreferences();
+  const { isVoiceOnly, selectedVoice } = useReadingPreferences();
   const [searchQuery, setSearchQuery] = useState("");
   const t = useT();
 
@@ -80,6 +81,11 @@ export default function PenjelajahScreen() {
 
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.explorer.pageCommands);
+        speakText(t.explorer.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       if (intent === "search_book" && param) {
         setSearchQuery(param);
         AccessibilityInfo.announceForAccessibility(`Searching for ${param}`);
@@ -99,7 +105,7 @@ export default function PenjelajahScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, []);
+  }, [selectedVoice, t]);
 
   return (
     <SwipeVoiceWrapper>

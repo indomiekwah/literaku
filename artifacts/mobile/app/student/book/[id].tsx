@@ -22,6 +22,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function BookDetailScreen() {
@@ -30,7 +31,7 @@ export default function BookDetailScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly, isSubscribed } = useReadingPreferences();
+  const { isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const [showSubscription, setShowSubscription] = useState(false);
   const t = useT();
@@ -42,6 +43,11 @@ export default function BookDetailScreen() {
   React.useEffect(() => {
     if (!book) return;
     onTranscription((_text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.bookDetail.pageCommands);
+        speakText(t.bookDetail.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       switch (intent) {
         case "open_preview":
           AccessibilityInfo.announceForAccessibility(t.bookDetail.previewA11yLabel);
@@ -62,7 +68,7 @@ export default function BookDetailScreen() {
       }
     });
     return () => clearTranscriptionCallback();
-  }, [book, isSubscribed]);
+  }, [book, isSubscribed, selectedVoice, t]);
 
   if (!book) {
     return (

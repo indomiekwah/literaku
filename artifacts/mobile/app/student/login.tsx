@@ -23,6 +23,7 @@ import { getTranslations } from "@/constants/translations";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function LoginScreen() {
@@ -30,7 +31,7 @@ export default function LoginScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { language } = useReadingPreferences();
+  const { language, selectedVoice } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = getTranslations(language);
 
@@ -38,6 +39,11 @@ export default function LoginScreen() {
 
   React.useEffect(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.login.pageCommands);
+        speakText(t.login.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       const lower = text.toLowerCase();
       if (intent === "nav_login" || lower.includes("sign in") || lower.includes("log in") || lower.includes("masuk") || lower.includes("google") || lower.includes("microsoft")) {
         if (lower.includes("google")) {
@@ -53,7 +59,7 @@ export default function LoginScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, []);
+  }, [selectedVoice, t]);
 
   const handleOAuth = (provider: string) => {
     AccessibilityInfo.announceForAccessibility(`${t.login.signingWith} ${provider}...`);

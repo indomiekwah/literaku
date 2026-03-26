@@ -37,6 +37,11 @@ export default function SubscriptionScreen() {
 
   React.useEffect(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
+      if (intent === "repeat_commands") {
+        AccessibilityInfo.announceForAccessibility(t.subscription.pageCommands);
+        speakText(t.subscription.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
       if (intent === "nav_subscription") {
         const lower = text.toLowerCase();
         if (lower.includes("premium")) {
