@@ -30,7 +30,6 @@ import { findBookByTitle } from "@/services/voiceRouter";
 
 interface NavButtonProps {
   label: string;
-  subtitle: string;
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   onPress: () => void;
@@ -38,7 +37,7 @@ interface NavButtonProps {
   accessibilityHint: string;
 }
 
-function NavButton({ label, subtitle, icon, color, onPress, accessibilityLabel, accessibilityHint }: NavButtonProps) {
+function NavButton({ label, icon, color, onPress, accessibilityLabel, accessibilityHint }: NavButtonProps) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -55,7 +54,6 @@ function NavButton({ label, subtitle, icon, color, onPress, accessibilityLabel, 
       </View>
       <View style={styles.navInfo}>
         <Text style={styles.navTitle}>{label}</Text>
-        <Text style={styles.navSubtitle}>{subtitle}</Text>
       </View>
       <Ionicons name="chevron-forward" size={28} color="rgba(255,255,255,0.7)" />
     </Pressable>
@@ -115,7 +113,6 @@ export default function StudentHomeScreen() {
           >
             <NavButton
               label={t.home.explorer}
-              subtitle={t.home.explorerSub}
               icon="compass"
               color="#2E7D32"
               onPress={() => router.push("/student/penjelajah")}
@@ -125,7 +122,6 @@ export default function StudentHomeScreen() {
 
             <NavButton
               label={t.home.collection}
-              subtitle={t.home.collectionSub}
               icon="library"
               color="#1565C0"
               onPress={() => router.push("/student/library")}
@@ -135,7 +131,6 @@ export default function StudentHomeScreen() {
 
             <NavButton
               label={t.home.history}
-              subtitle={t.home.historySub}
               icon="time"
               color="#C62828"
               onPress={() => router.push("/student/riwayat")}
@@ -145,7 +140,6 @@ export default function StudentHomeScreen() {
 
             <NavButton
               label={t.home.joinInstitution}
-              subtitle={t.home.joinInstitutionSub}
               icon="school"
               color="#E65100"
               onPress={() => router.push("/student/institusi")}
@@ -155,7 +149,6 @@ export default function StudentHomeScreen() {
 
             <NavButton
               label={t.home.settings}
-              subtitle={t.home.settingsSub}
               icon="settings"
               color="#7B1FA2"
               onPress={() => router.push("/student/settings")}
@@ -165,7 +158,6 @@ export default function StudentHomeScreen() {
 
             <NavButton
               label={t.home.guide}
-              subtitle={t.home.guideSub}
               icon="help-circle"
               color="#00838F"
               onPress={() => router.push("/student/guide")}
@@ -246,11 +238,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 22,
     color: "#FFFFFF",
-  },
-  navSubtitle: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: "rgba(255,255,255,0.8)",
   },
   freezeZone: {
     flex: 1,

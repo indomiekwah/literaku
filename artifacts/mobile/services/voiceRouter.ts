@@ -34,6 +34,10 @@ export type VoiceIntent =
   | "speed_increase"
   | "speed_decrease"
   | "repeat_commands"
+  | "list_paid_books"
+  | "list_assigned_books"
+  | "list_recent_books"
+  | "list_bookmarked_books"
   | "unknown";
 
 export interface MatchResult {
@@ -52,6 +56,8 @@ const VALID_INTENTS = new Set<string>([
   "search_book", "open_book", "open_preview", "read_full",
   "speed_change", "speed_increase", "speed_decrease",
   "repeat_commands",
+  "list_paid_books", "list_assigned_books",
+  "list_recent_books", "list_bookmarked_books",
 ]);
 
 export const READER_ONLY_INTENTS = new Set<VoiceIntent>([
@@ -92,6 +98,11 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
 
   { pattern: /\b(?:repeat\s*(?:the\s*)?(?:navigation\s*)?commands?|what\s*can\s*i\s*say|available\s*commands?|help\s*(?:me\s*)?commands?|show\s*commands?)\b/i, intent: "repeat_commands" },
   { pattern: /\b(?:ulangi?\s*(?:perintah|navigasi|komando)|perintah\s*(?:apa\s*saja|yang\s*tersedia|navigasi)|apa\s*(?:saja\s*)?(?:yang\s*bisa\s*(?:di)?ucap(?:kan)?|perintah(?:nya)?))\b/i, intent: "repeat_commands" },
+
+  { pattern: /\b(?:paid\s*books?|purchased\s*books?|buku\s*(?:yang\s*)?(?:dibeli|dibayar|beli))\b/i, intent: "list_paid_books" },
+  { pattern: /\b(?:assigned\s*books?|institution\s*books?|buku\s*(?:yang\s*)?(?:di\s*assign|institusi|sekolah|ditugaskan))\b/i, intent: "list_assigned_books" },
+  { pattern: /\b(?:recent\s*books?|recently\s*read|buku\s*(?:yang\s*)?(?:baru\s*dibaca|terbaru|terakhir))\b/i, intent: "list_recent_books" },
+  { pattern: /\b(?:bookmarked?\s*books?|my\s*bookmarks?|buku\s*(?:yang\s*)?(?:di\s*bookmark|ditandai|bookmark))\b/i, intent: "list_bookmarked_books" },
 
   { pattern: /\b(?:join|request|gabung|daftar)\s+(.+)/i, intent: "join_institution_code", paramGroup: 1 },
 

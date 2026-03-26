@@ -293,6 +293,10 @@ export function formatRupiah(amount: number): string {
   return `Rp${amount.toLocaleString("id-ID")}`;
 }
 
+export const purchasedBookIds: string[] = [];
+
+export const assignedBookIds: string[] = [];
+
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   login: [
     { example: "Sign in with Google", intent: "Sign in with Google" },
@@ -321,12 +325,15 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Go back", intent: "Go back" },
   ],
   koleksi: [
-    { example: "Read Penance", intent: "Open a specific book" },
-    { example: "Read The Silent Patient", intent: "Open a specific book" },
+    { example: "Paid books", intent: "Hear purchased books" },
+    { example: "Assigned books", intent: "Hear institution books" },
+    { example: "Read Penance", intent: "Open a book" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
   riwayat: [
-    { example: "Continue reading", intent: "Continue last book" },
+    { example: "Recent books", intent: "Hear recently read" },
+    { example: "Bookmarked books", intent: "Hear bookmarks" },
+    { example: "Read Penance", intent: "Open a book" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
   institusi: [
