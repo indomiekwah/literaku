@@ -30,6 +30,8 @@ export interface Book {
   synopsis: string;
   coverColor: string;
   content: string[];
+  summary: string;
+  pageSummaries: string[];
 }
 
 export interface SubscriptionPlanInfo {
@@ -106,6 +108,14 @@ export const sampleBooks: Book[] = [
       "I wanted to understand why she stopped speaking. What drove her to kill the man she supposedly loved? I believed that if I could reach her, if I could get her to open up, I might find the answer.\n\nI applied for a position at the Grove — the secure forensic unit where Alicia was being held.",
       "Chapter 3: The Grove\n\nThe Grove was a secure forensic psychiatric hospital in North London. It housed a mix of patients — some dangerous, some simply lost. Alicia was in the latter category, or so I believed.\n\nOn my first day, I walked through the heavy security doors with a mixture of excitement and apprehension.",
     ],
+    summary: "The Silent Patient tells the story of Alicia Berenson, a famous painter who shoots her husband Gabriel five times and then never speaks again. She is committed to a secure psychiatric facility called the Grove. Theo Faber, a criminal psychotherapist obsessed with her case, takes a job at the Grove determined to break her silence. As Theo digs deeper into Alicia's past, he discovers dark secrets about her childhood, her marriage, and the events leading to that fatal night. The twist reveals that Theo himself is deeply entangled in Alicia's story — he had been stalking her, and his obsession drove the very tragedy he sought to understand. Alicia's silence was not madness but a response to discovering the horrifying truth about the man who claimed to want to help her.",
+    pageSummaries: [
+      "Alicia Berenson, a famous 33-year-old painter, murders her husband Gabriel by shooting him five times. She makes no attempt to flee and waits for arrest.",
+      "After the murder, Alicia refuses to speak a single word to anyone — police, lawyers, or doctors. The media dubs her 'the Silent Patient' and the case becomes a sensation.",
+      "Theo Faber, a criminal psychotherapist with over ten years of experience, becomes obsessed with Alicia's case and the mystery behind her silence.",
+      "Theo believes he can unlock the reason Alicia killed her husband if he can get her to talk. He applies for a position at the Grove, the psychiatric facility where she is held.",
+      "Theo arrives at the Grove, a secure forensic hospital in North London, on his first day — filled with both excitement and apprehension about finally meeting Alicia.",
+    ],
   },
   {
     id: "2",
@@ -120,6 +130,13 @@ export const sampleBooks: Book[] = [
       "In one of these modest houses lived a woman who refused to accept her fate. She had four daughters, each born with the same fierce determination that burned in their mother's eyes.\n\nThe girls grew up hearing stories of injustice.",
       "Chapter 2: The Promise\n\nYears passed. The girls grew into young women, each carrying the weight of their mother's burden. They had made a promise — to find the truth, no matter the cost.\n\nThe search began in earnest on a cold morning in October.",
       "They split up, each taking a different path. One went to the city, one stayed in the village, one traveled abroad, and one went underground. Together, they would piece together the puzzle that had haunted their family.",
+    ],
+    summary: "Penance follows a mother in a poverty-stricken village who refuses to accept the injustice her family has endured for generations. She raises four daughters with fierce determination, teaching them to fight for truth. As the girls grow into women, they each take on a different path — city, village, abroad, and underground — to uncover a crime that was committed against their family long ago. Their search leads them through corruption, betrayal, and sacrifice. Ultimately, the four sisters piece together the truth and confront the perpetrator, but the cost of their penance is devastating, forcing them to choose between justice and the family bonds that held them together.",
+    pageSummaries: [
+      "A small impoverished village is introduced. A determined mother lives in a modest house, refusing to accept the poverty and injustice around her.",
+      "The mother raises four daughters who inherit her fierce determination. They grow up hearing stories of the injustice done to their family.",
+      "Years later, the four daughters make a solemn promise to find the truth about their family's past. Their search begins on a cold October morning.",
+      "The sisters split up — one to the city, one stays in the village, one goes abroad, one goes underground — to piece together the puzzle haunting their family.",
     ],
   },
   {
@@ -136,6 +153,13 @@ export const sampleBooks: Book[] = [
       "Chapter 2: The Truth\n\nThe words hung in the air like smoke. The students looked at each other, confused. Their teacher's daughter had drowned in the school swimming pool months ago. It was ruled an accident.\n\nBut now, standing before them, she told a different story.",
       "She told them about the evidence she had found. About the security camera footage that had been conveniently erased. About the witnesses who suddenly couldn't remember anything. And about the two students she believed were responsible.",
     ],
+    summary: "Confessions is a psychological mystery about a schoolteacher who announces to her class that her daughter's drowning was not an accident but murder. She reveals that two students were responsible and that evidence — including security footage — was deliberately destroyed. Each chapter shifts perspective, with different characters confessing their roles in the cover-up. The teacher orchestrates her own form of justice, manipulating events so the guilty students face consequences the legal system failed to deliver. The story explores guilt, revenge, and whether true justice can exist outside the law, culminating in a devastating revelation about how far a grieving mother will go.",
+    pageSummaries: [
+      "A teacher stands before her class to make a shocking announcement before spring break. Thirty-seven students listen as she prepares to reveal something devastating.",
+      "The teacher declares that her daughter did not die by accident in the school swimming pool. The students are stunned.",
+      "She reveals it was not an accident — the drowning was deliberate. Security camera footage was erased and witnesses claimed to remember nothing.",
+      "The teacher names the evidence that was covered up and identifies two students she believes murdered her daughter.",
+    ],
   },
   {
     id: "4",
@@ -149,6 +173,12 @@ export const sampleBooks: Book[] = [
       "Chapter 1: The First Call\n\nThe phone rang at exactly 3:47 AM. Detective Sarah Chen reached for it in the darkness, her hand finding the device by muscle memory.\n\n'This is the Shorts Caller,' said a voice she didn't recognize. 'Listen carefully. You have exactly forty-seven minutes.'",
       "Sarah sat up in bed, immediately alert. She had heard of the Shorts Caller — everyone in the department had. But no one had ever spoken to them directly.\n\n'Forty-seven minutes until what?' she asked, but the line had already gone dead.",
       "Chapter 2: The Pattern\n\nSarah pulled up every case file connected to the Shorts Caller. There were seventeen in total, spanning three continents and five years. In each case, someone received a call with a countdown.\n\nAnd in each case, something extraordinary happened when the countdown reached zero.",
+    ],
+    summary: "The Shorts Caller is a sci-fi mystery about a mysterious figure who contacts people at moments of crisis, giving them cryptic countdowns. Detective Sarah Chen receives one such call at 3:47 AM — forty-seven minutes. She investigates seventeen connected cases spanning three continents and five years, discovering that each countdown leads to an extraordinary event. As Sarah uncovers the pattern, she learns the Shorts Caller operates across dimensions of time, choosing pivotal moments where a single decision can alter reality. The story explores whether fate can be changed and the cost of knowing the future, building to a climax where Sarah must decide what happens when her own countdown reaches zero.",
+    pageSummaries: [
+      "Detective Sarah Chen receives a mysterious phone call at 3:47 AM from someone calling themselves the Shorts Caller, who gives her a countdown of forty-seven minutes.",
+      "Sarah realizes she has been contacted by a legendary figure no one in her department has ever spoken to directly. The caller hangs up before explaining the countdown.",
+      "Sarah reviews seventeen case files linked to the Shorts Caller, spanning three continents and five years. Every case involved a countdown — and something extraordinary at the end.",
     ],
   },
   {
@@ -164,6 +194,12 @@ export const sampleBooks: Book[] = [
       "Anak itu bernama Harun. Dengan kedatangannya, genaplah sepuluh murid yang diperlukan. Bu Mus menghela napas lega. Sekolah mereka selamat — untuk saat ini.\n\nMereka menyebut diri mereka Laskar Pelangi.",
       "Bab 2: Lintang\n\nDi antara sepuluh murid itu, ada seorang anak bernama Lintang. Ia tinggal paling jauh dari sekolah — empat puluh kilometer jauhnya. Setiap hari ia bersepeda melewati hutan dan sungai.\n\nNamun Lintang adalah murid paling cerdas yang pernah dimiliki sekolah itu.",
     ],
+    summary: "Laskar Pelangi menceritakan kisah sepuluh anak miskin di Belitung yang berjuang mempertahankan sekolah Muhammadiyah mereka. Dipimpin oleh Bu Mus dan Pak Harfan, mereka membuktikan bahwa kemiskinan tidak bisa menghalangi semangat belajar. Lintang, murid paling cerdas, bersepeda 40 km setiap hari melewati hutan dan sungai. Mahar si seniman, Ikal si pemimpi, dan teman-teman lainnya menghadapi tantangan dari perusahaan timah yang ingin menutup sekolah mereka. Meski fasilitas seadanya, mereka berhasil memenangkan lomba dan membuktikan kemampuan mereka. Novel ini mengajarkan bahwa pendidikan adalah hak semua orang dan semangat bisa mengalahkan segala keterbatasan.",
+    pageSummaries: [
+      "Pagi pertama sekolah Muhammadiyah — hanya sepuluh murid yang datang. Pak Harfan dan Bu Mus menunggu cemas karena jika kurang dari sepuluh, sekolah akan ditutup. Harun datang tepat waktu sebagai murid kesepuluh.",
+      "Harun melengkapi sepuluh murid yang dibutuhkan. Bu Mus lega, sekolah selamat. Mereka menamai diri mereka Laskar Pelangi.",
+      "Lintang diperkenalkan sebagai murid yang tinggal paling jauh — 40 km dari sekolah. Ia bersepeda setiap hari melewati hutan dan sungai, namun menjadi murid paling cerdas di sekolah.",
+    ],
   },
   {
     id: "6",
@@ -177,6 +213,12 @@ export const sampleBooks: Book[] = [
       "Bab 1: Sebuah Pertemuan\n\nNamaku Minke. Aku adalah seorang murid di H.B.S. — satu-satunya sekolah menengah Belanda di Surabaya. Aku adalah satu dari sedikit pribumi yang beruntung bisa mengenyam pendidikan Eropa.",
       "Pada suatu sore yang panas, aku diajak temanku Robert Suurhof mengunjungi sebuah rumah besar di pinggir kota. Di sanalah aku pertama kali bertemu dengan Annelies Mellema — gadis Indo yang akan mengubah hidupku selamanya.",
       "Bab 2: Nyai Ontosoroh\n\nIbu Annelies, yang dipanggil Nyai Ontosoroh, adalah wanita yang luar biasa. Meskipun seorang gundik, ia mengelola seluruh bisnis keluarga Mellema dengan kecerdasan yang mengagumkan.",
+    ],
+    summary: "Bumi Manusia mengisahkan Minke, seorang pemuda Jawa yang menjadi salah satu dari sedikit pribumi yang bersekolah di H.B.S. Belanda di Surabaya pada era kolonial. Ia jatuh cinta pada Annelies Mellema, gadis Indo yang cantik. Melalui hubungannya dengan keluarga Mellema, Minke mengenal Nyai Ontosoroh — ibu Annelies yang meski berstatus gundik, mengelola bisnis keluarga dengan kecerdasan luar biasa. Novel ini menggambarkan kebangkitan kesadaran nasional Indonesia, perjuangan melawan ketidakadilan kolonial, dan harga yang harus dibayar untuk memperjuangkan martabat di dunia yang tidak adil. Minke akhirnya kehilangan Annelies karena hukum kolonial, namun pengalaman itu mengubahnya menjadi pejuang keadilan.",
+    pageSummaries: [
+      "Minke memperkenalkan dirinya sebagai murid H.B.S. — satu-satunya sekolah menengah Belanda di Surabaya. Ia adalah salah satu dari sedikit pribumi yang beruntung mendapat pendidikan Eropa.",
+      "Minke diajak temannya Robert Suurhof mengunjungi rumah besar di pinggir kota. Di sana ia pertama kali bertemu Annelies Mellema, gadis Indo yang akan mengubah hidupnya.",
+      "Nyai Ontosoroh, ibu Annelies, diperkenalkan sebagai wanita luar biasa. Meski berstatus gundik, ia mengelola seluruh bisnis keluarga Mellema dengan kecerdasan mengagumkan.",
     ],
   },
   {
@@ -192,6 +234,12 @@ export const sampleBooks: Book[] = [
       "Srintil masih kecil ketika kedua orangtuanya meninggal karena tempe bongkrek beracun. Ia diasuh oleh kakeknya, Sakarya. Sejak kecil, dalam dirinya sudah terlihat bakat menari yang luar biasa.",
       "Bab 2: Menjadi Ronggeng\n\nKetika Srintil berusia sebelas tahun, ia mulai menari di halaman rumah kakeknya. Gerakan tubuhnya begitu indah sehingga membuat seluruh dukuh terpesona. Para tetua desa sepakat: Srintil harus menjadi ronggeng.",
     ],
+    summary: "Ronggeng Dukuh Paruk mengisahkan Srintil, gadis yatim piatu dari dusun terpencil Paruk yang menjadi ronggeng — penari tradisional Jawa. Setelah kedua orangtuanya meninggal karena tempe bongkrek beracun, ia diasuh kakeknya Sakarya. Bakat menarinya yang luar biasa membuat tetua desa menjadikannya ronggeng pada usia sebelas tahun. Trilogi ini menggambarkan kehidupan desa, tradisi, dan cinta antara Srintil dan Rasus. Namun tragedi politik 1965 menghancurkan segalanya — Dukuh Paruk dihancurkan, penduduknya ditahan, dan Srintil menjadi korban kekerasan. Novel ini adalah potret kuat tentang nasib rakyat kecil yang tergilas roda sejarah.",
+    pageSummaries: [
+      "Dukuh Paruk diperkenalkan sebagai pedukuhan kecil terpencil dengan penduduk sederhana. Dukuh ini terkenal karena tradisi ronggengnya.",
+      "Srintil kehilangan kedua orangtuanya karena tempe bongkrek beracun saat masih kecil. Ia diasuh kakeknya Sakarya dan sudah menunjukkan bakat menari sejak kecil.",
+      "Pada usia sebelas tahun, Srintil mulai menari di halaman kakeknya dengan gerakan yang begitu indah hingga mempesona seluruh dukuh. Tetua desa sepakat menjadikannya ronggeng.",
+    ],
   },
   {
     id: "8",
@@ -205,6 +253,12 @@ export const sampleBooks: Book[] = [
       "Bab 1: Kebangkitan\n\nPada suatu sore di akhir bulan Maret, Dewi Ayu bangkit dari kuburnya setelah dua puluh satu tahun meninggal. Ia berjalan pulang ke rumahnya dengan gaun putih yang sudah lapuk dimakan waktu.",
       "Penduduk Halimunda yang melihatnya berjalan di jalan raya nyaris tak percaya. Mereka yang mengenalnya dulu ingat betul: Dewi Ayu adalah perempuan paling cantik yang pernah dilahirkan kota ini.",
       "Bab 2: Halimunda\n\nKota Halimunda terletak di pesisir selatan Jawa. Didirikan oleh Belanda sebagai kota perdagangan, Halimunda tumbuh menjadi kota yang penuh kontradiksi — indah namun menyimpan kekerasan, kaya namun dikelilingi kemiskinan.",
+    ],
+    summary: "Cantik Itu Luka adalah novel epik realisme magis yang dimulai dengan kebangkitan Dewi Ayu dari kuburnya setelah 21 tahun meninggal. Ia adalah pelacur paling cantik di kota Halimunda, pesisir selatan Jawa. Novel ini menelusuri empat generasi keluarganya dari era kolonial Belanda, pendudukan Jepang, kemerdekaan, hingga reformasi. Dewi Ayu memiliki empat anak perempuan — tiga sangat cantik, satu sangat buruk rupa. Melalui kisah mereka, Eka Kurniawan menggambarkan sejarah Indonesia yang penuh kekerasan, cinta, dan ironi. Novel ini dipuji The New York Times dan diterjemahkan ke 30 bahasa sebagai mahakarya sastra Indonesia kontemporer.",
+    pageSummaries: [
+      "Dewi Ayu bangkit dari kuburnya setelah 21 tahun meninggal pada suatu sore di akhir Maret. Ia berjalan pulang dengan gaun putih yang sudah lapuk.",
+      "Penduduk Halimunda terkejut melihat Dewi Ayu berjalan di jalan raya. Mereka mengingat bahwa ia adalah perempuan paling cantik yang pernah dilahirkan kota ini.",
+      "Kota Halimunda diperkenalkan — terletak di pesisir selatan Jawa, didirikan Belanda sebagai kota perdagangan, penuh kontradiksi antara keindahan dan kekerasan.",
     ],
   },
   {
@@ -220,6 +274,12 @@ export const sampleBooks: Book[] = [
       "Perjalanan dari Maninjau ke Ponorogo memakan waktu dua hari. Aku duduk di bus dengan perasaan campur aduk — takut, penasaran, dan sedikit bersemangat. Di depanku menanti kehidupan yang sama sekali baru.",
       "Bab 2: Pondok Madani\n\nPondok Madani berdiri megah di tengah sawah hijau. Bangunannya sederhana namun tertata rapi. Di sinilah ribuan santri dari seluruh Indonesia belajar ilmu agama dan ilmu dunia secara bersamaan.",
     ],
+    summary: "Negeri 5 Menara mengisahkan Alif Fikri, anak bungsu Minangkabau yang dikirim ke pesantren Pondok Madani di Jawa Timur. Bersama lima sahabatnya dari berbagai daerah Indonesia, mereka membentuk kelompok Sahibul Menara. Dengan mantra 'man jadda wajada' — siapa bersungguh-sungguh pasti berhasil — mereka menempa diri melalui pendidikan agama dan ilmu pengetahuan. Meski awalnya berat meninggalkan kampung halaman, Alif menemukan persahabatan sejati dan mimpi-mimpi besar. Keenam sahabat ini akhirnya meraih cita-cita mereka di berbagai negara — London, Washington, Kairo, dan kota-kota besar dunia. Novel ini diangkat dari kisah nyata penulis dan menginspirasi jutaan pembaca muda Indonesia.",
+    pageSummaries: [
+      "Amak (ibu Alif) menangis karena keputusan mengirim Alif ke pesantren di Jawa. Alif Fikri, anak bungsu Minangkabau, harus meninggalkan kampung halamannya.",
+      "Perjalanan dari Maninjau ke Ponorogo memakan waktu dua hari. Alif duduk di bus dengan perasaan campur aduk — takut, penasaran, dan sedikit bersemangat.",
+      "Pondok Madani diperkenalkan — berdiri megah di tengah sawah hijau dengan bangunan sederhana namun rapi. Ribuan santri dari seluruh Indonesia belajar di sini.",
+    ],
   },
   {
     id: "10",
@@ -233,6 +293,12 @@ export const sampleBooks: Book[] = [
       "Bab 1: Prolog\n\nDimas dan Reuben duduk di sebuah kafe kecil di Jakarta. Di antara mereka tergeletak tumpukan kertas — naskah novel yang telah mereka kerjakan selama berbulan-bulan. Mereka menyebutnya Supernova.",
       "Reuben mengangkat cangkir kopinya. 'Kita perlu seorang Ksatria,' katanya. 'Seseorang yang berani menantang semua aturan.' Dimas mengangguk. 'Dan seorang Puteri. Yang tidak butuh diselamatkan.'",
       "Bab 2: Bodhi\n\nDi sebuah laboratorium di Bandung, seorang wanita muda bernama Bodhi Arya sedang mengamati data. Ia adalah fisikawan teoretis — salah satu dari sedikit perempuan Indonesia di bidangnya.",
+    ],
+    summary: "Supernova mengisahkan Dimas dan Reuben, dua sahabat di Jakarta yang menulis novel tentang Ksatria dan Puteri — dua karakter yang hidup di dunia berbeda namun terhubung secara misterius. Sementara itu, Bodhi Arya, fisikawan teoretis wanita muda di Bandung, meneliti misteri alam semesta. Ketiga cerita ini terjalin: fiksi yang ditulis Dimas dan Reuben mulai mencerminkan kenyataan, dan Bodhi menemukan bahwa sains dan spiritualitas tidak bertentangan melainkan saling melengkapi. Novel ini memadukan fisika kuantum, filsafat, dan cinta dalam narasi yang menantang cara berpikir konvensional tentang realitas, kesadaran, dan koneksi antarmanusia.",
+    pageSummaries: [
+      "Dimas dan Reuben duduk di kafe kecil di Jakarta dengan tumpukan naskah novel yang telah mereka kerjakan berbulan-bulan. Mereka menyebutnya Supernova.",
+      "Reuben mengusulkan tokoh Ksatria — seseorang yang berani menantang semua aturan. Dimas menambahkan Puteri — yang tidak butuh diselamatkan.",
+      "Bodhi Arya, fisikawan teoretis muda di laboratorium Bandung, sedang mengamati data. Ia adalah salah satu dari sedikit perempuan Indonesia di bidangnya.",
     ],
   },
   {
@@ -248,6 +314,12 @@ export const sampleBooks: Book[] = [
       "Pagi itu, seperti biasa, aku bangun sebelum subuh. Udara Kairo masih dingin. Aku berwudhu, shalat, lalu membuka mushaf Al-Quran. Setiap hari aku membaca tiga juz — target yang kupasang untuk menyelesaikan hafalan.",
       "Bab 2: Maria\n\nMaria Girgis adalah tetangga kami di lantai bawah. Ia seorang gadis Kristen Koptik yang cantik dan ramah. Setiap kali berpapasan di tangga, ia selalu menyapa dengan senyum.",
     ],
+    summary: "Ayat-Ayat Cinta mengisahkan Fahri, mahasiswa Indonesia sederhana dan tekun di Universitas Al-Azhar, Kairo. Hidupnya berubah ketika empat wanita dari latar belakang berbeda memiliki perasaan terhadapnya: Aisha gadis Turki-Jerman, Maria tetangga Kristen Koptik, Nurul teman sesama Indonesia, dan Noura gadis Mesir yang ditindas ayahnya. Fahri menikahi Aisha namun difitnah atas tuduhan memerkosa Noura. Di penjara, Fahri berjuang membuktikan kebenaran sambil kesehatannya memburuk. Maria, yang diam-diam mencintai Fahri, memberikan kesaksian kunci yang membebaskannya. Novel ini mengeksplorasi cinta, iman, toleransi antaragama, dan keadilan, menjadi fenomena sastra Indonesia dengan penjualan jutaan eksemplar.",
+    pageSummaries: [
+      "Fahri tinggal di Flat Zaitun lantai empat di kawasan Hadayek Helwan, pinggiran Kairo, bersama tiga teman satu flat dari Indonesia.",
+      "Fahri menjalani rutinitas — bangun sebelum subuh, shalat, dan membaca Al-Quran. Target hariannya tiga juz untuk menyelesaikan hafalan.",
+      "Maria Girgis, tetangga Kristen Koptik di lantai bawah, diperkenalkan sebagai gadis cantik dan ramah yang selalu menyapa Fahri dengan senyum.",
+    ],
   },
   {
     id: "12",
@@ -261,6 +333,12 @@ export const sampleBooks: Book[] = [
       "Bab 1: Kugy\n\nNamaku Kugy. Lengkapnya Kugy Utami, tapi jangan panggil aku dengan nama lengkap karena aku tidak suka. Aku suka menulis dongeng. Dongeng tentang Jenderal Pilik dan pasukannya.",
       "Hari ini adalah hari pertamaku di Bandung. Aku pindah dari Jakarta untuk kuliah di sebuah universitas yang katanya bagus. Tapi yang paling membuatku senang adalah: Bandung punya banyak sudut yang bisa menginspirasi dongeng.",
       "Bab 2: Keenan\n\nKeenan duduk di depan kanvas kosong. Kuasnya tergenggam erat, tapi tangannya tidak bergerak. Sudah tiga jam ia duduk di situ, menunggu inspirasi yang tak kunjung datang.",
+    ],
+    summary: "Perahu Kertas mengisahkan Kugy, gadis nyentrik pemimpi yang ingin menjadi penulis dongeng, dan Keenan, pelukis berbakat yang dipaksa keluarganya kuliah ekonomi. Mereka bertemu di Bandung dan memulai persahabatan yang perlahan berubah menjadi cinta, namun keduanya terikat hubungan dengan orang lain. Kugy menemukan panggilannya sebagai penulis dongeng anak-anak, sementara Keenan akhirnya berani mengikuti hasratnya melukis. Novel dua jilid ini menggambarkan perjalanan menemukan passion dan cinta sejati — bahwa kadang kita harus tersesat dulu untuk menemukan jalan yang benar. Akhirnya Kugy dan Keenan menemukan bahwa cinta mereka tak pernah pudar meski sempat terpisah oleh kesalahpahaman dan rasa takut.",
+    pageSummaries: [
+      "Kugy memperkenalkan dirinya — nama lengkapnya Kugy Utami, penulis dongeng tentang Jenderal Pilik. Hari ini hari pertamanya di Bandung untuk kuliah.",
+      "Kugy senang pindah ke Bandung karena kota ini punya banyak sudut yang bisa menginspirasi dongeng-dongengnya.",
+      "Keenan duduk di depan kanvas kosong selama tiga jam, menunggu inspirasi yang tak kunjung datang. Kuasnya tergenggam erat tapi tangannya tidak bergerak.",
     ],
   },
 ];

@@ -24,7 +24,7 @@ import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
-import { speakText, stopTTSPlayback, speakTextWithProgress, summarizeText } from "@/services/speech";
+import { speakText, stopTTSPlayback, speakTextWithProgress } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 
 interface WordToken {
@@ -105,7 +105,6 @@ export default function StudentReaderScreen() {
 
   const [showSummary, setShowSummary] = useState(false);
   const [summaryText, setSummaryText] = useState("");
-  const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -229,67 +228,55 @@ export default function StudentReaderScreen() {
     }
   }, [currentSection, totalSections, t]);
 
-  const handleSummarize = useCallback(async () => {
-    if (!book || isSummarizing) return;
-    const sectionText = visibleSections[currentSection];
-    if (!sectionText) return;
+  const handleSummarize = useCallback(() => {
+    if (!book) return;
 
     stopTTSPlayback();
     ttsAbortRef.current = true;
     setIsPlaying(false);
     setHighlightedWordGlobal(-1);
-    setIsSummarizing(true);
     setSummaryError(false);
-    setSummaryText("");
     setShowSummary(true);
-    AccessibilityInfo.announceForAccessibility(t.reader.summaryLoading);
 
-    try {
-      const result = await summarizeText(sectionText, language);
-      setSummaryText(result.summary);
-      AccessibilityInfo.announceForAccessibility(result.summary);
-    } catch (err) {
-      console.error("Summarize error:", err);
-      setSummaryError(true);
-      AccessibilityInfo.announceForAccessibility(t.reader.summaryError);
-    } finally {
-      setIsSummarizing(false);
-    }
-  }, [book, visibleSections, currentSection, language, isSummarizing, t]);
+    const fullSummary = book.summary || "";
+    const pageSummary = book.pageSummaries?.[currentSection] || "";
+    const combined = fullSummary
+      ? (language === "id"
+          ? `Ringkasan keseluruhan buku: ${fullSummary}\n\nRingkasan halaman ini: ${pageSummary || "Tidak tersedia."}`
+          : `Full book summary: ${fullSummary}\n\nThis page summary: ${pageSummary || "Not available."}`)
+      : pageSummary || (language === "id" ? "Ringkasan belum tersedia." : "Summary not available.");
 
-  const handleSummarizeAndRead = useCallback(async () => {
+    setSummaryText(combined);
+    AccessibilityInfo.announceForAccessibility(combined);
+  }, [book, currentSection, language, t]);
+
+  const handleSummarizeAndRead = useCallback(() => {
     if (summaryText) {
       setShowSummary(true);
       speakText(summaryText, selectedVoice, 1).catch(() => {});
       return;
     }
-    if (!book || isSummarizing) return;
-    const sectionText = visibleSections[currentSection];
-    if (!sectionText) return;
+    if (!book) return;
 
     stopTTSPlayback();
     ttsAbortRef.current = true;
     setIsPlaying(false);
     setHighlightedWordGlobal(-1);
-    setIsSummarizing(true);
     setSummaryError(false);
-    setSummaryText("");
     setShowSummary(true);
-    AccessibilityInfo.announceForAccessibility(t.reader.summaryLoading);
 
-    try {
-      const result = await summarizeText(sectionText, language);
-      setSummaryText(result.summary);
-      AccessibilityInfo.announceForAccessibility(result.summary);
-      speakText(result.summary, selectedVoice, 1).catch(() => {});
-    } catch (err) {
-      console.error("Summarize error:", err);
-      setSummaryError(true);
-      AccessibilityInfo.announceForAccessibility(t.reader.summaryError);
-    } finally {
-      setIsSummarizing(false);
-    }
-  }, [book, visibleSections, currentSection, language, isSummarizing, summaryText, selectedVoice, t]);
+    const fullSummary = book.summary || "";
+    const pageSummary = book.pageSummaries?.[currentSection] || "";
+    const combined = fullSummary
+      ? (language === "id"
+          ? `Ringkasan keseluruhan buku: ${fullSummary}\n\nRingkasan halaman ini: ${pageSummary || "Tidak tersedia."}`
+          : `Full book summary: ${fullSummary}\n\nThis page summary: ${pageSummary || "Not available."}`)
+      : pageSummary || (language === "id" ? "Ringkasan belum tersedia." : "Summary not available.");
+
+    setSummaryText(combined);
+    AccessibilityInfo.announceForAccessibility(combined);
+    speakText(combined, selectedVoice, 1).catch(() => {});
+  }, [book, currentSection, language, summaryText, selectedVoice, t]);
 
   const handleReadSummaryAloud = useCallback(() => {
     if (summaryText) {
@@ -432,17 +419,13 @@ export default function StudentReaderScreen() {
               </Text>
             </View>
             <Pressable
-              style={[styles.summarizeHeaderButton, isSummarizing && { opacity: 0.5 }]}
+              style={styles.summarizeHeaderButton}
               onPress={handleSummarize}
-              disabled={isSummarizing}
               accessibilityRole="button"
               accessibilityLabel={t.reader.summarize}
               accessibilityHint={t.reader.summarizeA11yHint}
             >
-              {isSummarizing
-                ? <ActivityIndicator size="small" color={Colors.primaryLight} />
-                : <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
-              }
+              <Ionicons name="sparkles" size={24} color={Colors.primaryLight} />
             </Pressable>
           </View>
 
@@ -611,38 +594,16 @@ export default function StudentReaderScreen() {
               </View>
 
               <ScrollView style={styles.modalScrollView}>
-                {isSummarizing ? (
-                  <View style={styles.modalLoadingContainer}>
-                    <ActivityIndicator size="large" color={Colors.primaryLight} />
-                    <Text style={styles.modalLoadingText}>{t.reader.summaryLoading}</Text>
-                  </View>
-                ) : summaryError ? (
-                  <View style={styles.modalErrorContainer}>
-                    <Ionicons name="alert-circle" size={32} color="#E65100" />
-                    <Text style={styles.modalErrorText}>{t.reader.summaryError}</Text>
-                    <Pressable
-                      style={styles.retryButton}
-                      onPress={handleSummarize}
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="refresh" size={20} color="#FFF" />
-                      <Text style={styles.retryButtonText}>
-                        {t.reader.summaryRetry}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : (
-                  <Text
-                    style={styles.modalSummaryText}
-                    accessibilityRole="text"
-                    accessibilityLabel={summaryText}
-                  >
-                    {summaryText}
-                  </Text>
-                )}
+                <Text
+                  style={styles.modalSummaryText}
+                  accessibilityRole="text"
+                  accessibilityLabel={summaryText}
+                >
+                  {summaryText}
+                </Text>
               </ScrollView>
 
-              {summaryText && !isSummarizing && (
+              {summaryText && (
                 <Pressable
                   style={styles.readAloudButton}
                   onPress={handleReadSummaryAloud}
