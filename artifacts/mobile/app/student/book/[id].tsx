@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   AccessibilityInfo,
   Image,
@@ -42,52 +42,54 @@ export default function BookDetailScreen() {
 
   useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, genresText) : "");
 
-  React.useEffect(() => {
-    if (!book) return;
-    onTranscription((_text: string, intent: VoiceIntent) => {
-      if (intent === "repeat_commands") {
-        AccessibilityInfo.announceForAccessibility(t.bookDetail.pageCommands);
-        speakText(t.bookDetail.pageCommands, selectedVoice, 1).catch(() => {});
-        return true;
-      }
-      switch (intent) {
-        case "open_preview": {
-          setShowPreview(true);
-          const previewText = book.content[0] || "";
-          const msg = `${t.bookDetail.previewReading} ${previewText}`;
-          AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
+  useFocusEffect(
+    useCallback(() => {
+      if (!book) return;
+      onTranscription((_text: string, intent: VoiceIntent) => {
+        if (intent === "repeat_commands") {
+          AccessibilityInfo.announceForAccessibility(t.bookDetail.pageCommands);
+          speakText(t.bookDetail.pageCommands, selectedVoice, 1).catch(() => {});
           return true;
         }
-        case "read_synopsis": {
-          const msg = t.bookDetail.synopsisAnnounce(book.synopsis);
-          AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
-          return true;
-        }
-        case "read_full":
-        case "reader_play": {
-          const owned = purchasedBookIds.includes(book.id) || assignedBookIds.includes(book.id);
-          if (isSubscribed || owned) {
-            AccessibilityInfo.announceForAccessibility(t.bookDetail.readNow);
-            router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
-          } else {
-            const msg = t.bookDetail.subscriptionRequired;
+        switch (intent) {
+          case "open_preview": {
+            setShowPreview(true);
+            const previewText = book.content[0] || "";
+            const msg = `${t.bookDetail.previewReading} ${previewText}`;
             AccessibilityInfo.announceForAccessibility(msg);
             speakText(msg, selectedVoice, 1).catch(() => {});
+            return true;
           }
-          return true;
+          case "read_synopsis": {
+            const msg = t.bookDetail.synopsisAnnounce(book.synopsis);
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+            return true;
+          }
+          case "read_full":
+          case "reader_play": {
+            const owned = purchasedBookIds.includes(book.id) || assignedBookIds.includes(book.id);
+            if (isSubscribed || owned) {
+              AccessibilityInfo.announceForAccessibility(t.bookDetail.readNow);
+              router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
+            } else {
+              const msg = t.bookDetail.subscriptionRequired;
+              AccessibilityInfo.announceForAccessibility(msg);
+              speakText(msg, selectedVoice, 1).catch(() => {});
+            }
+            return true;
+          }
+          case "nav_subscription": {
+            router.push("/student/subscription");
+            return true;
+          }
+          default:
+            return false;
         }
-        case "nav_subscription": {
-          router.push("/student/subscription");
-          return true;
-        }
-        default:
-          return false;
-      }
-    });
-    return () => clearTranscriptionCallback();
-  }, [book, isSubscribed, selectedVoice, t]);
+      });
+      return () => clearTranscriptionCallback();
+    }, [book, isSubscribed, selectedVoice, t])
+  );
 
   if (!book) {
     return (

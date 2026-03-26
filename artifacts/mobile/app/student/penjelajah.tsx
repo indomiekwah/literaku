@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -157,7 +157,7 @@ export default function PenjelajahScreen() {
   const purchasedBooks = sampleBooks.filter((b) => purchasedBookIds.includes(b.id));
   const assignedBooks = sampleBooks.filter((b) => assignedBookIds.includes(b.id));
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.explorer.pageCommands);
@@ -233,7 +233,7 @@ export default function PenjelajahScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t]);
+  }, [selectedVoice, t]));
 
   const handleClearSearch = () => {
     setSearchQuery("");

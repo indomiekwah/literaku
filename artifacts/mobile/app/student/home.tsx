@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   AccessibilityInfo,
   Image,
@@ -74,7 +74,7 @@ export default function StudentHomeScreen() {
     : (interactionMode === "voice" ? "voice" : "touch");
   useTTSAnnounce(t.home.mountAnnounce(modeLabel));
 
-  React.useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.home.pageCommands);
@@ -91,7 +91,7 @@ export default function StudentHomeScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t]);
+  }, [selectedVoice, t]));
 
   return (
     <SwipeVoiceWrapper>

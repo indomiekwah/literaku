@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -67,7 +67,7 @@ export default function StudentSettingsScreen() {
     speakText(msg, selectedVoice, 1).catch(() => {});
   }, [selectedVoice]);
 
-  React.useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
       const lower = text.toLowerCase();
       const hasChangeVerb = !!lower.match(/\b(change|switch|set|ubah|ganti|pilih|pakai|use)\b/);
@@ -146,7 +146,7 @@ export default function StudentSettingsScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, language, findVoiceByName, speak]);
+  }, [selectedVoice, language, findVoiceByName, speak]));
 
   const cycleSpeed = () => {
     const idx = SPEED_OPTIONS.indexOf(speed);

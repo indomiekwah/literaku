@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -100,7 +100,7 @@ export default function StudentGuideScreen() {
     return false;
   }, [t, speakSection]);
 
-  React.useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
       if (intent === "repeat_commands") {
         speakSection(t.guide.pageCommands);
@@ -117,7 +117,7 @@ export default function StudentGuideScreen() {
       return true;
     });
     return () => clearTranscriptionCallback();
-  }, [matchSection, t, speakSection]);
+  }, [matchSection, t, speakSection]));
 
   return (
     <SwipeVoiceWrapper>

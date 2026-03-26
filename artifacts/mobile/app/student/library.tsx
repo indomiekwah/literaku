@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -76,7 +76,7 @@ export default function KoleksiScreen() {
 
   useTTSAnnounce(t.collection.mountAnnounce(purchasedBooks.length, assignedBooks.length));
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.collection.pageCommands);
@@ -114,7 +114,7 @@ export default function KoleksiScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t, isSubscribed]);
+  }, [selectedVoice, t, isSubscribed]));
 
   return (
     <SwipeVoiceWrapper>

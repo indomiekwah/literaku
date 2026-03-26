@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -74,7 +74,7 @@ export default function InstitusiScreen() {
     }
   }, [t, selectedVoice]);
 
-  React.useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         const msg = joinedInstitution
@@ -97,7 +97,7 @@ export default function InstitusiScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t, joinedInstitution, tryJoinWithCode]);
+  }, [selectedVoice, t, joinedInstitution, tryJoinWithCode]));
 
   const handleJoinRequest = () => {
     if (!institutionCode.trim()) {

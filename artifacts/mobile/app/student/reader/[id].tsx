@@ -1,5 +1,5 @@
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
@@ -140,7 +140,7 @@ export default function StudentReaderScreen() {
     };
   }, []);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.reader.pageCommands);
@@ -194,7 +194,8 @@ export default function StudentReaderScreen() {
           return false;
       }
     });
-  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, summaryText, selectedVoice, t]);
+    return () => clearTranscriptionCallback();
+  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, summaryText, selectedVoice, t]));
 
   if (!book) {
     return (
