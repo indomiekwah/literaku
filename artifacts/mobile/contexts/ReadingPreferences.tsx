@@ -47,7 +47,7 @@ const ReadingPreferencesContext = createContext<ReadingPreferencesContextValue |
 export function ReadingPreferencesProvider({ children }: { children: ReactNode }) {
   const [selectedVoice, setSelectedVoice] = useState("v4");
   const [speed, setSpeed] = useState<SpeedValue>(1);
-  const [textSize, setTextSize] = useState(22);
+  const [textSize, setTextSize] = useState(28);
   const [language, setLanguageRaw] = useState<AppLanguage>("en");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("touch");
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
