@@ -148,7 +148,7 @@ const projectData = {
       { text: "go back", language: "en-us", intent: "nav_back", entities: [] },
       { text: "back", language: "en-us", intent: "nav_back", entities: [] },
       { text: "return", language: "en-us", intent: "nav_back", entities: [] },
-      { text: "previous page", language: "en-us", intent: "nav_back", entities: [] },
+      { text: "go to previous screen", language: "en-us", intent: "nav_back", entities: [] },
       { text: "go to previous", language: "en-us", intent: "nav_back", entities: [] },
       { text: "kembali", language: "id", intent: "nav_back", entities: [] },
       { text: "balik", language: "id", intent: "nav_back", entities: [] },

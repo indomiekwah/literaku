@@ -207,15 +207,26 @@ export interface CLUResult {
   entities: { category: string; text: string; confidence: number }[];
 }
 
+const CLU_TIMEOUT_MS = 4000;
+
+function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+  return Promise.race([
+    fetch(url, options),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), timeoutMs)
+    ),
+  ]);
+}
+
 export async function analyzeCLU(
   text: string,
   language: string = "en"
 ): Promise<CLUResult> {
-  const res = await fetch(`${API_BASE}/speech/clu`, {
+  const res = await fetchWithTimeout(`${API_BASE}/speech/clu`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, language }),
-  });
+  }, CLU_TIMEOUT_MS);
   if (!res.ok) {
     throw new Error("CLU analysis failed");
   }
@@ -224,7 +235,7 @@ export async function analyzeCLU(
 
 export async function isCLUAvailable(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/speech/clu/status`);
+    const res = await fetchWithTimeout(`${API_BASE}/speech/clu/status`, {}, CLU_TIMEOUT_MS);
     if (!res.ok) return false;
     const data = await res.json();
     return data.available === true;

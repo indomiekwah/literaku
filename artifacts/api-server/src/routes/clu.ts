@@ -6,11 +6,25 @@ const AZURE_LANGUAGE_KEY = process.env["AZURE_LANGUAGE_KEY"] || "";
 const AZURE_LANGUAGE_ENDPOINT = process.env["AZURE_LANGUAGE_ENDPOINT"] || "";
 const CLU_PROJECT_NAME = "literaku-voice";
 const CLU_DEPLOYMENT_NAME = "production";
-const CLU_API_VERSION = "2022-10-01-preview";
+const CLU_API_VERSION = "2023-04-01";
+const CLU_TIMEOUT_MS = 5000;
+const STATUS_CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_TEXT_LENGTH = 500;
+
+let statusCache: { available: boolean; checkedAt: number } | null = null;
+
+function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<globalThis.Response> {
+  return Promise.race([
+    fetch(url, options),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Request timeout")), timeoutMs)
+    ),
+  ]);
+}
 
 cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
   if (!AZURE_LANGUAGE_KEY || !AZURE_LANGUAGE_ENDPOINT) {
-    res.status(500).json({ error: "Azure Language credentials not configured" });
+    res.status(503).json({ error: "CLU service not configured" });
     return;
   }
 
@@ -24,12 +38,13 @@ cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
     return;
   }
 
+  const sanitizedText = text.trim().slice(0, MAX_TEXT_LENGTH);
   const lang = language || "en";
 
   try {
     const url = `${AZURE_LANGUAGE_ENDPOINT}/language/:analyze-conversations?api-version=${CLU_API_VERSION}`;
 
-    const cluRes = await fetch(url, {
+    const cluRes = await fetchWithTimeout(url, {
       method: "POST",
       headers: {
         "Ocp-Apim-Subscription-Key": AZURE_LANGUAGE_KEY,
@@ -40,7 +55,7 @@ cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
         analysisInput: {
           conversationItem: {
             id: "1",
-            text: text.trim(),
+            text: sanitizedText,
             participantId: "user",
             language: lang,
           },
@@ -51,12 +66,11 @@ cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
           stringIndexType: "TextElement_V8",
         },
       }),
-    });
+    }, CLU_TIMEOUT_MS);
 
     if (!cluRes.ok) {
-      const errText = await cluRes.text();
-      console.error(`CLU Azure error: ${cluRes.status} - ${errText}`);
-      res.status(cluRes.status).json({ error: `CLU failed: ${errText}` });
+      console.error(`CLU Azure error: ${cluRes.status}`);
+      res.status(502).json({ error: "CLU upstream service error" });
       return;
     }
 
@@ -86,7 +100,7 @@ cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
     const mappedIntent = topIntent === "None" ? "unknown" : topIntent;
 
     console.log(
-      `CLU: "${text}" → ${mappedIntent} (${(confidence * 100).toFixed(0)}%) [entities: ${entities.map((e: any) => `${e.category}="${e.text}"`).join(", ") || "none"}]`
+      `CLU: intent=${mappedIntent} conf=${(confidence * 100).toFixed(0)}%`
     );
 
     res.json({
@@ -96,32 +110,37 @@ cluRouter.post("/speech/clu", async (req: Request, res: Response) => {
       topIntent: topIntent,
     });
   } catch (err: any) {
-    console.error("CLU error:", err);
-    res.status(500).json({ error: err.message || "CLU analysis failed" });
+    const msg = err.message === "Request timeout" ? "CLU request timed out" : "CLU analysis failed";
+    console.error("CLU error:", err.message);
+    res.status(504).json({ error: msg });
   }
 });
 
 cluRouter.get("/speech/clu/status", async (_req: Request, res: Response) => {
   if (!AZURE_LANGUAGE_KEY || !AZURE_LANGUAGE_ENDPOINT) {
-    res.json({ available: false, reason: "credentials_missing" });
+    res.json({ available: false });
+    return;
+  }
+
+  if (statusCache && Date.now() - statusCache.checkedAt < STATUS_CACHE_TTL_MS) {
+    res.json({ available: statusCache.available });
     return;
   }
 
   try {
     const url = `${AZURE_LANGUAGE_ENDPOINT}/language/authoring/analyze-conversations/projects/${CLU_PROJECT_NAME}/deployments/${CLU_DEPLOYMENT_NAME}?api-version=2023-04-01`;
 
-    const checkRes = await fetch(url, {
+    const checkRes = await fetchWithTimeout(url, {
       headers: { "Ocp-Apim-Subscription-Key": AZURE_LANGUAGE_KEY },
-    });
+    }, CLU_TIMEOUT_MS);
 
-    if (checkRes.ok) {
-      res.json({ available: true, project: CLU_PROJECT_NAME, deployment: CLU_DEPLOYMENT_NAME });
-    } else {
-      const errText = await checkRes.text();
-      res.json({ available: false, reason: "deployment_not_found", details: errText });
-    }
+    const available = checkRes.ok;
+    statusCache = { available, checkedAt: Date.now() };
+    res.json({ available });
   } catch (err: any) {
-    res.json({ available: false, reason: "connection_error", details: err.message });
+    console.error("CLU status check error:", err.message);
+    statusCache = { available: false, checkedAt: Date.now() };
+    res.json({ available: false });
   }
 });
 
