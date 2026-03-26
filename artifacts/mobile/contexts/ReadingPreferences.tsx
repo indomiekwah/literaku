@@ -46,7 +46,7 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
   const [speed, setSpeed] = useState<SpeedValue>(0.75);
   const [textSize, setTextSize] = useState(19);
   const [language, setLanguage] = useState<AppLanguage>("en");
-  const [interactionMode, setInteractionMode] = useState<InteractionMode>("voice");
+  const [interactionMode, setInteractionMode] = useState<InteractionMode>("touch");
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Emma (Female)";
