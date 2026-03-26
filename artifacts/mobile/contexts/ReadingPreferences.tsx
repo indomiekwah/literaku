@@ -48,15 +48,26 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
   const [selectedVoice, setSelectedVoice] = useState("v4");
   const [speed, setSpeed] = useState<SpeedValue>(1);
   const [textSize, setTextSize] = useState(22);
-  const [language, setLanguage] = useState<AppLanguage>("en");
+  const [language, setLanguageRaw] = useState<AppLanguage>("en");
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("touch");
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
+
+  const DEFAULT_VOICE: Record<AppLanguage, string> = { en: "v4", id: "v2" };
+
+  const setLanguageWithVoice = (lang: AppLanguage) => {
+    setLanguageRaw(lang);
+    const langPrefix = lang === "id" ? "id-ID" : "en-US";
+    const currentVoice = VOICE_OPTIONS.find(v => v.id === selectedVoice);
+    if (!currentVoice || currentVoice.lang !== langPrefix) {
+      setSelectedVoice(DEFAULT_VOICE[lang]);
+    }
+  };
 
   const isSubscribed = subscriptionPlan !== "free";
   const setIsSubscribed = (subscribed: boolean) => {
     setSubscriptionPlan(subscribed ? "premium" : "free");
   };
-  const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "Emma (Female)";
+  const currentVoiceLabel = VOICE_OPTIONS.find((v) => v.id === selectedVoice)?.label || "James (Male)";
   const isVoiceOnly = interactionMode === "voice";
 
   return (
@@ -72,7 +83,7 @@ export function ReadingPreferencesProvider({ children }: { children: ReactNode }
         setSelectedVoice,
         setSpeed,
         setTextSize,
-        setLanguage,
+        setLanguage: setLanguageWithVoice,
         setInteractionMode,
         setSubscriptionPlan,
         setIsSubscribed,
