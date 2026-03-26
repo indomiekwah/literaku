@@ -257,6 +257,40 @@ export default function StudentReaderScreen() {
     }
   }, [book, visibleSections, currentSection, language, isSummarizing, t]);
 
+  const handleSummarizeAndRead = useCallback(async () => {
+    if (summaryText) {
+      setShowSummary(true);
+      speakText(summaryText, selectedVoice, 1).catch(() => {});
+      return;
+    }
+    if (!book || isSummarizing) return;
+    const sectionText = visibleSections[currentSection];
+    if (!sectionText) return;
+
+    stopTTSPlayback();
+    ttsAbortRef.current = true;
+    setIsPlaying(false);
+    setHighlightedWordGlobal(-1);
+    setIsSummarizing(true);
+    setSummaryError(false);
+    setSummaryText("");
+    setShowSummary(true);
+    AccessibilityInfo.announceForAccessibility(t.reader.summaryLoading);
+
+    try {
+      const result = await summarizeText(sectionText, language);
+      setSummaryText(result.summary);
+      AccessibilityInfo.announceForAccessibility(result.summary);
+      speakText(result.summary, selectedVoice, 1).catch(() => {});
+    } catch (err) {
+      console.error("Summarize error:", err);
+      setSummaryError(true);
+      AccessibilityInfo.announceForAccessibility(t.reader.summaryError);
+    } finally {
+      setIsSummarizing(false);
+    }
+  }, [book, visibleSections, currentSection, language, isSummarizing, summaryText, selectedVoice, t]);
+
   const handleReadSummaryAloud = useCallback(() => {
     if (summaryText) {
       speakText(summaryText, selectedVoice, 1).catch(() => {});
@@ -337,18 +371,14 @@ export default function StudentReaderScreen() {
           handleSummarize();
           return true;
         case "reader_read_aloud":
-          if (summaryText) {
-            speakText(summaryText, selectedVoice, 1).catch(() => {});
-          } else {
-            handleSummarize();
-          }
+          handleSummarizeAndRead();
           return true;
         default:
           return false;
       }
     });
     return () => clearTranscriptionCallback();
-  }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleNextSection, handlePrevSection, summaryText, selectedVoice, language, t]));
+  }, [currentSection, totalSections, isPlaying, startTTSForSection, handleSummarize, handleSummarizeAndRead, handleNextSection, handlePrevSection, summaryText, selectedVoice, language, t]));
 
   const handleSectionLayout = useCallback((sectionIdx: number, e: LayoutChangeEvent) => {
     sectionLayoutsRef.current.set(sectionIdx, {
