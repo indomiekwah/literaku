@@ -50,6 +50,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const recorderRef = useRef<AudioRecorder | null>(null);
   const callbackRef = useRef<TranscriptionCallback | null>(null);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { speed, setSpeed, selectedVoice, language } = useReadingPreferences();
 
   const stopRecording = useCallback(async () => {
@@ -137,7 +138,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         if (callbackRef.current) {
           const handled = callbackRef.current(text, intent, param);
           if (handled === true) {
-            setTimeout(() => setIsVoiceActive(false), 1500);
+            dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 1500);
             return;
           }
         }
@@ -154,7 +155,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             : "This command is only available on the reader page. Open a book first.";
           AccessibilityInfo.announceForAccessibility(msg);
           speakText(msg, selectedVoice, 1).catch(() => {});
-          setTimeout(() => setIsVoiceActive(false), 2000);
+          dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
           return;
         }
 
@@ -164,7 +165,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             : "This command is only available on the book detail page.";
           AccessibilityInfo.announceForAccessibility(msg);
           speakText(msg, selectedVoice, 1).catch(() => {});
-          setTimeout(() => setIsVoiceActive(false), 2000);
+          dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
           return;
         }
 
@@ -176,20 +177,20 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           speakText(msg, selectedVoice, 1).catch(() => {});
         }
 
-        setTimeout(() => setIsVoiceActive(false), 2000);
+        dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
       } else {
         const msg = language === "id"
           ? "Tidak terdengar suara. Coba lagi."
           : "Could not understand. Please try again.";
         AccessibilityInfo.announceForAccessibility(msg);
         speakText(msg, selectedVoice, 1).catch(() => {});
-        setTimeout(() => setIsVoiceActive(false), 2000);
+        dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
       }
     } catch (err) {
       console.error("STT error:", err);
       setIsListening(false);
       AccessibilityInfo.announceForAccessibility("Voice recognition failed. Please try again.");
-      setTimeout(() => setIsVoiceActive(false), 2000);
+      dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
     }
   }, [speed, setSpeed, selectedVoice, language]);
 
@@ -220,12 +221,29 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
   const activateVoice = useCallback(() => {
     stopTTS();
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current);
+      dismissTimeoutRef.current = null;
+    }
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+    if (recorderRef.current) {
+      recorderRef.current.cancel();
+      recorderRef.current = null;
+    }
     setIsVoiceActive(true);
+    setIsListening(false);
     setTranscribedText("");
     startRecording();
   }, [startRecording]);
 
   const dismissVoice = useCallback(() => {
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current);
+      dismissTimeoutRef.current = null;
+    }
     if (listenTimeoutRef.current) {
       clearTimeout(listenTimeoutRef.current);
       listenTimeoutRef.current = null;
