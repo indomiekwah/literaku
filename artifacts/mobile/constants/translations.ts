@@ -8,7 +8,7 @@ const en = {
   login: {
     google: "Sign in with Google",
     microsoft: "Sign in with Microsoft",
-    mountAnnounce: "Welcome to Literaku. You can sign in with Google or Microsoft. Say 'Sign in with Google' or 'Sign in with Microsoft' to continue.",
+    mountAnnounce: "Welcome to Literaku. You can sign in with Google or Microsoft.",
     pageCommands: "This is the login page. You can sign in with Google or Microsoft.",
     signingIn: "Signing in...",
     signingWith: "Signing in with",
@@ -49,7 +49,7 @@ const en = {
     backA11yLabel: "Go back to sign in",
   },
   home: {
-    mountAnnounce: (mode: string) => `Literaku Home. You are in ${mode} mode. From top: Institution, Explorer, Collection, History, Settings, and Guide. Say 'Open' followed by the page name.`,
+    mountAnnounce: (mode: string) => `Literaku Home. You are in ${mode} mode. From top: Institution, Explorer, Collection, History, Settings, and Guide.`,
     pageCommands: "On this page: Institution, Explorer, Collection, History, Settings, and Guide.",
     explorer: "Explorer",
     explorerSub: "Browse & discover books",
@@ -78,7 +78,7 @@ const en = {
   },
   explorer: {
     title: "Explorer",
-    mountAnnounce: (count: number) => `Book Explorer. ${count} books available. Say 'Search' followed by keywords, or say a book title to open it. Say 'Go back' to return.`,
+    mountAnnounce: (count: number) => `Book Explorer. ${count} books available.`,
     pageCommands: "This is the Explorer. You can search for books and browse the available titles.",
     backA11yLabel: "Back to home",
     searchPlaceholder: "Search books...",
@@ -88,7 +88,7 @@ const en = {
   },
   history: {
     title: "History",
-    mountAnnounce: "Reading history. View books you've read, bookmarks, and books from your institution. Say 'Go back' to return home.",
+    mountAnnounce: "Reading history. View books you've read, bookmarks, and books from your institution.",
     pageCommands: "This is the History page. Here you can see: Books from your institution, Recently read books, and Bookmarked books.",
     backA11yLabel: "Back to home",
     fromInstitution: "From Institution",
@@ -107,7 +107,7 @@ const en = {
   },
   collection: {
     title: "Collection",
-    mountAnnounce: (count: number) => `Your Collection. ${count} books in your reading list. Say 'Search' followed by keywords, or say a book title. Say 'Go back' to return.`,
+    mountAnnounce: (count: number) => `Your Collection. ${count} books in your reading list.`,
     pageCommands: "This is your Collection. You can search through your saved books and see your reading progress.",
     backA11yLabel: "Back to home",
     searchPlaceholder: "Search collection...",
@@ -123,7 +123,7 @@ const en = {
   bookDetail: {
     backA11yLabel: "Back",
     mountAnnounce: (title: string, author: string, genre: string) =>
-      `Book detail: ${title} by ${author}. ${genre}. Say 'Open preview' to preview, or 'Read full book' to read. Say 'Go back' to return.`,
+      `Book detail: ${title} by ${author}. ${genre}.`,
     pageCommands: "This is the Book Detail page. Here you can see: Book information, Preview option, and Read full book option.",
     notFound: "Book not found",
     preview: "Preview",
@@ -158,13 +158,13 @@ const en = {
     premiumPlan: "Premium Plan",
     freeDesc: "Chapter 1 preview only. Upgrade for full access.",
     premiumDesc: "Full library access with all features.",
-    mountAnnounce: (plan: string) => `Subscription page. You are currently on the ${plan} plan. Say 'Subscribe premium' to upgrade. Say 'Go back' to return.`,
+    mountAnnounce: (plan: string) => `Subscription page. You are currently on the ${plan} plan.`,
     pageCommands: "This is the Subscription page. Here you can see: your current plan, Free plan option, and Premium plan option.",
     planChanged: (plan: string) => `Your plan has been changed to ${plan}.`,
     backA11yLabel: "Back",
   },
   reader: {
-    mountAnnounce: (title: string) => `Reading ${title}. Say 'Play' to start narration, 'Pause' to pause, 'Next page' or 'Previous page' to navigate, 'Summarize' for AI summary, or 'Go back' to return.`,
+    mountAnnounce: (title: string) => `Reading ${title}.`,
     pageCommands: "This is the Reader. Here you have: Play and Pause narration, Next and Previous page, AI Summarize, Read aloud, and Speed controls.",
     notFound: "Book not found",
     page: "Page",
@@ -195,7 +195,7 @@ const en = {
   },
   settings: {
     title: "Settings",
-    mountAnnounce: "Settings page. You can adjust: Narrator, Speed, Language, Interaction mode, and Subscription. Say 'Change narrator to' a name, or 'Change language to' English or Indonesian. Say 'Go back' to return.",
+    mountAnnounce: "Settings page. You can adjust: Narrator, Speed, Language, Interaction mode, and Subscription.",
     pageCommands: "This is the Settings page. Here you can adjust: Narrator, Reading Speed, Language, Interaction Mode, and Subscription.",
     voiceNarration: "Narrator",
     narrationVoice: "Narration Voice",
@@ -223,7 +223,7 @@ const en = {
   },
   guide: {
     title: "Guide",
-    mountAnnounce: "Welcome to the Literaku guide. Topics: About Literaku. Voice commands. Voice mode and touch mode. Context-aware commands. TalkBack and VoiceOver. Voice language. Say any topic name to hear more. Say 'Go back' to return.",
+    mountAnnounce: "Welcome to the Literaku guide. Topics: About Literaku. Voice commands. Voice mode and touch mode. Context-aware commands. TalkBack and VoiceOver. Voice language.",
     pageCommands: "This is the Guide. Topics available: About Literaku, Voice Commands, Voice Mode and Touch Mode, Context-Aware Commands, TalkBack and VoiceOver, and Voice Language.",
     heroTitle: "Welcome to\nLiteraku",
     heroSub: "Your voice-first accessible reading platform. Say a section name to hear it explained.",
@@ -297,7 +297,7 @@ const id: typeof en = {
   login: {
     google: "Masuk dengan Google",
     microsoft: "Masuk dengan Microsoft",
-    mountAnnounce: "Selamat datang di Literaku. Anda bisa masuk dengan Google atau Microsoft. Ucapkan 'Masuk dengan Google' atau 'Masuk dengan Microsoft' untuk melanjutkan.",
+    mountAnnounce: "Selamat datang di Literaku. Anda bisa masuk dengan Google atau Microsoft.",
     pageCommands: "Ini halaman masuk. Anda bisa masuk dengan Google atau Microsoft.",
     signingIn: "Sedang masuk...",
     signingWith: "Masuk dengan",
@@ -338,7 +338,7 @@ const id: typeof en = {
     backA11yLabel: "Kembali ke halaman masuk",
   },
   home: {
-    mountAnnounce: (mode: string) => `Beranda Literaku. Anda dalam mode ${mode}. Dari atas: Institusi, Penjelajah, Koleksi, Riwayat, Pengaturan, dan Panduan. Ucapkan 'Buka' diikuti nama halaman.`,
+    mountAnnounce: (mode: string) => `Beranda Literaku. Anda dalam mode ${mode}. Dari atas: Institusi, Penjelajah, Koleksi, Riwayat, Pengaturan, dan Panduan.`,
     pageCommands: "Di halaman ini: Institusi, Penjelajah, Koleksi, Riwayat, Pengaturan, dan Panduan.",
     explorer: "Penjelajah",
     explorerSub: "Jelajahi & temukan buku",
@@ -367,7 +367,7 @@ const id: typeof en = {
   },
   explorer: {
     title: "Penjelajah",
-    mountAnnounce: (count: number) => `Penjelajah buku. ${count} buku tersedia. Ucapkan 'Cari' diikuti kata kunci, atau ucapkan judul buku. Ucapkan 'Kembali' untuk kembali.`,
+    mountAnnounce: (count: number) => `Penjelajah buku. ${count} buku tersedia.`,
     pageCommands: "Ini halaman Penjelajah. Anda bisa mencari buku dan menjelajahi judul yang tersedia.",
     backA11yLabel: "Kembali ke beranda",
     searchPlaceholder: "Cari buku...",
@@ -377,7 +377,7 @@ const id: typeof en = {
   },
   history: {
     title: "Riwayat",
-    mountAnnounce: "Riwayat bacaan. Lihat buku yang pernah dibaca, bookmark, dan buku dari institusi Anda. Ucapkan 'Kembali' untuk ke beranda.",
+    mountAnnounce: "Riwayat bacaan. Lihat buku yang pernah dibaca, bookmark, dan buku dari institusi Anda.",
     pageCommands: "Ini halaman Riwayat. Di sini ada: Buku dari institusi, Buku yang baru dibaca, dan Buku yang di-bookmark.",
     backA11yLabel: "Kembali ke beranda",
     fromInstitution: "Dari Institusi",
@@ -396,7 +396,7 @@ const id: typeof en = {
   },
   collection: {
     title: "Koleksi",
-    mountAnnounce: (count: number) => `Koleksi Anda. ${count} buku di daftar bacaan. Ucapkan 'Cari' diikuti kata kunci, atau ucapkan judul buku. Ucapkan 'Kembali' untuk kembali.`,
+    mountAnnounce: (count: number) => `Koleksi Anda. ${count} buku di daftar bacaan.`,
     pageCommands: "Ini halaman Koleksi Anda. Anda bisa mencari buku yang disimpan dan melihat progress bacaan.",
     backA11yLabel: "Kembali ke beranda",
     searchPlaceholder: "Cari di koleksi...",
@@ -412,7 +412,7 @@ const id: typeof en = {
   bookDetail: {
     backA11yLabel: "Kembali",
     mountAnnounce: (title: string, author: string, genre: string) =>
-      `Detail buku: ${title} oleh ${author}. ${genre}. Ucapkan 'Buka preview' untuk preview, atau 'Baca buku' untuk membaca. Ucapkan 'Kembali' untuk kembali.`,
+      `Detail buku: ${title} oleh ${author}. ${genre}.`,
     pageCommands: "Ini halaman Detail Buku. Di sini ada: Informasi buku, Opsi preview, dan Opsi baca buku lengkap.",
     notFound: "Buku tidak ditemukan",
     preview: "Preview",
@@ -447,13 +447,13 @@ const id: typeof en = {
     premiumPlan: "Paket Premium",
     freeDesc: "Hanya preview bab 1. Upgrade untuk akses penuh.",
     premiumDesc: "Akses penuh perpustakaan dengan semua fitur.",
-    mountAnnounce: (plan: string) => `Halaman langganan. Anda saat ini di paket ${plan}. Ucapkan 'Subscribe premium' untuk upgrade. Ucapkan 'Kembali' untuk kembali.`,
+    mountAnnounce: (plan: string) => `Halaman langganan. Anda saat ini di paket ${plan}.`,
     pageCommands: "Ini halaman Langganan. Di sini ada: paket Anda saat ini, Opsi paket gratis, dan Opsi paket premium.",
     planChanged: (plan: string) => `Paket Anda telah diubah ke ${plan}.`,
     backA11yLabel: "Kembali",
   },
   reader: {
-    mountAnnounce: (title: string) => `Membaca ${title}. Ucapkan 'Putar' untuk mulai narasi, 'Jeda' untuk jeda, 'Halaman selanjutnya' atau 'Halaman sebelumnya' untuk navigasi, 'Ringkas' untuk ringkasan AI, atau 'Kembali' untuk kembali.`,
+    mountAnnounce: (title: string) => `Membaca ${title}.`,
     pageCommands: "Ini halaman Pembaca. Di sini ada: Putar dan Jeda narasi, Halaman selanjutnya dan sebelumnya, Ringkasan AI, Bacakan, dan Pengaturan kecepatan.",
     notFound: "Buku tidak ditemukan",
     page: "Halaman",
@@ -484,7 +484,7 @@ const id: typeof en = {
   },
   settings: {
     title: "Pengaturan",
-    mountAnnounce: "Halaman pengaturan. Anda bisa mengatur: Narator, Kecepatan, Bahasa, Mode interaksi, dan Langganan. Ucapkan 'Ganti narator ke' diikuti nama, atau 'Ganti bahasa ke' Inggris atau Indonesia. Ucapkan 'Kembali' untuk kembali.",
+    mountAnnounce: "Halaman pengaturan. Anda bisa mengatur: Narator, Kecepatan, Bahasa, Mode interaksi, dan Langganan.",
     pageCommands: "Ini halaman Pengaturan. Di sini Anda bisa mengatur: Narator, Kecepatan Baca, Bahasa, Mode Interaksi, dan Langganan.",
     voiceNarration: "Narator",
     narrationVoice: "Suara Narasi",
@@ -512,7 +512,7 @@ const id: typeof en = {
   },
   guide: {
     title: "Panduan",
-    mountAnnounce: "Selamat datang di panduan Literaku. Topik: Tentang Literaku. Perintah suara. Mode suara dan sentuh. Perintah kontekstual. TalkBack dan VoiceOver. Bahasa suara. Ucapkan nama topik untuk mendengar penjelasannya. Ucapkan 'Kembali' untuk kembali.",
+    mountAnnounce: "Selamat datang di panduan Literaku. Topik: Tentang Literaku. Perintah suara. Mode suara dan sentuh. Perintah kontekstual. TalkBack dan VoiceOver. Bahasa suara.",
     pageCommands: "Ini halaman Panduan. Topik yang tersedia: Tentang Literaku, Perintah Suara, Mode Suara dan Sentuh, Perintah Kontekstual, TalkBack dan VoiceOver, dan Bahasa Suara.",
     heroTitle: "Selamat datang\ndi Literaku",
     heroSub: "Platform membaca aksesibel berbasis suara. Ucapkan nama bagian untuk mendengar penjelasannya.",
