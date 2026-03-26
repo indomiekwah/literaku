@@ -45,7 +45,7 @@ interface ReadingPreferencesContextValue extends ReadingPreferencesState {
 const ReadingPreferencesContext = createContext<ReadingPreferencesContextValue | null>(null);
 
 export function ReadingPreferencesProvider({ children }: { children: ReactNode }) {
-  const [selectedVoice, setSelectedVoice] = useState("v3");
+  const [selectedVoice, setSelectedVoice] = useState("v4");
   const [speed, setSpeed] = useState<SpeedValue>(1);
   const [textSize, setTextSize] = useState(22);
   const [language, setLanguage] = useState<AppLanguage>("en");

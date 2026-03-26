@@ -51,14 +51,16 @@ export default function StudentSettingsScreen() {
 
   useTTSAnnounce(t.settings.mountAnnounce);
 
+  const langPrefix = language === "id" ? "id-ID" : "en-US";
+  const filteredVoices = VOICE_OPTIONS.filter(v => v.lang === langPrefix);
+
   const findVoiceByName = React.useCallback((text: string) => {
     const lower = text.toLowerCase();
-    return VOICE_OPTIONS.find(v => {
-      const name = v.label.toLowerCase();
-      const shortName = name.split("(")[0].trim();
+    return filteredVoices.find(v => {
+      const shortName = v.label.split("(")[0].trim().toLowerCase();
       return lower.includes(shortName);
     });
-  }, []);
+  }, [filteredVoices]);
 
   const speak = React.useCallback((msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
@@ -81,7 +83,7 @@ export default function StudentSettingsScreen() {
             : `Narrator changed to ${match.label}.`;
           speak(msg);
         } else {
-          const voiceList = VOICE_OPTIONS.map(v => v.label.split("(")[0].trim()).join(", ");
+          const voiceList = filteredVoices.map(v => v.label.split("(")[0].trim()).join(", ");
           const msg = language === "id"
             ? `Narator tidak ditemukan. Pilihan yang tersedia: ${voiceList}.`
             : `Narrator not found. Available options: ${voiceList}.`;
@@ -107,11 +109,11 @@ export default function StudentSettingsScreen() {
       }
 
       if (hasNarratorWord) {
-        const voiceList = VOICE_OPTIONS.map(v => `${v.label}, ${v.lang}`).join(". ");
-        const current = VOICE_OPTIONS.find(v => v.id === selectedVoice);
+        const voiceList = filteredVoices.map(v => v.label).join(", ");
+        const current = filteredVoices.find(v => v.id === selectedVoice) || filteredVoices[0];
         const msg = language === "id"
-          ? `Pilihan narator: ${voiceList}. Saat ini: ${current?.label || "Emma"}. Ucapkan 'Ganti narator ke' diikuti nama untuk mengubah.`
-          : `Narrator options: ${voiceList}. Currently: ${current?.label || "Emma"}. Say 'Change narrator to' followed by a name to switch.`;
+          ? `Pilihan narator: ${voiceList}. Saat ini: ${current?.label}. Ucapkan 'Ganti narator ke' diikuti nama untuk mengubah.`
+          : `Narrator options: ${voiceList}. Currently: ${current?.label}. Say 'Change narrator to' followed by a name to switch.`;
         speak(msg);
         return true;
       }
@@ -178,7 +180,7 @@ export default function StudentSettingsScreen() {
           <View style={styles.card}>
             <Text style={styles.cardLabel}>{t.settings.narrationVoice}</Text>
             <View style={styles.voiceList}>
-              {VOICE_OPTIONS.map((voice) => {
+              {filteredVoices.map((voice) => {
                 const isSelected = voice.id === selectedVoice;
                 return (
                   <Pressable
@@ -190,7 +192,7 @@ export default function StudentSettingsScreen() {
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: isSelected }}
-                    accessibilityLabel={`${voice.label}, ${voice.lang}${isSelected ? ", currently selected" : ""}`}
+                    accessibilityLabel={`${voice.label}${isSelected ? ", currently selected" : ""}`}
                     accessibilityHint={isSelected ? "This voice is currently selected" : "Double tap to select this voice"}
                   >
                     <Ionicons
@@ -202,7 +204,6 @@ export default function StudentSettingsScreen() {
                       <Text style={[styles.voiceOptionLabel, isSelected && styles.voiceOptionLabelSelected]}>
                         {voice.label}
                       </Text>
-                      <Text style={styles.voiceOptionLang}>{voice.lang}</Text>
                     </View>
                   </Pressable>
                 );
