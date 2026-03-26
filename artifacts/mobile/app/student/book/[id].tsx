@@ -4,7 +4,6 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   AccessibilityInfo,
-  Alert,
   Image,
   Platform,
   Pressable,
@@ -18,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, subscriptionPlans, formatRupiah, voiceHints } from "@/constants/data";
+import { sampleBooks, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -31,10 +30,9 @@ export default function BookDetailScreen() {
   const isWeb = Platform.OS === "web";
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
-  const { isVoiceOnly, isSubscribed, setIsSubscribed } = useReadingPreferences();
+  const { isVoiceOnly, isSubscribed } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const [showSubscription, setShowSubscription] = useState(false);
-  const [selectedPlanType, setSelectedPlanType] = useState<"monthly" | "yearly">("monthly");
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
@@ -79,30 +77,7 @@ export default function BookDetailScreen() {
   }
 
   const handleSubscribe = () => {
-    setShowSubscription(true);
-    AccessibilityInfo.announceForAccessibility(t.subscription.subtitle);
-  };
-
-  const handleConfirmSubscription = () => {
-    const plan = subscriptionPlans[0];
-    const price = selectedPlanType === "monthly"
-      ? formatRupiah(plan.priceMonthly)
-      : formatRupiah(plan.priceYearly);
-
-    Alert.alert(
-      t.subscription.successTitle,
-      t.subscription.successMsg,
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            setIsSubscribed(true);
-            setShowSubscription(false);
-            AccessibilityInfo.announceForAccessibility(t.subscription.successA11y);
-          },
-        },
-      ]
-    );
+    router.push("/student/subscription");
   };
 
   const handlePreview = () => {
@@ -114,98 +89,8 @@ export default function BookDetailScreen() {
   };
 
   if (showSubscription) {
-    const plan = subscriptionPlans[0];
-    return (
-      <SwipeVoiceWrapper>
-        <View style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}>
-          <StatusBar style="dark" />
-
-          <View style={styles.header}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => setShowSubscription(false)}
-              accessibilityRole="button"
-              accessibilityLabel={t.bookDetail.backA11yLabel}
-            >
-              <Feather name="arrow-left" size={28} color={Colors.text} />
-            </Pressable>
-            <Text style={styles.headerTitle} accessibilityRole="header">{t.subscription.title}</Text>
-            <View style={{ width: 48 }} />
-          </View>
-
-          <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            <View style={styles.subHero}>
-              <Ionicons name="diamond" size={48} color={Colors.primaryLight} />
-              <Text style={styles.subHeroTitle}>{t.subscription.subtitle}</Text>
-              <Text style={styles.subHeroDesc}>{t.subscription.description}</Text>
-            </View>
-
-            <View style={styles.planToggleRow}>
-              <Pressable
-                style={[styles.planToggle, selectedPlanType === "monthly" && styles.planToggleActive]}
-                onPress={() => setSelectedPlanType("monthly")}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: selectedPlanType === "monthly" }}
-              >
-                <Text style={[styles.planToggleText, selectedPlanType === "monthly" && styles.planToggleTextActive]}>
-                  {t.subscription.monthly}
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[styles.planToggle, selectedPlanType === "yearly" && styles.planToggleActive]}
-                onPress={() => setSelectedPlanType("yearly")}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: selectedPlanType === "yearly" }}
-              >
-                <Text style={[styles.planToggleText, selectedPlanType === "yearly" && styles.planToggleTextActive]}>
-                  {t.subscription.yearly}
-                </Text>
-                <View style={styles.saveBadge}>
-                  <Text style={styles.saveBadgeText}>{t.subscription.savePercent(17)}</Text>
-                </View>
-              </Pressable>
-            </View>
-
-            <View style={styles.planCard}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <View style={styles.priceRow}>
-                <Text style={styles.planPrice}>
-                  {formatRupiah(selectedPlanType === "monthly" ? plan.priceMonthly : plan.priceYearly)}
-                </Text>
-                <Text style={styles.planPeriod}>
-                  {selectedPlanType === "monthly" ? t.subscription.perMonth : t.subscription.perYear}
-                </Text>
-              </View>
-
-              <Text style={styles.featuresLabel}>{t.subscription.features}</Text>
-              {plan.features.map((feature, idx) => (
-                <View key={idx} style={styles.featureRow}>
-                  <Ionicons name="checkmark-circle" size={22} color={Colors.studentPrimary} />
-                  <Text style={styles.featureText}>{feature}</Text>
-                </View>
-              ))}
-
-              <Text style={styles.cancelText}>{t.subscription.cancelAnytime}</Text>
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.subscribeButton,
-                { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
-              ]}
-              onPress={handleConfirmSubscription}
-              accessibilityRole="button"
-              accessibilityLabel={t.subscription.subscribe}
-            >
-              <Ionicons name="diamond" size={22} color="#FFFFFF" />
-              <Text style={styles.subscribeButtonText}>{t.subscription.subscribe}</Text>
-            </Pressable>
-          </ScrollView>
-
-          <SwipeHintBar hints={voiceHints.bookDetail} />
-        </View>
-      </SwipeVoiceWrapper>
-    );
+    router.push("/student/subscription");
+    setShowSubscription(false);
   }
 
   return (

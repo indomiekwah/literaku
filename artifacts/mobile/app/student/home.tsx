@@ -96,15 +96,6 @@ export default function StudentHomeScreen() {
               <Image source={logoImage} style={styles.logoImage} accessibilityLabel="Literaku logo" />
               <Text style={styles.headerTitle}>Literaku</Text>
             </View>
-            <Pressable
-              style={styles.settingsButton}
-              onPress={() => router.push("/student/settings")}
-              accessibilityRole="button"
-              accessibilityLabel={t.home.settings}
-              accessibilityHint={t.home.settingsA11yHint}
-            >
-              <Ionicons name="settings-outline" size={26} color={Colors.textSecondary} />
-            </Pressable>
           </View>
 
           <ScrollView
@@ -113,6 +104,16 @@ export default function StudentHomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             <NavButton
+              label={t.home.joinInstitution}
+              subtitle={t.home.joinInstitutionSub}
+              icon="school"
+              color="#E65100"
+              onPress={() => router.push("/student/riwayat")}
+              accessibilityLabel={t.home.joinInstitutionA11yLabel}
+              accessibilityHint={t.home.joinInstitutionA11yHint}
+            />
+
+            <NavButton
               label={t.home.explorer}
               subtitle={t.home.explorerSub}
               icon="compass"
@@ -120,16 +121,6 @@ export default function StudentHomeScreen() {
               onPress={() => router.push("/student/penjelajah")}
               accessibilityLabel={t.home.explorerA11yLabel}
               accessibilityHint={t.home.explorerA11yHint}
-            />
-
-            <NavButton
-              label={t.home.history}
-              subtitle={t.home.historySub}
-              icon="time"
-              color="#C62828"
-              onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel={t.home.historyA11yLabel}
-              accessibilityHint={t.home.historyA11yHint}
             />
 
             <NavButton
@@ -143,13 +134,23 @@ export default function StudentHomeScreen() {
             />
 
             <NavButton
-              label={t.home.joinInstitution}
-              subtitle={t.home.joinInstitutionSub}
-              icon="school"
-              color="#E65100"
+              label={t.home.history}
+              subtitle={t.home.historySub}
+              icon="time"
+              color="#C62828"
               onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel={t.home.joinInstitutionA11yLabel}
-              accessibilityHint={t.home.joinInstitutionA11yHint}
+              accessibilityLabel={t.home.historyA11yLabel}
+              accessibilityHint={t.home.historyA11yHint}
+            />
+
+            <NavButton
+              label={t.home.settings}
+              subtitle={t.home.settingsSub}
+              icon="settings"
+              color="#546E7A"
+              onPress={() => router.push("/student/settings")}
+              accessibilityLabel={t.home.settingsA11yLabel}
+              accessibilityHint={t.home.settingsA11yHint}
             />
 
             <NavButton
@@ -201,16 +202,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontSize: 24,
     color: Colors.primaryLight,
-  },
-  settingsButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.surface,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
   },
   scrollView: {
     flex: 1,

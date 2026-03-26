@@ -58,6 +58,27 @@ function ExampleGroup({ title, icon, examples, exampleA11y }: ExampleGroupProps)
   );
 }
 
+interface InfoSectionProps {
+  title: string;
+  text: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  bgColor: string;
+  borderColor: string;
+  iconColor?: string;
+}
+
+function InfoSection({ title, text, icon, bgColor, borderColor, iconColor }: InfoSectionProps) {
+  return (
+    <View style={[styles.infoSection, { backgroundColor: bgColor, borderColor }]}>
+      <View style={styles.infoHeader}>
+        <Ionicons name={icon} size={28} color={iconColor || Colors.primaryLight} />
+        <Text style={styles.infoTitle} accessibilityRole="header">{title}</Text>
+      </View>
+      <Text style={styles.infoText}>{text}</Text>
+    </View>
+  );
+}
+
 export default function StudentGuideScreen() {
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
@@ -91,26 +112,59 @@ export default function StudentGuideScreen() {
           <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.heroSection}>
               <View style={styles.heroCircle}>
-                <Ionicons name="chevron-back" size={28} color={Colors.studentPrimary} />
-                <Ionicons name="mic" size={48} color={Colors.studentPrimary} />
+                <Ionicons name="book" size={48} color={Colors.studentPrimary} />
               </View>
               <Text style={styles.heroTitle}>{t.guide.heroTitle}</Text>
               <Text style={styles.heroSubtext}>{t.guide.heroSub}</Text>
             </View>
 
-            <View style={styles.aiSection}>
-              <View style={styles.aiHeader}>
+            <InfoSection
+              title={t.guide.aboutTitle}
+              text={t.guide.aboutText}
+              icon="information-circle"
+              bgColor={Colors.successLight}
+              borderColor={Colors.studentPrimary}
+              iconColor={Colors.studentPrimary}
+            />
+
+            <InfoSection
+              title={t.guide.voiceCommandTitle}
+              text={t.guide.voiceCommandText}
+              icon="mic"
+              bgColor={Colors.voiceBarBg}
+              borderColor={Colors.primaryLight}
+            />
+
+            <View style={[styles.infoSection, { backgroundColor: Colors.voiceBarBg, borderColor: Colors.primaryLight }]}>
+              <View style={styles.infoHeader}>
                 <Ionicons name="sparkles" size={28} color={Colors.primaryLight} />
-                <Text style={styles.aiTitle} accessibilityRole="header">{t.guide.aiTitle}</Text>
+                <Text style={styles.infoTitle} accessibilityRole="header">{t.guide.exampleLabel}</Text>
               </View>
-              <Text style={styles.aiText}>{t.guide.aiText}</Text>
               <View style={styles.aiExample}>
-                <Text style={styles.aiExampleLabel}>{t.guide.exampleLabel}</Text>
                 <Text style={styles.aiExampleText}>"Open the book explorer"</Text>
                 <Text style={styles.aiExampleText}>"Show my collection"</Text>
                 <Text style={styles.aiExampleText}>"Read the next page please"</Text>
+                <Text style={styles.aiExampleText}>"Increase the speed"</Text>
               </View>
             </View>
+
+            <InfoSection
+              title={t.guide.modesTitle}
+              text={t.guide.modesText}
+              icon="swap-horizontal"
+              bgColor="#F3E5F5"
+              borderColor="#9C27B0"
+              iconColor="#9C27B0"
+            />
+
+            <InfoSection
+              title={t.guide.contextTitle}
+              text={t.guide.contextText}
+              icon="bulb"
+              bgColor="#FFF8E1"
+              borderColor="#F9A825"
+              iconColor="#F9A825"
+            />
 
             <ExampleGroup
               title={t.guide.navTitle}
@@ -233,7 +287,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   heroCircle: {
-    flexDirection: "row",
     width: 110,
     height: 110,
     borderRadius: 55,
@@ -242,7 +295,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: Colors.studentPrimary,
-    gap: -8,
   },
   heroTitle: {
     fontFamily: "Inter_700Bold",
@@ -259,25 +311,24 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 8,
   },
-  aiSection: {
-    backgroundColor: Colors.voiceBarBg,
+  infoSection: {
     borderRadius: 18,
     padding: 20,
     gap: 12,
     borderWidth: 2,
-    borderColor: Colors.primaryLight,
   },
-  aiHeader: {
+  infoHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
-  aiTitle: {
+  infoTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 20,
     color: Colors.text,
+    flex: 1,
   },
-  aiText: {
+  infoText: {
     fontFamily: "Inter_500Medium",
     fontSize: 18,
     color: Colors.textSecondary,
@@ -288,11 +339,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     gap: 6,
-  },
-  aiExampleLabel: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.text,
   },
   aiExampleText: {
     fontFamily: "Inter_500Medium",

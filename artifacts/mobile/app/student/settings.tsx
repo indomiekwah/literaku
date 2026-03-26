@@ -24,6 +24,9 @@ import {
 } from "@/contexts/ReadingPreferences";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
+import { speakText } from "@/services/speech";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function StudentSettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -31,35 +34,67 @@ export default function StudentSettingsScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const t = useT();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
 
   const {
     selectedVoice,
     speed,
-    textSize,
     language,
     interactionMode,
     isVoiceOnly,
-    isSubscribed,
+    subscriptionPlan,
     setSelectedVoice,
     setSpeed,
-    setTextSize,
     setLanguage,
     setInteractionMode,
   } = useReadingPreferences();
 
   useTTSAnnounce(t.settings.mountAnnounce);
 
+  React.useEffect(() => {
+    onTranscription((text: string, intent: VoiceIntent) => {
+      const lower = text.toLowerCase();
+
+      if (lower.match(/\b(voice|suara|narration|narasi)\b/) && !lower.match(/\b(mode|only|saja)\b/)) {
+        const voiceList = VOICE_OPTIONS.map(v => `${v.label}, ${v.lang}`).join(". ");
+        const current = VOICE_OPTIONS.find(v => v.id === selectedVoice);
+        const msg = language === "id"
+          ? `Pilihan suara: ${voiceList}. Saat ini: ${current?.label || "Emma"}.`
+          : `Voice options: ${voiceList}. Currently: ${current?.label || "Emma"}.`;
+        AccessibilityInfo.announceForAccessibility(msg);
+        speakText(msg, selectedVoice, 1).catch(() => {});
+        return true;
+      }
+
+      if (lower.match(/\b(language|bahasa)\b/) && !lower.match(/\b(set|ubah|change|switch)\b/)) {
+        const langName = language === "id" ? "Indonesian" : "English";
+        const msg = language === "id"
+          ? `Pilihan bahasa: Indonesia dan English. Saat ini: Indonesia.`
+          : `Language options: Indonesian and English. Currently: ${langName}.`;
+        AccessibilityInfo.announceForAccessibility(msg);
+        speakText(msg, selectedVoice, 1).catch(() => {});
+        return true;
+      }
+
+      if (intent === "nav_logout") {
+        AccessibilityInfo.announceForAccessibility(t.settings.signingOut);
+        router.replace("/student/login");
+        return true;
+      }
+
+      if (intent === "nav_subscription") {
+        router.push("/student/subscription");
+        return true;
+      }
+
+      return false;
+    });
+    return () => clearTranscriptionCallback();
+  }, [selectedVoice, language]);
+
   const cycleSpeed = () => {
     const idx = SPEED_OPTIONS.indexOf(speed);
     setSpeed(SPEED_OPTIONS[(idx + 1) % SPEED_OPTIONS.length]);
-  };
-
-  const decreaseTextSize = () => {
-    if (textSize > 16) setTextSize(textSize - 1);
-  };
-
-  const increaseTextSize = () => {
-    if (textSize < 28) setTextSize(textSize + 1);
   };
 
   return (
@@ -216,66 +251,33 @@ export default function StudentSettingsScreen() {
           </View>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
-            {t.settings.display}
-          </Text>
-
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>{t.settings.textSize}</Text>
-            <View style={styles.textSizeRow}>
-              <Pressable
-                style={[styles.sizeButton, textSize <= 16 && styles.sizeButtonDisabled]}
-                onPress={decreaseTextSize}
-                disabled={textSize <= 16}
-                accessibilityRole="button"
-                accessibilityLabel={t.settings.decreaseSize}
-                accessibilityHint="Double tap to make reader text smaller"
-              >
-                <Ionicons name="remove" size={28} color={textSize <= 16 ? Colors.borderStrong : Colors.text} />
-              </Pressable>
-
-              <View
-                style={styles.sizePreview}
-                accessibilityRole="text"
-                accessibilityLabel={t.settings.currentSize(textSize)}
-              >
-                <Text style={[styles.sizePreviewText, { fontSize: textSize }]}>Aa</Text>
-                <Text style={styles.sizeValue}>{textSize}pt</Text>
-              </View>
-
-              <Pressable
-                style={[styles.sizeButton, textSize >= 28 && styles.sizeButtonDisabled]}
-                onPress={increaseTextSize}
-                disabled={textSize >= 28}
-                accessibilityRole="button"
-                accessibilityLabel={t.settings.increaseSize}
-                accessibilityHint="Double tap to make reader text larger"
-              >
-                <Ionicons name="add" size={28} color={textSize >= 28 ? Colors.borderStrong : Colors.text} />
-              </Pressable>
-            </View>
-          </View>
-
-          <Text style={styles.sectionTitle} accessibilityRole="header">
             {t.subscription.title}
           </Text>
 
-          <View style={[styles.subscriptionCard, isSubscribed && styles.subscriptionCardActive]}>
+          <Pressable
+            style={[styles.subscriptionCard, subscriptionPlan === "premium" && styles.subscriptionCardActive]}
+            onPress={() => router.push("/student/subscription")}
+            accessibilityRole="button"
+            accessibilityLabel={`${t.subscription.currentPlan}: ${subscriptionPlan === "premium" ? t.subscription.premiumPlan : t.subscription.freePlan}`}
+            accessibilityHint="Double tap to manage subscription"
+          >
             <View style={styles.subscriptionRow}>
               <Ionicons
-                name={isSubscribed ? "checkmark-circle" : "lock-closed"}
+                name={subscriptionPlan === "premium" ? "checkmark-circle" : "lock-closed"}
                 size={24}
-                color={isSubscribed ? Colors.studentPrimary : "#E65100"}
+                color={subscriptionPlan === "premium" ? Colors.studentPrimary : "#E65100"}
               />
               <View style={styles.subscriptionInfo}>
                 <Text style={styles.subscriptionStatus}>
-                  {isSubscribed ? t.subscription.currentPlan : t.bookDetail.subscriptionBadge}
+                  {subscriptionPlan === "premium" ? t.subscription.premiumPlan : t.subscription.freePlan}
                 </Text>
                 <Text style={styles.subscriptionDesc}>
-                  {isSubscribed ? t.subscription.institutionActive : t.subscription.description}
+                  {subscriptionPlan === "premium" ? t.subscription.premiumDesc : t.subscription.freeDesc}
                 </Text>
               </View>
+              <Ionicons name="chevron-forward" size={24} color={Colors.textSecondary} />
             </View>
-          </View>
+          </Pressable>
 
           <Text style={styles.sectionTitle} accessibilityRole="header">
             {t.settings.account}
@@ -488,39 +490,6 @@ const styles = StyleSheet.create({
   },
   toggleKnobActive: {
     alignSelf: "flex-end",
-  },
-  textSizeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-  },
-  sizeButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.background,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sizeButtonDisabled: {
-    opacity: 0.35,
-  },
-  sizePreview: {
-    alignItems: "center",
-    gap: 4,
-    minWidth: 80,
-  },
-  sizePreviewText: {
-    fontFamily: "Inter_700Bold",
-    color: Colors.text,
-  },
-  sizeValue: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.textSecondary,
   },
   subscriptionCard: {
     backgroundColor: "#FFF3E0",

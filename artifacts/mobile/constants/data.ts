@@ -9,28 +9,28 @@ export interface Book {
   content: string[];
 }
 
-export interface SubscriptionPlan {
+export interface SubscriptionPlanInfo {
   id: string;
   name: string;
-  priceMonthly: number;
-  priceYearly: number;
+  price: string;
+  priceId: string;
   features: string[];
 }
 
-export const subscriptionPlans: SubscriptionPlan[] = [
+export const subscriptionPlansInfo: SubscriptionPlanInfo[] = [
   {
-    id: "basic",
-    name: "Basic",
-    priceMonthly: 49000,
-    priceYearly: 490000,
-    features: ["Unlimited reading", "Voice narration", "AI summarization"],
+    id: "free",
+    name: "Free",
+    price: "$0",
+    priceId: "free",
+    features: ["Chapter 1 free preview", "Voice commands", "Basic narration"],
   },
   {
     id: "premium",
     name: "Premium",
-    priceMonthly: 89000,
-    priceYearly: 890000,
-    features: ["Unlimited reading", "Voice narration", "AI summarization", "Offline downloads", "Priority support"],
+    price: "$7/month",
+    priceId: "premium_monthly",
+    features: ["Full library access", "Voice narration", "AI summarization", "All voice types", "Priority support"],
   },
 ];
 
@@ -272,15 +272,17 @@ export function formatRupiah(amount: number): string {
 
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   login: [
-    { example: "Sign in", intent: "Sign in to your account" },
-    { example: "Masuk", intent: "Sign in" },
+    { example: "Sign in with Google", intent: "Sign in with Google" },
+    { example: "Sign in with Microsoft", intent: "Sign in with Microsoft" },
   ],
   studentHome: [
     { example: "Open explorer", intent: "Open book explorer" },
-    { example: "Show my collection", intent: "Open my collection" },
+    { example: "Open collection", intent: "Open my collection" },
     { example: "Open history", intent: "Open reading history" },
-    { example: "Read Penance", intent: "Open a book directly" },
     { example: "Open settings", intent: "Open settings" },
+    { example: "Open guide", intent: "Open voice guide" },
+    { example: "Subscribe", intent: "Open subscription" },
+    { example: "Read Penance", intent: "Open a book directly" },
   ],
   penjelajah: [
     { example: "Search The Silent Patient", intent: "Search for a book" },
@@ -309,7 +311,6 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Next page", intent: "Go to next page" },
     { example: "Increase speed", intent: "Speed up reading" },
     { example: "Decrease speed", intent: "Slow down reading" },
-    { example: "Speed 3", intent: "Set speed to level 3" },
     { example: "Summarize", intent: "Summarize this page" },
     { example: "Read aloud", intent: "Read summary aloud" },
   ],
@@ -318,9 +319,15 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Read a book", intent: "Start reading a book" },
   ],
   studentSettings: [
-    { example: "Go back", intent: "Go back to home" },
-    { example: "Speed 1", intent: "Slow speed (0.5x)" },
+    { example: "Voice", intent: "List voice options" },
+    { example: "Language", intent: "List language options" },
+    { example: "Subscribe", intent: "Open subscription" },
+    { example: "Log out", intent: "Sign out" },
     { example: "Increase speed", intent: "Speed up" },
     { example: "Decrease speed", intent: "Slow down" },
+  ],
+  subscription: [
+    { example: "Subscribe premium", intent: "Subscribe to premium" },
+    { example: "Go back", intent: "Go back" },
   ],
 };

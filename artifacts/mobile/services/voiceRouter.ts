@@ -15,6 +15,8 @@ export type VoiceIntent =
   | "nav_join_institution"
   | "nav_back"
   | "nav_login"
+  | "nav_subscription"
+  | "nav_logout"
   | "reader_next"
   | "reader_prev"
   | "reader_play"
@@ -41,7 +43,8 @@ export interface MatchResult {
 const VALID_INTENTS = new Set<string>([
   "nav_home", "nav_explorer", "nav_collection", "nav_history",
   "nav_guide", "nav_settings", "nav_join_institution", "nav_back",
-  "nav_login", "reader_next", "reader_prev", "reader_play",
+  "nav_login", "nav_subscription", "nav_logout",
+  "reader_next", "reader_prev", "reader_play",
   "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
   "search_book", "open_book", "open_preview", "read_full",
   "speed_change", "speed_increase", "speed_decrease",
@@ -66,6 +69,8 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(join\s*(?:my\s*)?institution|gabung\s*institusi|institusi|institution|sekolah\s*saya|my\s*school)\b/i, intent: "nav_join_institution" },
   { pattern: /\b(go\s*back|back|kembali|mundur|balik)\b/i, intent: "nav_back" },
   { pattern: /\b(sign\s*in|log\s*in|masuk|login)\b/i, intent: "nav_login" },
+  { pattern: /\b(subscribe|berlangganan|langganan|subscription)\b/i, intent: "nav_subscription" },
+  { pattern: /\b(log\s*out|sign\s*out|keluar|logout)\b/i, intent: "nav_logout" },
 
   { pattern: /\b(next\s*page|halaman\s*(?:selanjutnya|berikut|lanjut)|lanjut|forward)\b/i, intent: "reader_next" },
   { pattern: /\b(prev(?:ious)?\s*page|halaman\s*(?:sebelumnya|sebelum)|sebelum(?:nya)?)\b/i, intent: "reader_prev" },
@@ -295,6 +300,14 @@ export function executeGlobalNavigation(intent: VoiceIntent, voice: string, para
     case "nav_login":
       confirm(lang === "id" ? "Sedang masuk..." : "Signing in...");
       router.replace("/student/home");
+      return true;
+    case "nav_subscription":
+      confirm(lang === "id" ? "Membuka halaman langganan" : "Opening subscription page");
+      router.push("/student/subscription");
+      return true;
+    case "nav_logout":
+      confirm(lang === "id" ? "Sedang keluar..." : "Signing out...");
+      router.replace("/student/login");
       return true;
     case "open_book":
       if (param) {
