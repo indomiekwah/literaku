@@ -21,15 +21,46 @@ cd literaku
 
 ---
 
-## Langkah 2: Install Dependencies
+## Langkah 2: Install Dependencies (WAJIB sebelum buka Android Studio)
+
+Buka **Command Prompt** atau **PowerShell**, masuk ke folder root project:
 
 ```bash
+cd D:\Data_Sementara\Literaku_IC
 pnpm install
 ```
 
+**PENTING untuk Windows:** Jika `pnpm install` gagal karena symlink, jalankan PowerShell sebagai **Administrator** lalu:
+```bash
+pnpm install --config.node-linker=hoisted
+```
+
+Atau alternatif: gunakan `npm` sebagai gantinya:
+```bash
+npm install
+```
+
+Pastikan `node_modules` folder tercipta di root project DAN di `artifacts/mobile/`.
+
 ---
 
-## Langkah 3: Set Environment Variables
+## Langkah 3: Verifikasi Node Bisa Resolve Packages
+
+Sebelum buka Android Studio, test dulu dari terminal:
+
+```bash
+cd artifacts\mobile
+node --print "require.resolve('react-native/package.json')"
+node --print "require.resolve('expo/package.json')"
+```
+
+Jika kedua command di atas menampilkan path file, berarti siap untuk Android Studio.
+
+Jika ERROR "Cannot find module", jalankan ulang `pnpm install` dari root project.
+
+---
+
+## Langkah 4: Set Environment Variables
 
 Buat file `.env` di `artifacts/mobile/`:
 
@@ -43,48 +74,49 @@ EXPO_PUBLIC_DOMAIN=<URL_API_SERVER_ANDA>
 
 ---
 
-## Langkah 4: Buka di Android Studio
+## Langkah 5: Buka di Android Studio
 
 1. Buka **Android Studio**
 2. Pilih **Open an existing project**
 3. Navigasi ke folder `artifacts/mobile/android` → klik **Open**
 4. Tunggu Gradle sync selesai (bisa 3-5 menit pertama kali)
 
+**PENTING:** Pastikan Node.js ada di System PATH. Android Studio harus bisa menemukan `node` command. Jika Gradle sync gagal:
+- Buka **File → Settings → Tools → Terminal** dan pastikan PATH termasuk folder Node.js
+- Biasanya: `C:\Program Files\nodejs\`
+
 ---
 
-## Langkah 5: Konfigurasi local.properties
+## Langkah 6: Konfigurasi local.properties
 
 Android Studio biasanya membuat file ini otomatis. Jika tidak, buat manual di `artifacts/mobile/android/local.properties`:
 
 ```properties
-sdk.dir=/Users/<username>/Library/Android/sdk
+sdk.dir=C:\\Users\\<username>\\AppData\\Local\\Android\\Sdk
 ```
 
-Ganti path sesuai lokasi Android SDK di laptop Anda:
-- **macOS**: `/Users/<username>/Library/Android/sdk`
-- **Windows**: `C:\\Users\\<username>\\AppData\\Local\\Android\\Sdk`
-- **Linux**: `/home/<username>/Android/Sdk`
+Ganti `<username>` dengan username Windows kamu.
 
 ---
 
-## Langkah 6: Build APK (Debug)
+## Langkah 7: Build APK (Debug)
 
 ### Opsi A: Dari Android Studio
 1. Pilih menu **Build** → **Build Bundle(s) / APK(s)** → **Build APK(s)**
 2. Tunggu build selesai
 3. APK tersedia di: `artifacts/mobile/android/app/build/outputs/apk/debug/app-debug.apk`
 
-### Opsi B: Dari Terminal
+### Opsi B: Dari Terminal (PowerShell/CMD)
 ```bash
-cd artifacts/mobile/android
-./gradlew assembleDebug
+cd artifacts\mobile\android
+.\gradlew.bat assembleDebug
 ```
 
-APK tersedia di: `app/build/outputs/apk/debug/app-debug.apk`
+APK tersedia di: `app\build\outputs\apk\debug\app-debug.apk`
 
 ---
 
-## Langkah 7: Install ke HP Android
+## Langkah 8: Install ke HP Android
 
 ### Opsi A: Langsung dari Android Studio
 1. Hubungkan HP Android via USB (aktifkan **Developer Options** & **USB Debugging**)
@@ -93,7 +125,7 @@ APK tersedia di: `app/build/outputs/apk/debug/app-debug.apk`
 
 ### Opsi B: Install APK manual
 ```bash
-adb install app/build/outputs/apk/debug/app-debug.apk
+adb install app\build\outputs\apk\debug\app-debug.apk
 ```
 
 ### Opsi C: Transfer APK ke HP
@@ -132,18 +164,26 @@ buildTypes {
 
 ### 3. Build Release
 ```bash
-cd artifacts/mobile/android
+cd artifacts\mobile\android
 
-# APK
-./gradlew assembleRelease
+:: APK
+.\gradlew.bat assembleRelease
 
-# AAB (untuk Google Play Store)
-./gradlew bundleRelease
+:: AAB (untuk Google Play Store)
+.\gradlew.bat bundleRelease
 ```
 
 ---
 
 ## Troubleshooting
+
+### Error "Process 'command node' finished with non-zero exit value 1"
+Ini artinya Gradle tidak bisa menjalankan Node.js. Solusi:
+1. Pastikan **Node.js** sudah terinstall: buka CMD, ketik `node --version`
+2. Pastikan sudah menjalankan `pnpm install` dari **root project** (bukan dari folder android)
+3. Verifikasi packages bisa di-resolve: `cd artifacts\mobile && node --print "require.resolve('react-native/package.json')"`
+4. Jika pakai pnpm di Windows dan ada masalah symlink, coba: `pnpm install --config.node-linker=hoisted`
+5. Restart Android Studio setelah install dependencies
 
 ### Gradle sync gagal
 - Pastikan Java 17 sudah terinstall
@@ -154,28 +194,37 @@ cd artifacts/mobile/android
 - Hapus cache: `cd artifacts/mobile && pnpm exec expo start --clear`
 
 ### Build error "SDK location not found"
-- Buat file `local.properties` sesuai Langkah 5
-
-### Permission denied (macOS/Linux)
-```bash
-chmod +x artifacts/mobile/android/gradlew
-```
+- Buat file `local.properties` sesuai Langkah 6
 
 ---
 
-## Struktur File Android
+## Struktur Folder
 
 ```
-artifacts/mobile/android/
-├── app/
-│   ├── build.gradle          # App-level build config
-│   └── src/main/
-│       ├── AndroidManifest.xml   # Permissions & app config
-│       ├── java/                 # Native Java code
-│       └── res/                  # Icons, splash screen, etc.
-├── build.gradle              # Project-level build config
-├── gradle.properties         # Gradle settings
-├── gradlew                   # Gradle wrapper (Linux/macOS)
-├── gradlew.bat              # Gradle wrapper (Windows)
-└── settings.gradle          # Module settings
+Literaku_IC/                          ← ROOT PROJECT
+├── pnpm-workspace.yaml
+├── package.json
+├── node_modules/                     ← HARUS ADA (pnpm install)
+├── artifacts/
+│   └── mobile/                       ← Expo project root
+│       ├── package.json
+│       ├── node_modules/             ← HARUS ADA
+│       ├── app/                      ← React Native screens
+│       ├── services/                 ← Speech, voice services
+│       └── android/                  ← BUKA INI DI ANDROID STUDIO
+│           ├── app/
+│           │   ├── build.gradle
+│           │   └── src/main/
+│           │       ├── AndroidManifest.xml
+│           │       ├── java/
+│           │       └── res/
+│           ├── build.gradle
+│           ├── gradle.properties
+│           ├── gradlew              (Linux/macOS)
+│           ├── gradlew.bat          (Windows)
+│           └── settings.gradle
+│   └── api-server/                   ← Backend API
+└── lib/                              ← Shared libraries
 ```
+
+**Kunci penting:** Folder `node_modules` HARUS ada di root project dan di `artifacts/mobile/` sebelum membuka Android Studio.
