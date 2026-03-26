@@ -170,8 +170,8 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
         if (intent === "unknown") {
           const msg = language === "id"
-            ? "Maaf, saya tidak mengerti. Coba lagi."
-            : "Sorry, I didn't understand that. Please try again.";
+            ? "Maaf, saya tidak mengerti perintah tersebut. Untuk navigasi, ucapkan 'Buka' diikuti nama halaman, misalnya 'Buka pengaturan'."
+            : "Sorry, I didn't understand that command. For navigation, say 'Open' followed by the page name, for example 'Open settings'.";
           AccessibilityInfo.announceForAccessibility(msg);
           speakText(msg, selectedVoice, 1).catch(() => {});
         }

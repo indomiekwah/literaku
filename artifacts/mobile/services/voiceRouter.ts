@@ -60,16 +60,16 @@ export const BOOK_DETAIL_ONLY_INTENTS = new Set<VoiceIntent>([
 ]);
 
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
-  { pattern: /\b(go\s*(?:back\s*)?(?:to\s*)?home|beranda|ke\s*beranda|pulang|kembali\s*ke\s*(?:beranda|home))\b/i, intent: "nav_home" },
-  { pattern: /\b(open\s*(?:the\s*)?explorer|explorer|penjelajah|buka\s*penjelajah|jelajah|explore)\b/i, intent: "nav_explorer" },
-  { pattern: /\b((?:show\s*(?:my\s*)?)?(?:the\s*)?collection|koleksi|buka\s*koleksi|my\s*(?:books?|library)|perpustakaan|library)\b/i, intent: "nav_collection" },
-  { pattern: /\b((?:open\s*)?(?:the\s*)?history|riwayat|buka\s*riwayat|(?:reading\s*)?history)\b/i, intent: "nav_history" },
-  { pattern: /\b((?:open\s*)?(?:the\s*)?guide|panduan|buka\s*panduan|voice\s*guide)\b/i, intent: "nav_guide" },
-  { pattern: /\b((?:open\s*)?(?:the\s*)?settings|pengaturan|buka\s*pengaturan|setelan)\b/i, intent: "nav_settings" },
-  { pattern: /\b(join\s*(?:my\s*)?institution|gabung\s*institusi|institusi|institution|sekolah\s*saya|my\s*school)\b/i, intent: "nav_join_institution" },
-  { pattern: /\b(go\s*back|back|kembali|mundur|balik)\b/i, intent: "nav_back" },
+  { pattern: /\b(go\s*(?:back\s*)?(?:to\s*)?home|ke\s*beranda|pulang|kembali\s*ke\s*(?:beranda|home))\b/i, intent: "nav_home" },
+  { pattern: /\b((?:open|go\s*to|buka|show)\s*(?:the\s*)?(?:explorer|penjelajah|jelajah)|buka\s*penjelajah)\b/i, intent: "nav_explorer" },
+  { pattern: /\b((?:open|go\s*to|buka|show)\s*(?:the\s*)?(?:my\s*)?(?:collection|koleksi|library|perpustakaan)|show\s*my\s*(?:books?|library)|buka\s*koleksi)\b/i, intent: "nav_collection" },
+  { pattern: /\b((?:open|go\s*to|buka|show)\s*(?:the\s*)?(?:reading\s*)?(?:history|riwayat)|buka\s*riwayat)\b/i, intent: "nav_history" },
+  { pattern: /\b((?:open|go\s*to|buka)\s*(?:the\s*)?(?:guide|panduan|voice\s*guide)|buka\s*panduan)\b/i, intent: "nav_guide" },
+  { pattern: /\b((?:open|go\s*to|buka)\s*(?:the\s*)?(?:settings|pengaturan|setelan)|buka\s*pengaturan)\b/i, intent: "nav_settings" },
+  { pattern: /\b(join\s*(?:my\s*)?institution|gabung\s*institusi|(?:open|buka)\s*(?:the\s*)?(?:institution|institusi)|sekolah\s*saya|my\s*school)\b/i, intent: "nav_join_institution" },
+  { pattern: /\b(go\s*back|kembali|mundur|balik)\b/i, intent: "nav_back" },
   { pattern: /\b(sign\s*in|log\s*in|masuk|login)\b/i, intent: "nav_login" },
-  { pattern: /\b(subscribe|berlangganan|langganan|subscription)\b/i, intent: "nav_subscription" },
+  { pattern: /\b((?:open|go\s*to|buka)\s*(?:the\s*)?subscri(?:ption|be)|berlangganan|langganan)\b/i, intent: "nav_subscription" },
   { pattern: /\b(log\s*out|sign\s*out|keluar|logout)\b/i, intent: "nav_logout" },
 
   { pattern: /\b(next\s*page|halaman\s*(?:selanjutnya|berikut|lanjut)|lanjut|forward)\b/i, intent: "reader_next" },
@@ -213,6 +213,14 @@ export async function matchVoiceIntent(
         }
       }
 
+      const isNavIntent = (cluResult.intent as string).startsWith("nav_");
+      if (isNavIntent && regexResult.intent === "unknown" && cluResult.confidence < 0.85) {
+        console.log(
+          `Voice: CLU nav intent "${cluResult.intent}" (${(cluResult.confidence * 100).toFixed(0)}%) rejected — no regex match and low confidence. Returning unknown for page-level handling.`
+        );
+        return { intent: "unknown", confidence: 0, source: "clu" };
+      }
+
       console.log(
         `Voice: CLU matched "${text}" → ${cluResult.intent} (${(cluResult.confidence * 100).toFixed(0)}%) param=${param || "none"}`
       );
@@ -237,6 +245,13 @@ export async function matchVoiceIntent(
       cluResult.confidence >= 0.3 &&
       VALID_INTENTS.has(cluResult.intent)
     ) {
+      const isNavSoft = (cluResult.intent as string).startsWith("nav_");
+      if (isNavSoft) {
+        console.log(
+          `Voice: CLU soft nav match "${cluResult.intent}" (${(cluResult.confidence * 100).toFixed(0)}%) rejected — navigation requires explicit command`
+        );
+        return { intent: "unknown", confidence: 0, source: "clu" };
+      }
       console.log(
         `Voice: CLU soft match "${text}" → ${cluResult.intent} (${(cluResult.confidence * 100).toFixed(0)}%)`
       );

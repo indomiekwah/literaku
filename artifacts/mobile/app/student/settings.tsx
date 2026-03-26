@@ -51,33 +51,82 @@ export default function StudentSettingsScreen() {
 
   useTTSAnnounce(t.settings.mountAnnounce);
 
+  const findVoiceByName = React.useCallback((text: string) => {
+    const lower = text.toLowerCase();
+    return VOICE_OPTIONS.find(v => {
+      const name = v.label.toLowerCase();
+      const shortName = name.split("(")[0].trim();
+      return lower.includes(shortName);
+    });
+  }, []);
+
+  const speak = React.useCallback((msg: string) => {
+    AccessibilityInfo.announceForAccessibility(msg);
+    speakText(msg, selectedVoice, 1).catch(() => {});
+  }, [selectedVoice]);
+
   React.useEffect(() => {
     onTranscription((text: string, intent: VoiceIntent) => {
       const lower = text.toLowerCase();
+      const hasChangeVerb = !!lower.match(/\b(change|switch|set|ubah|ganti|pilih|pakai|use)\b/);
+      const hasNarratorWord = !!lower.match(/\b(voice|voices|suara|narration|narasi|narrator|narator)\b/) && !lower.match(/\b(mode|only|saja|command|perintah)\b/);
+      const hasLanguageWord = !!lower.match(/\b(language|bahasa)\b/);
 
-      if (lower.match(/\b(voice|voices|suara|narration|narasi|narrator|narator)\b/) && !lower.match(/\b(mode|only|saja|command|perintah)\b/)) {
-        const voiceList = VOICE_OPTIONS.map(v => `${v.label}, ${v.lang}`).join(". ");
-        const current = VOICE_OPTIONS.find(v => v.id === selectedVoice);
-        const msg = language === "id"
-          ? `Pilihan suara: ${voiceList}. Saat ini: ${current?.label || "Emma"}.`
-          : `Voice options: ${voiceList}. Currently: ${current?.label || "Emma"}.`;
-        AccessibilityInfo.announceForAccessibility(msg);
-        speakText(msg, selectedVoice, 1).catch(() => {});
+      if (hasChangeVerb && hasNarratorWord) {
+        const match = findVoiceByName(text);
+        if (match) {
+          setSelectedVoice(match.id);
+          const msg = language === "id"
+            ? `Narator diubah ke ${match.label}.`
+            : `Narrator changed to ${match.label}.`;
+          speak(msg);
+        } else {
+          const voiceList = VOICE_OPTIONS.map(v => v.label.split("(")[0].trim()).join(", ");
+          const msg = language === "id"
+            ? `Narator tidak ditemukan. Pilihan yang tersedia: ${voiceList}.`
+            : `Narrator not found. Available options: ${voiceList}.`;
+          speak(msg);
+        }
         return true;
       }
 
-      if (lower.match(/\b(language|bahasa)\b/) && !lower.match(/\b(set|ubah|change|switch)\b/)) {
-        const langName = language === "id" ? "Indonesian" : "English";
+      if (hasChangeVerb && hasLanguageWord) {
+        if (lower.match(/\b(indonesia|indonesian|id)\b/)) {
+          setLanguage("id");
+          speak("Bahasa diubah ke Indonesia.");
+        } else if (lower.match(/\b(english|inggris|en)\b/)) {
+          setLanguage("en");
+          speak("Language changed to English.");
+        } else {
+          const msg = language === "id"
+            ? "Pilihan bahasa: Indonesia dan English. Ucapkan 'Ganti bahasa ke Indonesia' atau 'Ganti bahasa ke English'."
+            : "Language options: Indonesian and English. Say 'Change language to Indonesian' or 'Change language to English'.";
+          speak(msg);
+        }
+        return true;
+      }
+
+      if (hasNarratorWord) {
+        const voiceList = VOICE_OPTIONS.map(v => `${v.label}, ${v.lang}`).join(". ");
+        const current = VOICE_OPTIONS.find(v => v.id === selectedVoice);
         const msg = language === "id"
-          ? `Pilihan bahasa: Indonesia dan English. Saat ini: Indonesia.`
-          : `Language options: Indonesian and English. Currently: ${langName}.`;
-        AccessibilityInfo.announceForAccessibility(msg);
-        speakText(msg, selectedVoice, 1).catch(() => {});
+          ? `Pilihan narator: ${voiceList}. Saat ini: ${current?.label || "Emma"}. Ucapkan 'Ganti narator ke' diikuti nama untuk mengubah.`
+          : `Narrator options: ${voiceList}. Currently: ${current?.label || "Emma"}. Say 'Change narrator to' followed by a name to switch.`;
+        speak(msg);
+        return true;
+      }
+
+      if (hasLanguageWord) {
+        const langName = language === "id" ? "Indonesia" : "English";
+        const msg = language === "id"
+          ? `Pilihan bahasa: Indonesia dan English. Saat ini: ${langName}. Ucapkan 'Ganti bahasa ke' diikuti nama bahasa.`
+          : `Language options: Indonesian and English. Currently: ${langName}. Say 'Change language to' followed by the language name.`;
+        speak(msg);
         return true;
       }
 
       if (intent === "nav_logout") {
-        AccessibilityInfo.announceForAccessibility(t.settings.signingOut);
+        speak(t.settings.signingOut);
         router.replace("/student/login");
         return true;
       }
@@ -90,7 +139,7 @@ export default function StudentSettingsScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, language]);
+  }, [selectedVoice, language, findVoiceByName, speak]);
 
   const cycleSpeed = () => {
     const idx = SPEED_OPTIONS.indexOf(speed);
