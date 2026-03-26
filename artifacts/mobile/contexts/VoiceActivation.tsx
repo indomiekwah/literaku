@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useRef } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
-import { AudioRecorder, speechToText, speechToTextFromUri } from "@/services/speech";
+import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
 import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPreferences";
 import { matchVoiceIntent, executeGlobalNavigation, type VoiceIntent } from "@/services/voiceRouter";
@@ -141,6 +141,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   }, [stopRecording, language, selectedVoice]);
 
   const activateVoice = useCallback(() => {
+    stopTTS();
     setIsVoiceActive(true);
     setTranscribedText("");
     startRecording();

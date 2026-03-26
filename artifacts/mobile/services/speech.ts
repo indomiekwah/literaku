@@ -108,8 +108,17 @@ export function getAzureVoiceName(voiceId: string): string {
 
 let currentAudioWeb: HTMLAudioElement | null = null;
 let currentSoundNative: any = null;
+let ttsGeneration = 0;
+let currentAbortController: AbortController | null = null;
 
 export function stopTTSPlayback(): void {
+  ttsGeneration++;
+
+  if (currentAbortController) {
+    currentAbortController.abort();
+    currentAbortController = null;
+  }
+
   if (Platform.OS === "web") {
     if (currentAudioWeb) {
       currentAudioWeb.pause();
@@ -132,27 +141,58 @@ export async function speakText(
 ): Promise<void> {
   stopTTSPlayback();
 
+  const myGeneration = ttsGeneration;
+  const abortController = new AbortController();
+  currentAbortController = abortController;
+
   const azureVoice = getAzureVoiceName(voiceId);
 
   if (Platform.OS === "web") {
-    const audioBuffer = await textToSpeech(text, azureVoice, rate);
+    let audioBuffer: ArrayBuffer;
+    try {
+      const res = await fetch(`${API_BASE}/speech/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: azureVoice, rate }),
+        signal: abortController.signal,
+      });
+      if (!res.ok) throw new Error("TTS request failed");
+      audioBuffer = await res.arrayBuffer();
+    } catch (err: any) {
+      if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      throw err;
+    }
+
+    if (myGeneration !== ttsGeneration) return;
+
     const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
     const url = URL.createObjectURL(blob);
 
     return new Promise((resolve, reject) => {
+      if (myGeneration !== ttsGeneration) {
+        URL.revokeObjectURL(url);
+        resolve();
+        return;
+      }
+
       const audio = new Audio(url);
       currentAudioWeb = audio;
       audio.onended = () => {
         URL.revokeObjectURL(url);
-        currentAudioWeb = null;
+        if (currentAudioWeb === audio) currentAudioWeb = null;
         resolve();
       };
       audio.onerror = () => {
         URL.revokeObjectURL(url);
-        currentAudioWeb = null;
+        if (currentAudioWeb === audio) currentAudioWeb = null;
         reject(new Error("Audio playback failed"));
       };
-      audio.play().catch(reject);
+      audio.play().catch((err) => {
+        URL.revokeObjectURL(url);
+        if (currentAudioWeb === audio) currentAudioWeb = null;
+        if (myGeneration !== ttsGeneration) resolve();
+        else reject(err);
+      });
     });
   } else {
     const { Audio } = await import("expo-av");
@@ -162,15 +202,23 @@ export async function speakText(
       staysActiveInBackground: false,
     });
 
-    const ttsUrl = `${API_BASE}/speech/tts`;
-    const res = await fetch(ttsUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voice: azureVoice, rate }),
-    });
-    if (!res.ok) throw new Error("TTS request failed");
+    let arrayBuffer: ArrayBuffer;
+    try {
+      const res = await fetch(`${API_BASE}/speech/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: azureVoice, rate }),
+        signal: abortController.signal,
+      });
+      if (!res.ok) throw new Error("TTS request failed");
+      arrayBuffer = await res.arrayBuffer();
+    } catch (err: any) {
+      if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      throw err;
+    }
 
-    const arrayBuffer = await res.arrayBuffer();
+    if (myGeneration !== ttsGeneration) return;
+
     const base64 = arrayBufferToBase64(arrayBuffer);
     const dataUri = `data:audio/mpeg;base64,${base64}`;
 
@@ -178,13 +226,20 @@ export async function speakText(
       { uri: dataUri },
       { shouldPlay: true }
     );
+
+    if (myGeneration !== ttsGeneration) {
+      sound.stopAsync().catch(() => {});
+      sound.unloadAsync().catch(() => {});
+      return;
+    }
+
     currentSoundNative = sound;
 
     return new Promise((resolve) => {
       sound.setOnPlaybackStatusUpdate((status: any) => {
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
-          currentSoundNative = null;
+          if (currentSoundNative === sound) currentSoundNative = null;
           resolve();
         }
       });
