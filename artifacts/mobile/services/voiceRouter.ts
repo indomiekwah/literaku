@@ -30,6 +30,7 @@ export type VoiceIntent =
   | "open_book"
   | "open_preview"
   | "read_full"
+  | "read_synopsis"
   | "speed_change"
   | "speed_increase"
   | "speed_decrease"
@@ -53,7 +54,7 @@ const VALID_INTENTS = new Set<string>([
   "browse_category", "nav_back", "nav_login", "nav_subscription", "nav_logout",
   "reader_next", "reader_prev", "reader_play",
   "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
-  "search_book", "open_book", "open_preview", "read_full",
+  "search_book", "open_book", "open_preview", "read_full", "read_synopsis",
   "speed_change", "speed_increase", "speed_decrease",
   "repeat_commands",
   "list_paid_books", "list_assigned_books",
@@ -66,12 +67,13 @@ export const READER_ONLY_INTENTS = new Set<VoiceIntent>([
 ]);
 
 export const BOOK_DETAIL_ONLY_INTENTS = new Set<VoiceIntent>([
-  "open_preview", "read_full",
+  "open_preview", "read_full", "read_synopsis",
 ]);
 
 export const REGEX_PREFERRED_INTENTS = new Set<VoiceIntent>([
   "list_paid_books", "list_assigned_books",
   "list_recent_books", "list_bookmarked_books",
+  "read_synopsis",
 ]);
 
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
@@ -97,6 +99,7 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(?:open|show|lihat|buka)\s*(?:the\s*)?preview\b/i, intent: "open_preview" },
   { pattern: /\b(?:preview\s*(?:the\s*)?book|preview\s*buku)\b/i, intent: "open_preview" },
   { pattern: /\b(?:read\s*(?:this\s*)?(?:full|now|the\s*book)|baca\s*(?:buku\s*)?(?:ini|sekarang|penuh|lengkap))\b/i, intent: "read_full" },
+  { pattern: /\b(?:(?:read|tell|what(?:'s| is))\s*(?:the\s*)?synopsis|synopsis|sinopsis|bacakan?\s*sinopsis|apa\s*sinopsis(?:nya)?)\b/i, intent: "read_synopsis" },
 
   { pattern: /\b(?:increase\s*(?:the\s*)?speed|speed\s*up|faster|lebih\s*cepat|percepat|naikkan?\s*kecepatan)\b/i, intent: "speed_increase" },
   { pattern: /\b(?:decrease\s*(?:the\s*)?speed|slow(?:er)?\s*(?:down)?|lebih\s*lambat|perlambat|(?:kurangi|turunkan)\s*kecepatan)\b/i, intent: "speed_decrease" },

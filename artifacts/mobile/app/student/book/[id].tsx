@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import {
   AccessibilityInfo,
   Image,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -17,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, voiceHints } from "@/constants/data";
+import { sampleBooks, purchasedBookIds, assignedBookIds, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -33,12 +34,13 @@ export default function BookDetailScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
-  const [showSubscription, setShowSubscription] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const t = useT();
 
   const book = sampleBooks.find((b) => b.id === id);
+  const genresText = book ? book.genres.join(", ") : "";
 
-  useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, book.genre) : "");
+  useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, genresText) : "");
 
   React.useEffect(() => {
     if (!book) return;
@@ -49,20 +51,37 @@ export default function BookDetailScreen() {
         return true;
       }
       switch (intent) {
-        case "open_preview":
-          AccessibilityInfo.announceForAccessibility(t.bookDetail.previewA11yLabel);
-          router.push({ pathname: "/student/reader/[id]", params: { id: book.id, preview: "true" } });
+        case "open_preview": {
+          setShowPreview(true);
+          const previewText = book.content[0] || "";
+          const msg = `${t.bookDetail.previewReading} ${previewText}`;
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
           return true;
+        }
+        case "read_synopsis": {
+          const msg = t.bookDetail.synopsisAnnounce(book.synopsis);
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
+          return true;
+        }
         case "read_full":
-        case "reader_play":
-          if (isSubscribed) {
+        case "reader_play": {
+          const owned = purchasedBookIds.includes(book.id) || assignedBookIds.includes(book.id);
+          if (isSubscribed || owned) {
             AccessibilityInfo.announceForAccessibility(t.bookDetail.readNow);
             router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
           } else {
-            AccessibilityInfo.announceForAccessibility(t.bookDetail.previewA11yLabel);
-            router.push({ pathname: "/student/reader/[id]", params: { id: book.id, preview: "true" } });
+            const msg = t.bookDetail.subscriptionRequired;
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
           }
           return true;
+        }
+        case "nav_subscription": {
+          router.push("/student/subscription");
+          return true;
+        }
         default:
           return false;
       }
@@ -82,22 +101,28 @@ export default function BookDetailScreen() {
     );
   }
 
+  const owned = purchasedBookIds.includes(book.id) || assignedBookIds.includes(book.id);
+
   const handleSubscribe = () => {
     router.push("/student/subscription");
   };
 
   const handlePreview = () => {
-    router.push({ pathname: "/student/reader/[id]", params: { id: book.id, preview: "true" } });
+    setShowPreview(true);
+    const previewText = book.content[0] || "";
+    const msg = `${t.bookDetail.previewReading} ${previewText}`;
+    speakText(msg, selectedVoice, 1).catch(() => {});
   };
 
   const handleRead = () => {
-    router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
+    if (isSubscribed || owned) {
+      router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
+    } else {
+      const msg = t.bookDetail.subscriptionRequired;
+      AccessibilityInfo.announceForAccessibility(msg);
+      speakText(msg, selectedVoice, 1).catch(() => {});
+    }
   };
-
-  if (showSubscription) {
-    router.push("/student/subscription");
-    setShowSubscription(false);
-  }
 
   return (
     <SwipeVoiceWrapper>
@@ -136,9 +161,9 @@ export default function BookDetailScreen() {
             <View style={styles.titleSection}>
               <Text style={styles.bookTitle} accessibilityRole="header">{book.title}</Text>
               <Text style={styles.bookAuthor}>{book.author}</Text>
-              <Text style={styles.bookGenre}>{book.genre} · {book.category}</Text>
+              <Text style={styles.bookGenre}>{genresText} · {book.category}</Text>
               <View style={styles.badgeRow}>
-                {isSubscribed ? (
+                {(isSubscribed || owned) ? (
                   <View style={styles.subscribedBadge}>
                     <Ionicons name="checkmark-circle" size={16} color={Colors.studentPrimary} />
                     <Text style={styles.subscribedBadgeText}>{t.bookDetail.subscribedBadge}</Text>
@@ -173,7 +198,7 @@ export default function BookDetailScreen() {
                 <Text style={styles.previewText}>{t.bookDetail.preview}</Text>
               </Pressable>
 
-              {isSubscribed ? (
+              {(isSubscribed || owned) ? (
                 <Pressable
                   style={({ pressed }) => [
                     styles.readButton,
@@ -215,6 +240,45 @@ export default function BookDetailScreen() {
             </View>
           </ScrollView>
         </View>
+
+        <Modal
+          visible={showPreview}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPreview(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.previewCard, { paddingBottom: bottomPadding + 16 }]}>
+              <View style={styles.previewHeader}>
+                <Text style={styles.previewTitle}>{t.bookDetail.previewTitle}</Text>
+                <Pressable
+                  onPress={() => setShowPreview(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.bookDetail.previewCloseA11y}
+                  style={styles.previewCloseBtn}
+                >
+                  <Ionicons name="close-circle" size={32} color={Colors.textSecondary} />
+                </Pressable>
+              </View>
+              <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.previewContentText}>
+                  {book.content[0] || ""}
+                </Text>
+              </ScrollView>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.previewCloseButton,
+                  { opacity: pressed ? 0.85 : 1 },
+                ]}
+                onPress={() => setShowPreview(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t.bookDetail.previewClose}
+              >
+                <Text style={styles.previewCloseButtonText}>{t.bookDetail.previewClose}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
 
         <SwipeHintBar hints={voiceHints.bookDetail} />
       </View>
@@ -432,127 +496,53 @@ const styles = StyleSheet.create({
   frozen: {
     opacity: 0.5,
   },
-  subHero: {
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 20,
-  },
-  subHeroTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 26,
-    color: Colors.text,
-    textAlign: "center",
-  },
-  subHeroDesc: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 26,
-  },
-  planToggleRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  planToggle: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  previewCard: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    maxHeight: "80%",
+  },
+  previewHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: Colors.surface,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    minHeight: 56,
-    gap: 4,
+    marginBottom: 12,
   },
-  planToggleActive: {
-    borderColor: Colors.primaryLight,
-    backgroundColor: Colors.voiceBarBg,
-  },
-  planToggleText: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
-    color: Colors.textSecondary,
-  },
-  planToggleTextActive: {
-    color: Colors.primaryLight,
-  },
-  saveBadge: {
-    backgroundColor: Colors.studentPrimary,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  saveBadgeText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  planCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    padding: 20,
-    gap: 12,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  planName: {
+  previewTitle: {
     fontFamily: "Inter_700Bold",
     fontSize: 22,
     color: Colors.text,
   },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 4,
+  previewCloseBtn: {
+    padding: 4,
   },
-  planPrice: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 28,
-    color: Colors.studentPrimary,
+  previewScroll: {
+    flex: 1,
+    marginBottom: 12,
   },
-  planPeriod: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 18,
-    color: Colors.textSecondary,
-  },
-  featuresLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  featureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  featureText: {
-    fontFamily: "Inter_500Medium",
+  previewContentText: {
+    fontFamily: "Inter_400Regular",
     fontSize: 18,
     color: Colors.text,
+    lineHeight: 30,
   },
-  cancelText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  subscribeButton: {
-    flexDirection: "row",
+  previewCloseButton: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 14,
+    paddingVertical: 14,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "#E65100",
-    borderRadius: 16,
-    paddingVertical: 20,
-    minHeight: 64,
+    marginBottom: 8,
   },
-  subscribeButtonText: {
+  previewCloseButtonText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 20,
+    fontSize: 18,
     color: "#FFFFFF",
   },
 });

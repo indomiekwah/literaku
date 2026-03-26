@@ -149,9 +149,9 @@ const en = {
   },
   bookDetail: {
     backA11yLabel: "Back",
-    mountAnnounce: (title: string, author: string, genre: string) =>
-      `Book detail: ${title} by ${author}. ${genre}.`,
-    pageCommands: "This is the Book Detail page. Here you can see: Book information, Preview option, and Read full book option.",
+    mountAnnounce: (title: string, author: string, genres: string) =>
+      `Book detail: ${title}, by ${author}. Genres: ${genres}. You can say 'Preview' to hear the first chapter, 'Synopsis' to hear the synopsis, or 'Read now' to read the full book.`,
+    pageCommands: "This is the Book Detail page. Say 'Preview' to hear chapter 1 preview. Say 'Synopsis' to hear the synopsis. Say 'Read now' to read the full book.",
     notFound: "Book not found",
     preview: "Preview",
     previewA11yLabel: "Preview this book",
@@ -166,6 +166,12 @@ const en = {
     freePreview: "Chapter 1 free",
     subscriptionBadge: "Subscription required",
     subscribedBadge: "Subscribed",
+    synopsisAnnounce: (synopsis: string) => `Synopsis: ${synopsis}`,
+    previewTitle: "Chapter 1 Preview",
+    previewClose: "Close Preview",
+    previewCloseA11y: "Close the preview popup",
+    previewReading: "Reading chapter 1 preview.",
+    subscriptionRequired: "You need a subscription to read the full book. Say 'Subscribe' to view plans.",
   },
   subscription: {
     title: "Subscription",
@@ -495,9 +501,9 @@ const id: typeof en = {
   },
   bookDetail: {
     backA11yLabel: "Kembali",
-    mountAnnounce: (title: string, author: string, genre: string) =>
-      `Detail buku: ${title} oleh ${author}. ${genre}.`,
-    pageCommands: "Ini halaman Detail Buku. Di sini ada: Informasi buku, Opsi preview, dan Opsi baca buku lengkap.",
+    mountAnnounce: (title: string, author: string, genres: string) =>
+      `Detail buku: ${title}, oleh ${author}. Genre: ${genres}. Ucapkan 'Preview' untuk mendengar bab pertama, 'Sinopsis' untuk mendengar sinopsis, atau 'Baca sekarang' untuk membaca buku lengkap.`,
+    pageCommands: "Ini halaman Detail Buku. Ucapkan 'Preview' untuk mendengar preview bab 1. Ucapkan 'Sinopsis' untuk mendengar sinopsis. Ucapkan 'Baca sekarang' untuk membaca buku lengkap.",
     notFound: "Buku tidak ditemukan",
     preview: "Preview",
     previewA11yLabel: "Preview buku ini",
@@ -512,6 +518,12 @@ const id: typeof en = {
     freePreview: "Bab 1 gratis",
     subscriptionBadge: "Perlu langganan",
     subscribedBadge: "Berlangganan",
+    synopsisAnnounce: (synopsis: string) => `Sinopsis: ${synopsis}`,
+    previewTitle: "Preview Bab 1",
+    previewClose: "Tutup Preview",
+    previewCloseA11y: "Tutup popup preview",
+    previewReading: "Membacakan preview bab 1.",
+    subscriptionRequired: "Anda perlu berlangganan untuk membaca buku lengkap. Ucapkan 'Langganan' untuk melihat paket.",
   },
   subscription: {
     title: "Langganan",

@@ -34,7 +34,7 @@ function CollectionBookCard({ book }: { book: Book }) {
       ]}
       onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} by ${book.author}. ${book.genre}.`}
+      accessibilityLabel={`${book.title} by ${book.author}. ${book.genres.join(", ")}.`}
       accessibilityHint="Double tap to open book details"
     >
       <View style={[styles.bookCover, { backgroundColor: book.coverColor }]}>
@@ -43,7 +43,7 @@ function CollectionBookCard({ book }: { book: Book }) {
       <View style={styles.bookInfo}>
         <Text style={styles.bookTitle} numberOfLines={1}>{book.title}</Text>
         <Text style={styles.bookAuthor} numberOfLines={1}>{book.author}</Text>
-        <Text style={styles.bookGenre}>{book.genre}</Text>
+        <Text style={styles.bookGenre}>{book.genres.join(", ")}</Text>
       </View>
       <Ionicons name="chevron-forward" size={24} color={Colors.textSecondary} />
     </Pressable>

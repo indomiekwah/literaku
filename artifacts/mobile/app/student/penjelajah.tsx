@@ -76,7 +76,7 @@ function SearchBookItem({ book, t }: { book: Book; t: ReturnType<typeof useT> })
       ]}
       onPress={() => router.push({ pathname: "/student/book/[id]", params: { id: book.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${book.title} ${t.explorer.byAuthor} ${book.author}. ${book.genre}. ${t.explorer.freePreview}`}
+      accessibilityLabel={`${book.title} ${t.explorer.byAuthor} ${book.author}. ${book.genres.join(", ")}. ${t.explorer.freePreview}`}
       accessibilityHint="Double tap to view book details"
     >
       <View style={[styles.searchBookCover, { backgroundColor: book.coverColor }]}>
@@ -85,7 +85,7 @@ function SearchBookItem({ book, t }: { book: Book; t: ReturnType<typeof useT> })
       <View style={styles.searchBookInfo}>
         <Text style={styles.searchBookTitle} numberOfLines={1}>{book.title}</Text>
         <Text style={styles.searchBookAuthor} numberOfLines={1}>{book.author}</Text>
-        <Text style={styles.searchBookGenre}>{book.genre}</Text>
+        <Text style={styles.searchBookGenre}>{book.genres.join(", ")}</Text>
         <View style={styles.previewBadge}>
           <Ionicons name="eye-outline" size={14} color={Colors.primaryLight} />
           <Text style={styles.previewText}>{t.explorer.freePreview}</Text>
@@ -99,11 +99,12 @@ function SearchBookItem({ book, t }: { book: Book; t: ReturnType<typeof useT> })
 function getGenreGroups(books: Book[]) {
   const map = new Map<string, Book[]>();
   for (const book of books) {
-    const existing = map.get(book.genre);
+    const primaryGenre = book.genres[0] || "Other";
+    const existing = map.get(primaryGenre);
     if (existing) {
       existing.push(book);
     } else {
-      map.set(book.genre, [book]);
+      map.set(primaryGenre, [book]);
     }
   }
   return Array.from(map.entries())
@@ -118,10 +119,10 @@ function normalizeGenreQuery(s: string): string {
 function findGenreMatch(query: string): string | null {
   const q = normalizeGenreQuery(query.replace(/\b(books?|buku|kategori|category)\b/gi, ""));
   if (!q) return null;
-  const genres = [...new Set(sampleBooks.map((b) => b.genre))];
-  const exact = genres.find((g) => normalizeGenreQuery(g) === q);
+  const allGenres = [...new Set(sampleBooks.flatMap((b) => b.genres))];
+  const exact = allGenres.find((g) => normalizeGenreQuery(g) === q);
   if (exact) return exact;
-  const partial = genres.find((g) => normalizeGenreQuery(g).includes(q) || q.includes(normalizeGenreQuery(g)));
+  const partial = allGenres.find((g) => normalizeGenreQuery(g).includes(q) || q.includes(normalizeGenreQuery(g)));
   return partial ?? null;
 }
 
@@ -144,7 +145,7 @@ export default function PenjelajahScreen() {
     if (!q) return [];
     const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
     return sampleBooks.filter(
-      (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || clean(b.genre).includes(q)
+      (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || b.genres.some((g) => clean(g).includes(q))
     );
   }, [searchQuery]);
 
@@ -183,7 +184,7 @@ export default function PenjelajahScreen() {
         const q = param.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
         const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
         const matches = sampleBooks.filter(
-          (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || clean(b.genre).includes(q)
+          (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || b.genres.some((g) => clean(g).includes(q))
         );
         if (matches.length > 0) {
           const titles = matches.map((b) => b.title).join(", ");
@@ -204,7 +205,7 @@ export default function PenjelajahScreen() {
       if (intent === "browse_category" && param) {
         const genreMatch = findGenreMatch(param);
         if (genreMatch) {
-          const booksInGenre = sampleBooks.filter((b) => b.genre === genreMatch);
+          const booksInGenre = sampleBooks.filter((b) => b.genres.includes(genreMatch));
           const titles = booksInGenre.map((b) => b.title).join(", ");
           const msg = t.explorer.categoryBooksAnnounce(genreMatch, booksInGenre.length, titles);
           AccessibilityInfo.announceForAccessibility(msg);
