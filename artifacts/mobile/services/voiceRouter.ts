@@ -311,7 +311,7 @@ export function executeGlobalNavigation(intent: VoiceIntent, voice: string, para
       return true;
     case "nav_join_institution":
       confirm(lang === "id" ? "Membuka halaman institusi" : "Opening the institution page");
-      router.push("/student/riwayat");
+      router.push("/student/institusi");
       return true;
     case "nav_back":
       confirm(lang === "id" ? "Kembali ke halaman sebelumnya" : "Going back to the previous page");

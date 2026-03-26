@@ -114,16 +114,6 @@ export default function StudentHomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             <NavButton
-              label={t.home.joinInstitution}
-              subtitle={t.home.joinInstitutionSub}
-              icon="school"
-              color="#E65100"
-              onPress={() => router.push("/student/riwayat")}
-              accessibilityLabel={t.home.joinInstitutionA11yLabel}
-              accessibilityHint={t.home.joinInstitutionA11yHint}
-            />
-
-            <NavButton
               label={t.home.explorer}
               subtitle={t.home.explorerSub}
               icon="compass"
@@ -154,10 +144,20 @@ export default function StudentHomeScreen() {
             />
 
             <NavButton
+              label={t.home.joinInstitution}
+              subtitle={t.home.joinInstitutionSub}
+              icon="school"
+              color="#E65100"
+              onPress={() => router.push("/student/institusi")}
+              accessibilityLabel={t.home.joinInstitutionA11yLabel}
+              accessibilityHint={t.home.joinInstitutionA11yHint}
+            />
+
+            <NavButton
               label={t.home.settings}
               subtitle={t.home.settingsSub}
               icon="settings"
-              color="#546E7A"
+              color="#7B1FA2"
               onPress={() => router.push("/student/settings")}
               accessibilityLabel={t.home.settingsA11yLabel}
               accessibilityHint={t.home.settingsA11yHint}
@@ -167,7 +167,7 @@ export default function StudentHomeScreen() {
               label={t.home.guide}
               subtitle={t.home.guideSub}
               icon="help-circle"
-              color="#37474F"
+              color="#00838F"
               onPress={() => router.push("/student/guide")}
               accessibilityLabel={t.home.guideA11yLabel}
               accessibilityHint={t.home.guideA11yHint}

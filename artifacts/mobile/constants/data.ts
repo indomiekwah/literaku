@@ -279,6 +279,7 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Open explorer", intent: "Open book explorer" },
     { example: "Open collection", intent: "Open my collection" },
     { example: "Open history", intent: "Open reading history" },
+    { example: "Open institution", intent: "Open institution page" },
     { example: "Open settings", intent: "Open settings" },
     { example: "Open guide", intent: "Open voice guide" },
     { example: "Subscribe", intent: "Open subscription" },
@@ -302,6 +303,10 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   ],
   riwayat: [
     { example: "Continue reading", intent: "Continue last book" },
+    { example: "Go back to home", intent: "Go back to home" },
+  ],
+  institusi: [
+    { example: "Join institution", intent: "Request to join an institution" },
     { example: "Books from school", intent: "View institution books" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
