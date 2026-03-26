@@ -30,7 +30,7 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.1,
+            toValue: 1.15,
             duration: 1200,
             useNativeDriver: true,
           }),
@@ -70,17 +70,7 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
   return (
     <View style={styles.container} accessibilityRole="toolbar" accessibilityLabel={t.swipeHintBar.swipeLeftCommand}>
       <View style={styles.row}>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <Pressable
-            style={styles.logoButton}
-            onPress={handleMicPress}
-            accessibilityRole="button"
-            accessibilityLabel="Activate voice command"
-            accessibilityHint="Double tap to open voice commands"
-          >
-            <Image source={logoImage} style={styles.logoImg} />
-          </Pressable>
-        </Animated.View>
+        <Image source={logoImage} style={styles.logoImg} accessibilityElementsHidden />
 
         <Pressable
           style={styles.hintArea}
@@ -124,6 +114,18 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
             <Ionicons name="help-circle" size={28} color={Colors.primaryLight} />
           </Pressable>
         )}
+
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <Pressable
+            style={[styles.micButton, isVoiceOnly && styles.micButtonActive]}
+            onPress={handleMicPress}
+            accessibilityRole="button"
+            accessibilityLabel="Activate voice command"
+            accessibilityHint="Double tap to open voice commands"
+          >
+            <Ionicons name="mic" size={26} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -143,15 +145,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     gap: 8,
   },
-  logoButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
   logoImg: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
   },
   hintArea: {
     flex: 1,
@@ -191,5 +188,16 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: "center",
     justifyContent: "center",
+  },
+  micButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#34A853",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micButtonActive: {
+    backgroundColor: "#2E7D32",
   },
 });

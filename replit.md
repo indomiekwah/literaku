@@ -30,7 +30,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Large touch targets (48-78px buttons, 58px+ inputs) and 18-28px bold text.
     - High contrast colors (WCAG AAA compliant).
     - Full screen reader accessibility (`accessibilityRole`, `accessibilityLabel`, `accessibilityHint`).
-    - Contextual `SwipeHintBar` and `SwipeVoiceWrapper` for voice activation via swipe-left gesture.
+    - Contextual `SwipeHintBar` with persistent green mic button (48px, right-positioned, last in TalkBack focus order) as primary voice activation for screen reader users. Also supports swipe-left gesture via `SwipeVoiceWrapper`.
     - Web insets: `isWeb ? 67 : insets.top`, `isWeb ? 34 : insets.bottom`.
 - **Voice System**:
     - Integrates Azure Cognitive Services for Speech-to-Text (STT) and Text-to-Speech (TTS).
@@ -62,7 +62,7 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - **State Management**: `ReadingPreferencesContext` for user settings (voice, speed, language, text size, interaction mode, subscriptionPlan: "free"|"premium") and `VoiceActivationContext` for voice interaction state.
 - **Screen List**: Splash, Login, Home, Explorer (penjelajah), Collection (library), History (riwayat), Book Detail (book/[id]), Reader (reader/[id]), Guide, Settings, Subscription.
 - **Guide Screen**: `student/guide.tsx` with sections: About Literaku, How Voice Commands Work, Voice Mode vs Touch Mode, Context-Aware Commands, Navigation Commands, Reading Commands, Subscription & Institution, TalkBack/VoiceOver Users, Voice Language, Azure AI badge.
-- **Accessibility Audit**: All screens have mount TTS announcements, `useTTSAnnounce` hook, `SwipeHintBar` with contextual voice hints, `SwipeVoiceWrapper` for swipe-left activation, freeze zone for voice-only mode, proper a11y roles/labels/hints.
+- **Accessibility Audit**: All screens have mount TTS announcements, `useTTSAnnounce` hook (re-announces on every page focus via `useFocusEffect`), `SwipeHintBar` with contextual voice hints and persistent green mic button (TalkBack/VoiceOver primary activation path), `SwipeVoiceWrapper` for swipe-left activation, freeze zone for voice-only mode, proper a11y roles/labels/hints. `repeat_commands` voice intent speaks per-page available commands.
 - **Colors**: primary blue `#1976D2`, student green `#2E7D32`, orange `#E65100`.
 
 **API Server (`artifacts/api-server`)**:
