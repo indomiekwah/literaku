@@ -23,7 +23,9 @@ import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { getTranslations } from "@/constants/translations";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -35,9 +37,22 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const { language } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = getTranslations(language);
 
   useTTSAnnounce(t.login.mountAnnounce);
+
+  React.useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent) => {
+      if (intent === "nav_login") {
+        AccessibilityInfo.announceForAccessibility(t.login.signingIn);
+        router.replace("/student/home");
+        return true;
+      }
+      return false;
+    });
+    return () => clearTranscriptionCallback();
+  }, []);
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {

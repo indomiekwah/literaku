@@ -85,8 +85,10 @@ export default function KoleksiScreen() {
   const collectionBooks = sampleBooks.filter((b) => savedBookIds.includes(b.id));
   const filteredBooks = collectionBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    const q = searchQuery.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
+    if (!q) return true;
+    const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
+    return clean(b.title).includes(q) || clean(b.author).includes(q);
   });
 
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
@@ -96,15 +98,18 @@ export default function KoleksiScreen() {
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if ((intent === "open_book" || intent === "search_book") && param) {
+        const cleanQ = param.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
         const match = collectionBooks.find((b) =>
-          b.title.toLowerCase().includes(param.toLowerCase())
+          b.title.replace(/[.,!?'";\-:()]/g, "").toLowerCase().includes(cleanQ)
         );
         if (match) {
           router.push({ pathname: "/student/book/[id]", params: { id: match.id } });
         } else {
           setSearchQuery(param);
         }
+        return true;
       }
+      return false;
     });
     return () => clearTranscriptionCallback();
   }, [collectionBooks]);

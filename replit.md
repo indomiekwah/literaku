@@ -43,10 +43,14 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - Azure voice map: v1=id-ID-GadisNeural, v2=id-ID-ArdiNeural, v3=en-US-EmmaMultilingualNeural, v4=en-US-AndrewMultilingualNeural.
     - STT flow: `AudioRecorder.start()` → mic → `stop()` returns Blob(web/webm) or URI(native/m4a on Android, wav on iOS) → `speechToText/speechToTextFromUri` with correct MIME types → `POST /api/speech/stt` → server ffmpeg converts to WAV PCM → Azure STT.
     - TTS flow: `speakText()` → `POST /api/speech/tts` → MP3 bytes → web: HTMLAudioElement; native: expo-av base64 data URI.
-    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_join_institution, nav_back, reader_next, reader_prev, reader_play, reader_pause, reader_summarize, search_book, open_book, speed_change.
-    - Reader-specific voice commands: play/pause/next/prev page/summarize handled via `onTranscription` callback.
-    - Explorer/Collection voice commands: search_book and open_book handled via screen-specific callbacks.
-    - ANNOUNCE_SPEED = 0.85 for mount/feedback announcements.
+    - Voice intents: nav_home, nav_explorer, nav_collection, nav_history, nav_guide, nav_settings, nav_join_institution, nav_back, nav_login, reader_next, reader_prev, reader_play, reader_pause, reader_summarize, reader_read_aloud, search_book, open_book, open_preview, read_full, speed_change, speed_increase, speed_decrease.
+    - Context-aware voice commands: READER_ONLY_INTENTS (reader_next/prev/play/pause/stop/summarize/read_aloud) and BOOK_DETAIL_ONLY_INTENTS (open_preview/read_full) give feedback when used on wrong page.
+    - Callback contract: page-level `onTranscription` callbacks return `true` if handled (prevents fallthrough to global nav), `false` otherwise.
+    - Global voice handling: `executeGlobalNavigation()` handles nav_*, open_book (fuzzy book search → book detail), nav_login (→ home).
+    - Per-page voice callbacks: login (nav_login), home (open_book), explorer (search_book, open_book), collection (open_book, search_book), book detail (open_preview, read_full, reader_play), reader (all reader_* intents + speed + read_aloud).
+    - Speed control: speed_change (specific level 1-5), speed_increase (step up), speed_decrease (step down). Levels: 0.5x, 0.75x, 1x, 1.25x, 1.5x.
+    - CLU vs regex priority: when both match different intents and CLU confidence < 80%, regex wins for specificity.
+    - Fuzzy book search: `findBookByTitle()` strips punctuation for matching. Search boxes also strip punctuation.
 - **Business Model**:
     - B2C: $7/month subscription, access to full library. Ch.1 free preview. Payment via Midtrans (ID) / Stripe (intl).
     - B2B: Institution pays per page for digitization ($0.06 Starter, $0.05 Medium, $0.04 Enterprise). Admin assigns books to students for FREE via web dashboard (no subscription needed for B2B students). Students join institution via code (e.g., "SMAN5-JKT") or operator invite.

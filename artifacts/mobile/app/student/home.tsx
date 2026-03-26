@@ -20,8 +20,11 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import type { VoiceIntent } from "@/services/voiceRouter";
+import { findBookByTitle } from "@/services/voiceRouter";
 
 interface NavButtonProps {
   label: string;
@@ -63,9 +66,24 @@ export default function StudentHomeScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
   useTTSAnnounce(t.home.mountAnnounce);
+
+  React.useEffect(() => {
+    onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
+      if (intent === "open_book" && param) {
+        const book = findBookByTitle(param);
+        if (book) {
+          router.push({ pathname: "/student/book/[id]", params: { id: book.id } });
+          return true;
+        }
+      }
+      return false;
+    });
+    return () => clearTranscriptionCallback();
+  }, []);
 
   return (
     <SwipeVoiceWrapper>

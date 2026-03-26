@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { AccessibilityInfo } from "react-native";
 import { speakText, analyzeCLU, isCLUAvailable } from "@/services/speech";
+import { sampleBooks } from "@/constants/data";
 
 const CONFIRM_SPEED = 1;
 
@@ -20,9 +21,14 @@ export type VoiceIntent =
   | "reader_pause"
   | "reader_stop"
   | "reader_summarize"
+  | "reader_read_aloud"
   | "search_book"
   | "open_book"
+  | "open_preview"
+  | "read_full"
   | "speed_change"
+  | "speed_increase"
+  | "speed_decrease"
   | "unknown";
 
 export interface MatchResult {
@@ -36,7 +42,18 @@ const VALID_INTENTS = new Set<string>([
   "nav_home", "nav_explorer", "nav_collection", "nav_history",
   "nav_guide", "nav_settings", "nav_join_institution", "nav_back",
   "nav_login", "reader_next", "reader_prev", "reader_play",
-  "reader_pause", "reader_stop", "reader_summarize", "search_book", "open_book", "speed_change",
+  "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
+  "search_book", "open_book", "open_preview", "read_full",
+  "speed_change", "speed_increase", "speed_decrease",
+]);
+
+export const READER_ONLY_INTENTS = new Set<VoiceIntent>([
+  "reader_next", "reader_prev", "reader_play", "reader_pause",
+  "reader_stop", "reader_summarize", "reader_read_aloud",
+]);
+
+export const BOOK_DETAIL_ONLY_INTENTS = new Set<VoiceIntent>([
+  "open_preview", "read_full",
 ]);
 
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
@@ -44,17 +61,25 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(open\s*(?:the\s*)?explorer|explorer|penjelajah|buka\s*penjelajah|jelajah|explore)\b/i, intent: "nav_explorer" },
   { pattern: /\b((?:show\s*(?:my\s*)?)?(?:the\s*)?collection|koleksi|buka\s*koleksi|my\s*(?:books?|library)|perpustakaan|library)\b/i, intent: "nav_collection" },
   { pattern: /\b((?:open\s*)?(?:the\s*)?history|riwayat|buka\s*riwayat|(?:reading\s*)?history)\b/i, intent: "nav_history" },
-  { pattern: /\b((?:open\s*)?(?:the\s*)?guide|panduan|buka\s*panduan|help|bantuan|voice\s*guide)\b/i, intent: "nav_guide" },
+  { pattern: /\b((?:open\s*)?(?:the\s*)?guide|panduan|buka\s*panduan|voice\s*guide)\b/i, intent: "nav_guide" },
   { pattern: /\b((?:open\s*)?(?:the\s*)?settings|pengaturan|buka\s*pengaturan|setelan)\b/i, intent: "nav_settings" },
   { pattern: /\b(join\s*(?:my\s*)?institution|gabung\s*institusi|institusi|institution|sekolah\s*saya|my\s*school)\b/i, intent: "nav_join_institution" },
   { pattern: /\b(go\s*back|back|kembali|mundur|balik)\b/i, intent: "nav_back" },
-  { pattern: /\b(sign\s*(?:in|out)|log\s*(?:in|out)|masuk|keluar|login|logout)\b/i, intent: "nav_login" },
+  { pattern: /\b(sign\s*in|log\s*in|masuk|login)\b/i, intent: "nav_login" },
 
   { pattern: /\b(next\s*page|halaman\s*(?:selanjutnya|berikut|lanjut)|lanjut|forward)\b/i, intent: "reader_next" },
   { pattern: /\b(prev(?:ious)?\s*page|halaman\s*(?:sebelumnya|sebelum)|sebelum(?:nya)?)\b/i, intent: "reader_prev" },
   { pattern: /\b(play|putar|mulai|start|continue|lanjutkan|resume)\b/i, intent: "reader_play" },
   { pattern: /\b(pause|jeda|berhenti|stop|hentikan)\b/i, intent: "reader_pause" },
   { pattern: /\b(summarize|summary|ringkas(?:an|kan)?|rangkum(?:an|kan)?|inti(?:sari)?|kesimpulan)\b/i, intent: "reader_summarize" },
+  { pattern: /\b(read\s*(?:it\s*)?aloud|read\s*(?:the\s*)?summary\s*(?:aloud)?|bacakan|baca\s*(?:keras|nyaring)|baca(?:kan)?\s*ringkasan)\b/i, intent: "reader_read_aloud" },
+
+  { pattern: /\b(?:open|show|lihat|buka)\s*(?:the\s*)?preview\b/i, intent: "open_preview" },
+  { pattern: /\b(?:preview\s*(?:the\s*)?book|preview\s*buku)\b/i, intent: "open_preview" },
+  { pattern: /\b(?:read\s*(?:this\s*)?(?:full|now|the\s*book)|baca\s*(?:buku\s*)?(?:ini|sekarang|penuh|lengkap))\b/i, intent: "read_full" },
+
+  { pattern: /\b(?:increase\s*(?:the\s*)?speed|speed\s*up|faster|lebih\s*cepat|percepat|naikkan?\s*kecepatan)\b/i, intent: "speed_increase" },
+  { pattern: /\b(?:decrease\s*(?:the\s*)?speed|slow(?:er)?\s*(?:down)?|lebih\s*lambat|perlambat|(?:kurangi|turunkan)\s*kecepatan)\b/i, intent: "speed_decrease" },
 
   { pattern: /\bsearch\s+(.+)/i, intent: "search_book", paramGroup: 1 },
   { pattern: /\bcari\s+(.+)/i, intent: "search_book", paramGroup: 1 },
@@ -63,6 +88,22 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\bspeed\s*(\d)/i, intent: "speed_change", paramGroup: 1 },
   { pattern: /\bkecepatan\s*(\d)/i, intent: "speed_change", paramGroup: 1 },
 ];
+
+function cleanForSearch(text: string): string {
+  return text.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
+}
+
+export function findBookByTitle(query: string) {
+  const cleaned = cleanForSearch(query);
+  if (!cleaned) return undefined;
+
+  const exact = sampleBooks.find(b => cleanForSearch(b.title) === cleaned);
+  if (exact) return exact;
+
+  return sampleBooks.find(
+    b => cleanForSearch(b.title).includes(cleaned) || cleaned.includes(cleanForSearch(b.title))
+  );
+}
 
 function matchRegex(text: string): MatchResult {
   const cleaned = text.replace(/[.,!?'"]/g, "").trim();
@@ -155,13 +196,25 @@ export async function matchVoiceIntent(
         if (words.length > 0) param = words;
       }
 
+      if (regexResult.intent !== "unknown" && regexResult.confidence === 1) {
+        if (
+          regexResult.intent !== cluResult.intent &&
+          cluResult.confidence < 0.8
+        ) {
+          console.log(
+            `Voice: CLU (${cluResult.intent} ${(cluResult.confidence * 100).toFixed(0)}%) vs regex (${regexResult.intent}), using regex for specificity`
+          );
+          return regexResult;
+        }
+      }
+
       console.log(
         `Voice: CLU matched "${text}" → ${cluResult.intent} (${(cluResult.confidence * 100).toFixed(0)}%) param=${param || "none"}`
       );
 
       return {
         intent: cluResult.intent as VoiceIntent,
-        param,
+        param: param || regexResult.param,
         confidence: cluResult.confidence,
         source: "clu",
       };
@@ -200,7 +253,7 @@ export function matchVoiceIntentSync(text: string): MatchResult {
   return matchRegex(text);
 }
 
-export function executeGlobalNavigation(intent: VoiceIntent, voice: string): boolean {
+export function executeGlobalNavigation(intent: VoiceIntent, voice: string, param?: string, lang?: string): boolean {
   const confirm = (msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
     speakText(msg, voice, CONFIRM_SPEED).catch(() => {});
@@ -208,37 +261,59 @@ export function executeGlobalNavigation(intent: VoiceIntent, voice: string): boo
 
   switch (intent) {
     case "nav_home":
-      confirm("Going back to the home page");
+      confirm(lang === "id" ? "Membuka halaman utama" : "Going back to the home page");
       router.replace("/student/home");
       return true;
     case "nav_explorer":
-      confirm("Opening the explorer page");
+      confirm(lang === "id" ? "Membuka penjelajah" : "Opening the explorer page");
       router.push("/student/penjelajah");
       return true;
     case "nav_collection":
-      confirm("Opening your book collection");
+      confirm(lang === "id" ? "Membuka koleksi buku" : "Opening your book collection");
       router.push("/student/library");
       return true;
     case "nav_history":
-      confirm("Opening the history page");
+      confirm(lang === "id" ? "Membuka riwayat" : "Opening the history page");
       router.push("/student/riwayat");
       return true;
     case "nav_guide":
-      confirm("Opening the voice guide");
+      confirm(lang === "id" ? "Membuka panduan suara" : "Opening the voice guide");
       router.push("/student/guide");
       return true;
     case "nav_settings":
-      confirm("Opening the settings page");
+      confirm(lang === "id" ? "Membuka pengaturan" : "Opening the settings page");
       router.push("/student/settings");
       return true;
     case "nav_join_institution":
-      confirm("Opening the institution page");
+      confirm(lang === "id" ? "Membuka halaman institusi" : "Opening the institution page");
       router.push("/student/riwayat");
       return true;
     case "nav_back":
-      confirm("Going back to the previous page");
+      confirm(lang === "id" ? "Kembali ke halaman sebelumnya" : "Going back to the previous page");
       router.back();
       return true;
+    case "nav_login":
+      confirm(lang === "id" ? "Sedang masuk..." : "Signing in...");
+      router.replace("/student/home");
+      return true;
+    case "open_book":
+      if (param) {
+        const book = findBookByTitle(param);
+        if (book) {
+          confirm(lang === "id" ? `Membuka ${book.title}` : `Opening ${book.title}`);
+          router.push({ pathname: "/student/book/[id]", params: { id: book.id } });
+          return true;
+        } else {
+          confirm(
+            lang === "id"
+              ? `Buku "${param}" tidak ditemukan. Coba gunakan pencarian.`
+              : `Book "${param}" not found. Try searching for it.`
+          );
+          router.push("/student/penjelajah");
+          return true;
+        }
+      }
+      return false;
     default:
       return false;
   }

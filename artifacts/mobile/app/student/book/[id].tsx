@@ -20,8 +20,10 @@ import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
 import { sampleBooks, subscriptionPlans, formatRupiah, voiceHints } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
+import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
 import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
+import type { VoiceIntent } from "@/services/voiceRouter";
 
 export default function BookDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -30,6 +32,7 @@ export default function BookDetailScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, isSubscribed, setIsSubscribed } = useReadingPreferences();
+  const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const [showSubscription, setShowSubscription] = useState(false);
   const [selectedPlanType, setSelectedPlanType] = useState<"monthly" | "yearly">("monthly");
   const t = useT();
@@ -37,6 +40,31 @@ export default function BookDetailScreen() {
   const book = sampleBooks.find((b) => b.id === id);
 
   useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, book.genre) : "");
+
+  React.useEffect(() => {
+    if (!book) return;
+    onTranscription((_text: string, intent: VoiceIntent) => {
+      switch (intent) {
+        case "open_preview":
+          AccessibilityInfo.announceForAccessibility(t.bookDetail.previewA11yLabel);
+          router.push({ pathname: "/student/reader/[id]", params: { id: book.id, preview: "true" } });
+          return true;
+        case "read_full":
+        case "reader_play":
+          if (isSubscribed) {
+            AccessibilityInfo.announceForAccessibility(t.bookDetail.readNow);
+            router.push({ pathname: "/student/reader/[id]", params: { id: book.id } });
+          } else {
+            AccessibilityInfo.announceForAccessibility(t.bookDetail.previewA11yLabel);
+            router.push({ pathname: "/student/reader/[id]", params: { id: book.id, preview: "true" } });
+          }
+          return true;
+        default:
+          return false;
+      }
+    });
+    return () => clearTranscriptionCallback();
+  }, [book, isSubscribed]);
 
   if (!book) {
     return (

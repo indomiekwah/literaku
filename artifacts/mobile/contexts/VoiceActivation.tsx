@@ -3,7 +3,13 @@ import { AccessibilityInfo, Platform } from "react-native";
 import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
 import { useReadingPreferences, type SpeedValue } from "@/contexts/ReadingPreferences";
-import { matchVoiceIntent, executeGlobalNavigation, type VoiceIntent } from "@/services/voiceRouter";
+import {
+  matchVoiceIntent,
+  executeGlobalNavigation,
+  READER_ONLY_INTENTS,
+  BOOK_DETAIL_ONLY_INTENTS,
+  type VoiceIntent,
+} from "@/services/voiceRouter";
 
 const SPEED_MAP: Record<string, SpeedValue> = {
   "1": 0.5,
@@ -13,13 +19,17 @@ const SPEED_MAP: Record<string, SpeedValue> = {
   "5": 1.5,
 };
 
+const SPEED_LEVELS: SpeedValue[] = [0.5, 0.75, 1, 1.25, 1.5];
+
+type TranscriptionCallback = (text: string, intent: VoiceIntent, param?: string) => boolean | void;
+
 interface VoiceActivationContextType {
   activateVoice: () => void;
   dismissVoice: () => void;
   isVoiceActive: boolean;
   isListening: boolean;
   transcribedText: string;
-  onTranscription: (callback: (text: string, intent: VoiceIntent, param?: string) => void) => void;
+  onTranscription: (callback: TranscriptionCallback) => void;
   clearTranscriptionCallback: () => void;
 }
 
@@ -38,9 +48,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const [isListening, setIsListening] = useState(false);
   const [transcribedText, setTranscribedText] = useState("");
   const recorderRef = useRef<AudioRecorder | null>(null);
-  const callbackRef = useRef<((text: string, intent: VoiceIntent, param?: string) => void) | null>(null);
+  const callbackRef = useRef<TranscriptionCallback | null>(null);
   const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { setSpeed, selectedVoice, language } = useReadingPreferences();
+  const { speed, setSpeed, selectedVoice, language } = useReadingPreferences();
 
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
@@ -72,7 +82,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           const mapped = SPEED_MAP[param];
           if (mapped) {
             setSpeed(mapped);
-            const msg = `Speed set to level ${param}`;
+            const msg = language === "id"
+              ? `Kecepatan diubah ke level ${param}`
+              : `Speed set to level ${param}`;
             AccessibilityInfo.announceForAccessibility(msg);
             speakText(msg, selectedVoice, 1).catch(() => {});
             setIsVoiceActive(false);
@@ -80,13 +92,79 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           }
         }
 
-        if (callbackRef.current) {
-          const handled = callbackRef.current(text, intent, param);
+        if (intent === "speed_increase") {
+          const currentIdx = SPEED_LEVELS.indexOf(speed);
+          if (currentIdx < SPEED_LEVELS.length - 1) {
+            const newSpeed = SPEED_LEVELS[currentIdx + 1];
+            setSpeed(newSpeed);
+            const msg = language === "id"
+              ? `Kecepatan dinaikkan ke ${newSpeed}x`
+              : `Speed increased to ${newSpeed}x`;
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+          } else {
+            const msg = language === "id"
+              ? "Sudah di kecepatan maksimum"
+              : "Already at maximum speed";
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+          }
+          setIsVoiceActive(false);
+          return;
         }
 
-        const globalHandled = executeGlobalNavigation(intent, selectedVoice);
+        if (intent === "speed_decrease") {
+          const currentIdx = SPEED_LEVELS.indexOf(speed);
+          if (currentIdx > 0) {
+            const newSpeed = SPEED_LEVELS[currentIdx - 1];
+            setSpeed(newSpeed);
+            const msg = language === "id"
+              ? `Kecepatan diturunkan ke ${newSpeed}x`
+              : `Speed decreased to ${newSpeed}x`;
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+          } else {
+            const msg = language === "id"
+              ? "Sudah di kecepatan minimum"
+              : "Already at minimum speed";
+            AccessibilityInfo.announceForAccessibility(msg);
+            speakText(msg, selectedVoice, 1).catch(() => {});
+          }
+          setIsVoiceActive(false);
+          return;
+        }
+
+        if (callbackRef.current) {
+          const handled = callbackRef.current(text, intent, param);
+          if (handled === true) {
+            setTimeout(() => setIsVoiceActive(false), 1500);
+            return;
+          }
+        }
+
+        const globalHandled = executeGlobalNavigation(intent, selectedVoice, param, language);
         if (globalHandled) {
           setIsVoiceActive(false);
+          return;
+        }
+
+        if (READER_ONLY_INTENTS.has(intent)) {
+          const msg = language === "id"
+            ? "Perintah ini hanya tersedia di halaman pembaca buku. Buka buku terlebih dahulu."
+            : "This command is only available on the reader page. Open a book first.";
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
+          setTimeout(() => setIsVoiceActive(false), 2000);
+          return;
+        }
+
+        if (BOOK_DETAIL_ONLY_INTENTS.has(intent)) {
+          const msg = language === "id"
+            ? "Perintah ini hanya tersedia di halaman detail buku."
+            : "This command is only available on the book detail page.";
+          AccessibilityInfo.announceForAccessibility(msg);
+          speakText(msg, selectedVoice, 1).catch(() => {});
+          setTimeout(() => setIsVoiceActive(false), 2000);
           return;
         }
 
@@ -113,7 +191,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       AccessibilityInfo.announceForAccessibility("Voice recognition failed. Please try again.");
       setTimeout(() => setIsVoiceActive(false), 2000);
     }
-  }, [setSpeed, selectedVoice, language]);
+  }, [speed, setSpeed, selectedVoice, language]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -161,7 +239,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
     setTranscribedText("");
   }, []);
 
-  const onTranscription = useCallback((callback: (text: string, intent: VoiceIntent, param?: string) => void) => {
+  const onTranscription = useCallback((callback: TranscriptionCallback) => {
     callbackRef.current = callback;
   }, []);
 

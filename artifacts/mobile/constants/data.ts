@@ -272,26 +272,25 @@ export function formatRupiah(amount: number): string {
 
 export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   login: [
-    { example: "Sign in with Google", intent: "Sign in with Google" },
-    { example: "Sign in", intent: "Sign in" },
+    { example: "Sign in", intent: "Sign in to your account" },
     { example: "Masuk", intent: "Sign in" },
   ],
   studentHome: [
     { example: "Open explorer", intent: "Open book explorer" },
     { example: "Show my collection", intent: "Open my collection" },
     { example: "Open history", intent: "Open reading history" },
-    { example: "Open guide", intent: "Open voice guide" },
+    { example: "Read Penance", intent: "Open a book directly" },
     { example: "Open settings", intent: "Open settings" },
-    { example: "Join institution", intent: "Open institution page" },
   ],
   penjelajah: [
     { example: "Search The Silent Patient", intent: "Search for a book" },
-    { example: "Open first book", intent: "Open book details" },
+    { example: "Read Penance", intent: "Open book details" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
   bookDetail: [
-    { example: "Subscribe to read", intent: "Open subscription plans" },
-    { example: "Preview book", intent: "Preview first chapter free" },
+    { example: "Open preview", intent: "Preview first chapter free" },
+    { example: "Read now", intent: "Start reading the book" },
+    { example: "Play", intent: "Start reading" },
     { example: "Go back", intent: "Go back" },
   ],
   koleksi: [
@@ -305,14 +304,14 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Go back to home", intent: "Go back to home" },
   ],
   reader: [
-    { example: "Next page", intent: "Go to next page" },
-    { example: "Go back one page", intent: "Previous page" },
-    { example: "Speed 1", intent: "Slow speed" },
-    { example: "Speed 2", intent: "Normal speed" },
-    { example: "Speed 3", intent: "Fast speed" },
+    { example: "Play", intent: "Start reading aloud" },
     { example: "Pause", intent: "Pause narration" },
-    { example: "Continue", intent: "Resume narration" },
-    { example: "Go back to collection", intent: "Go back to collection" },
+    { example: "Next page", intent: "Go to next page" },
+    { example: "Increase speed", intent: "Speed up reading" },
+    { example: "Decrease speed", intent: "Slow down reading" },
+    { example: "Speed 3", intent: "Set speed to level 3" },
+    { example: "Summarize", intent: "Summarize this page" },
+    { example: "Read aloud", intent: "Read summary aloud" },
   ],
   studentGuide: [
     { example: "Go back to home", intent: "Go back to home" },
@@ -320,8 +319,8 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
   ],
   studentSettings: [
     { example: "Go back", intent: "Go back to home" },
-    { example: "Speed 1", intent: "Slow speed (0.75x)" },
-    { example: "Speed 3", intent: "Fast speed (1.25x)" },
-    { example: "Change voice to James", intent: "Change voice" },
+    { example: "Speed 1", intent: "Slow speed (0.5x)" },
+    { example: "Increase speed", intent: "Speed up" },
+    { example: "Decrease speed", intent: "Slow down" },
   ],
 };

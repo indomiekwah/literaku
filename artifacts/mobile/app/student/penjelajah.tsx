@@ -64,11 +64,13 @@ export default function PenjelajahScreen() {
 
   const filteredBooks = sampleBooks.filter((b) => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
+    if (!q) return true;
+    const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
     return (
-      b.title.toLowerCase().includes(q) ||
-      b.author.toLowerCase().includes(q) ||
-      b.genre.toLowerCase().includes(q)
+      clean(b.title).includes(q) ||
+      clean(b.author).includes(q) ||
+      clean(b.genre).includes(q)
     );
   });
 
@@ -81,16 +83,20 @@ export default function PenjelajahScreen() {
       if (intent === "search_book" && param) {
         setSearchQuery(param);
         AccessibilityInfo.announceForAccessibility(`Searching for ${param}`);
+        return true;
       } else if (intent === "open_book" && param) {
+        const cleanQ = param.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
         const match = sampleBooks.find((b) =>
-          b.title.toLowerCase().includes(param.toLowerCase())
+          b.title.replace(/[.,!?'";\-:()]/g, "").toLowerCase().includes(cleanQ)
         );
         if (match) {
           router.push({ pathname: "/student/book/[id]", params: { id: match.id } });
         } else {
           setSearchQuery(param);
         }
+        return true;
       }
+      return false;
     });
     return () => clearTranscriptionCallback();
   }, []);

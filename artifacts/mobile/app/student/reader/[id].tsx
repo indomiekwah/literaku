@@ -151,7 +151,7 @@ export default function StudentReaderScreen() {
             setCurrentPage(currentPage + 1);
             AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage + 2, totalPages));
           }
-          break;
+          return true;
         case "reader_prev":
           if (currentPage > 0) {
             ttsAbortRef.current = true;
@@ -160,28 +160,36 @@ export default function StudentReaderScreen() {
             setCurrentPage(currentPage - 1);
             AccessibilityInfo.announceForAccessibility(t.reader.pageOf(currentPage, totalPages));
           }
-          break;
+          return true;
         case "reader_play":
-          if (!isPlaying) {
-            startTTS(currentPage);
-          }
-          break;
+          ttsAbortRef.current = true;
+          stopTTSPlayback();
+          setIsPlaying(false);
+          setTimeout(() => startTTS(currentPage), 100);
+          return true;
         case "reader_pause":
         case "reader_stop":
-          if (isPlaying) {
-            ttsAbortRef.current = true;
-            stopTTSPlayback();
-            setIsPlaying(false);
-            setIsTTSLoading(false);
-            AccessibilityInfo.announceForAccessibility(t.reader.paused);
-          }
-          break;
+          ttsAbortRef.current = true;
+          stopTTSPlayback();
+          setIsPlaying(false);
+          setIsTTSLoading(false);
+          AccessibilityInfo.announceForAccessibility(t.reader.paused);
+          return true;
         case "reader_summarize":
           handleSummarize();
-          break;
+          return true;
+        case "reader_read_aloud":
+          if (summaryText) {
+            speakText(summaryText, selectedVoice, 1).catch(() => {});
+          } else {
+            handleSummarize();
+          }
+          return true;
+        default:
+          return false;
       }
     });
-  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, t]);
+  }, [currentPage, maxPage, totalPages, isPlaying, startTTS, handleSummarize, summaryText, selectedVoice, t]);
 
   if (!book) {
     return (
