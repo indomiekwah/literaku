@@ -321,7 +321,7 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "TalkBack", intent: "Screen reader help" },
   ],
   studentSettings: [
-    { example: "Voice", intent: "List voice options" },
+    { example: "Narrator", intent: "List narrator options" },
     { example: "Language", intent: "List language options" },
     { example: "Subscribe", intent: "Open subscription" },
     { example: "Log out", intent: "Sign out" },

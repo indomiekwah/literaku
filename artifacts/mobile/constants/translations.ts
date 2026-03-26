@@ -187,8 +187,8 @@ const en = {
   },
   settings: {
     title: "Settings",
-    mountAnnounce: "Settings. Adjust voice, speed, language, display, and account preferences.",
-    voiceNarration: "Voice & Narration",
+    mountAnnounce: "Settings page. Here you can adjust: Narrator, Speed, Language, Interaction mode, and Subscription. Say any option to learn more.",
+    voiceNarration: "Narrator",
     narrationVoice: "Narration Voice",
     voiceChanged: (label: string) => `Voice changed to ${label}`,
     readingSpeed: "Default Reading Speed",
@@ -466,8 +466,8 @@ const id: typeof en = {
   },
   settings: {
     title: "Pengaturan",
-    mountAnnounce: "Pengaturan. Sesuaikan suara, kecepatan, bahasa, tampilan, dan akun.",
-    voiceNarration: "Suara & Narasi",
+    mountAnnounce: "Halaman pengaturan. Anda bisa mengatur: Narator, Kecepatan, Bahasa, Mode interaksi, dan Langganan. Ucapkan salah satu untuk mendengar lebih lanjut.",
+    voiceNarration: "Narator",
     narrationVoice: "Suara Narasi",
     voiceChanged: (label: string) => `Suara diubah ke ${label}`,
     readingSpeed: "Kecepatan Baca Default",

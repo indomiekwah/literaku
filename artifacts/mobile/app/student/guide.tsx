@@ -106,7 +106,7 @@ export default function StudentGuideScreen() {
         return true;
       }
       const navIntents = ["nav_home", "nav_explorer", "nav_collection", "nav_history", "nav_settings", "nav_guide", "nav_subscription", "nav_logout", "nav_back", "nav_login"];
-      if (navIntents.includes(intent.intent)) {
+      if (navIntents.includes(intent)) {
         return false;
       }
       speakSection(t.guide.sectionNotFound);
