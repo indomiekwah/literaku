@@ -73,20 +73,6 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
         <Image source={logoImage} style={styles.logoImg} accessibilityElementsHidden />
 
         <Pressable
-          style={styles.hintArea}
-          onPress={cycleHint}
-          accessibilityRole="button"
-          accessibilityLabel={t.swipeHintBar.swipeA11y(currentHint?.example ?? null)}
-          accessibilityHint="Double tap to see another example voice command"
-        >
-          {currentHint && (
-            <Text style={styles.hintText} numberOfLines={1}>
-              {t.swipeHintBar.tryExample(currentHint.example)}
-            </Text>
-          )}
-        </Pressable>
-
-        <Pressable
           style={[styles.modeChip, isVoiceOnly && styles.modeChipActive]}
           onPress={toggleMode}
           accessibilityRole="button"
@@ -101,6 +87,20 @@ export default function SwipeHintBar({ hints, onHelpPress, showHelpButton = fals
           <Text style={[styles.modeChipText, isVoiceOnly && styles.modeChipTextActive]}>
             {isVoiceOnly ? "Voice" : "Touch"}
           </Text>
+        </Pressable>
+
+        <Pressable
+          style={styles.hintArea}
+          onPress={cycleHint}
+          accessibilityRole="button"
+          accessibilityLabel={t.swipeHintBar.swipeA11y(currentHint?.example ?? null)}
+          accessibilityHint="Double tap to see another example voice command"
+        >
+          {currentHint && (
+            <Text style={styles.hintText} numberOfLines={1}>
+              {t.swipeHintBar.tryExample(currentHint.example)}
+            </Text>
+          )}
         </Pressable>
 
         {showHelpButton && onHelpPress && (
