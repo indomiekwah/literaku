@@ -181,6 +181,13 @@ speechRouter.post("/speech/stt", (req: Request, res: Response, next) => {
   }
 });
 
+const TTS_CACHE_MAX = 50;
+const ttsServerCache = new Map<string, Buffer>();
+
+function getTTSCacheKey(text: string, voice: string, rate: string): string {
+  return `${voice}|${rate}|${text.slice(0, 300)}`;
+}
+
 speechRouter.post("/speech/tts", async (req: Request, res: Response) => {
   if (!AZURE_SPEECH_KEY || !AZURE_SPEECH_REGION) {
     res.status(500).json({ error: "Azure Speech credentials not configured" });
@@ -200,6 +207,21 @@ speechRouter.post("/speech/tts", async (req: Request, res: Response) => {
 
   const voiceName = voice || "en-US-EmmaMultilingualNeural";
   const prosodyRate = rate != null ? `${rate}` : "1";
+
+  const cacheKey = getTTSCacheKey(text, voiceName, prosodyRate);
+  const cached = ttsServerCache.get(cacheKey);
+  if (cached) {
+    console.log(`TTS cache hit: ${text.slice(0, 40)}...`);
+    ttsServerCache.delete(cacheKey);
+    ttsServerCache.set(cacheKey, cached);
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Length": String(cached.byteLength),
+      "X-TTS-Cache": "hit",
+    });
+    res.send(cached);
+    return;
+  }
 
   const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>
     <voice name='${voiceName}'>
@@ -228,11 +250,19 @@ speechRouter.post("/speech/tts", async (req: Request, res: Response) => {
     }
 
     const audioArrayBuffer = await ttsRes.arrayBuffer();
+    const audioBuffer = Buffer.from(audioArrayBuffer);
+
+    if (ttsServerCache.size >= TTS_CACHE_MAX) {
+      const oldest = ttsServerCache.keys().next().value;
+      if (oldest) ttsServerCache.delete(oldest);
+    }
+    ttsServerCache.set(cacheKey, audioBuffer);
+
     res.set({
       "Content-Type": "audio/mpeg",
-      "Content-Length": String(audioArrayBuffer.byteLength),
+      "Content-Length": String(audioBuffer.byteLength),
     });
-    res.send(Buffer.from(audioArrayBuffer));
+    res.send(audioBuffer);
   } catch (err: any) {
     res.status(500).json({ error: err.message || "TTS failed" });
   }

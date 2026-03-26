@@ -111,6 +111,55 @@ let currentSoundNative: any = null;
 let ttsGeneration = 0;
 let currentAbortController: AbortController | null = null;
 
+const TTS_CACHE_MAX = 30;
+const ttsCacheMap = new Map<string, ArrayBuffer>();
+
+function ttsCacheKey(text: string, voice: string, rate: number): string {
+  return `${voice}|${rate}|${text.slice(0, 200)}`;
+}
+
+function getCachedTTS(key: string): ArrayBuffer | undefined {
+  const cached = ttsCacheMap.get(key);
+  if (cached) {
+    ttsCacheMap.delete(key);
+    ttsCacheMap.set(key, cached);
+  }
+  return cached;
+}
+
+function setCachedTTS(key: string, data: ArrayBuffer): void {
+  if (ttsCacheMap.size >= TTS_CACHE_MAX) {
+    const oldest = ttsCacheMap.keys().next().value;
+    if (oldest) ttsCacheMap.delete(oldest);
+  }
+  ttsCacheMap.set(key, data);
+}
+
+async function fetchTTSAudio(
+  text: string,
+  azureVoice: string,
+  rate: number,
+  signal?: AbortSignal
+): Promise<ArrayBuffer> {
+  const cacheKey = ttsCacheKey(text, azureVoice, rate);
+  const cached = getCachedTTS(cacheKey);
+  if (cached) {
+    console.log("TTS cache hit");
+    return cached;
+  }
+
+  const res = await fetch(`${API_BASE}/speech/tts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, voice: azureVoice, rate }),
+    signal,
+  });
+  if (!res.ok) throw new Error("TTS request failed");
+  const buffer = await res.arrayBuffer();
+  setCachedTTS(cacheKey, buffer);
+  return buffer;
+}
+
 export function stopTTSPlayback(): void {
   ttsGeneration++;
 
@@ -150,14 +199,7 @@ export async function speakText(
   if (Platform.OS === "web") {
     let audioBuffer: ArrayBuffer;
     try {
-      const res = await fetch(`${API_BASE}/speech/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: azureVoice, rate }),
-        signal: abortController.signal,
-      });
-      if (!res.ok) throw new Error("TTS request failed");
-      audioBuffer = await res.arrayBuffer();
+      audioBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
       throw err;
@@ -204,14 +246,7 @@ export async function speakText(
 
     let arrayBuffer: ArrayBuffer;
     try {
-      const res = await fetch(`${API_BASE}/speech/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: azureVoice, rate }),
-        signal: abortController.signal,
-      });
-      if (!res.ok) throw new Error("TTS request failed");
-      arrayBuffer = await res.arrayBuffer();
+      arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
       throw err;
@@ -266,14 +301,7 @@ export async function speakTextWithProgress(
   if (Platform.OS === "web") {
     let audioBuffer: ArrayBuffer;
     try {
-      const res = await fetch(`${API_BASE}/speech/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: azureVoice, rate }),
-        signal: abortController.signal,
-      });
-      if (!res.ok) throw new Error("TTS request failed");
-      audioBuffer = await res.arrayBuffer();
+      audioBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
       throw err;
@@ -347,14 +375,7 @@ export async function speakTextWithProgress(
 
     let arrayBuffer: ArrayBuffer;
     try {
-      const res = await fetch(`${API_BASE}/speech/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: azureVoice, rate }),
-        signal: abortController.signal,
-      });
-      if (!res.ok) throw new Error("TTS request failed");
-      arrayBuffer = await res.arrayBuffer();
+      arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
       throw err;

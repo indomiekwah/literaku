@@ -199,6 +199,11 @@ export async function matchVoiceIntent(
 ): Promise<MatchResult> {
   const regexResult = matchRegex(text);
 
+  if (regexResult.intent !== "unknown" && regexResult.confidence === 1) {
+    console.log(`Voice: regex fast-path → "${regexResult.intent}" (skipping CLU for speed)`);
+    return regexResult;
+  }
+
   const useCLU = await checkCLUAvailability();
 
   if (!useCLU) {
