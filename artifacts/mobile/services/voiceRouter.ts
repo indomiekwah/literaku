@@ -14,6 +14,7 @@ export type VoiceIntent =
   | "nav_settings"
   | "nav_join_institution"
   | "join_institution_code"
+  | "browse_category"
   | "nav_back"
   | "nav_login"
   | "nav_subscription"
@@ -45,7 +46,7 @@ export interface MatchResult {
 const VALID_INTENTS = new Set<string>([
   "nav_home", "nav_explorer", "nav_collection", "nav_history",
   "nav_guide", "nav_settings", "nav_join_institution", "join_institution_code",
-  "nav_back", "nav_login", "nav_subscription", "nav_logout",
+  "browse_category", "nav_back", "nav_login", "nav_subscription", "nav_logout",
   "reader_next", "reader_prev", "reader_play",
   "reader_pause", "reader_stop", "reader_summarize", "reader_read_aloud",
   "search_book", "open_book", "open_preview", "read_full",
@@ -97,6 +98,10 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\bsearch\s+(.+)/i, intent: "search_book", paramGroup: 1 },
   { pattern: /\bcari\s+(.+)/i, intent: "search_book", paramGroup: 1 },
   { pattern: /\b(?:open|read|baca|buka)\s+(?:book\s+)?(.+)/i, intent: "open_book", paramGroup: 1 },
+
+  { pattern: /\b(.+?)\s+books\b/i, intent: "browse_category", paramGroup: 1 },
+  { pattern: /\b(?:buku)\s+(.+)/i, intent: "browse_category", paramGroup: 1 },
+  { pattern: /\b(?:kategori|category)\s+(.+)/i, intent: "browse_category", paramGroup: 1 },
 
   { pattern: /\bspeed\s*(\d)/i, intent: "speed_change", paramGroup: 1 },
   { pattern: /\bkecepatan\s*(\d)/i, intent: "speed_change", paramGroup: 1 },

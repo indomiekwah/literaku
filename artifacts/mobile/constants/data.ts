@@ -309,7 +309,8 @@ export const voiceHints: Record<string, NaturalVoiceHint[]> = {
     { example: "Read Penance", intent: "Open a book directly" },
   ],
   penjelajah: [
-    { example: "Search The Silent Patient", intent: "Search for a book" },
+    { example: "Search cantik", intent: "Search for books" },
+    { example: "Psychological books", intent: "Hear titles in a category" },
     { example: "Read Penance", intent: "Open book details" },
     { example: "Go back to home", intent: "Go back to home" },
   ],
