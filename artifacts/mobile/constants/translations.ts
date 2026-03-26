@@ -197,8 +197,8 @@ const en = {
     backA11yLabel: "Back",
   },
   reader: {
-    mountAnnounce: (title: string) => `Reading ${title}.`,
-    pageCommands: "This is the Reader. Here you have: Play and Pause narration, Next and Previous section, AI Summarize, Read aloud, and Speed controls.",
+    mountAnnounce: (title: string) => `Reading ${title}. Say 'Play' to start narration, 'Pause' or 'Stop' to pause. 'Next page' or 'Previous page' to navigate. 'Go to page' followed by a number to jump. 'Increase speed' or 'Decrease speed' to adjust. 'Summarize' for an AI summary of this page, or 'Read summary' to hear it aloud.`,
+    pageCommands: "This is the Reader. Say 'Play' to start narration, 'Pause' to stop. 'Next page', 'Previous page', or 'Go to page' followed by a number. 'Increase speed', 'Decrease speed'. 'Summarize' for AI summary, 'Read summary' to hear it aloud.",
     notFound: "Book not found",
     sectionOf: (current: number, total: number) => `Page ${current} of ${total}`,
     readingProgress: "Reading progress",
@@ -544,8 +544,8 @@ const id: typeof en = {
     backA11yLabel: "Kembali",
   },
   reader: {
-    mountAnnounce: (title: string) => `Membaca ${title}.`,
-    pageCommands: "Ini halaman Pembaca. Di sini ada: Putar dan Jeda narasi, Bagian selanjutnya dan sebelumnya, Ringkasan AI, Bacakan, dan Pengaturan kecepatan.",
+    mountAnnounce: (title: string) => `Membaca ${title}. Ucapkan 'Putar' untuk memulai narasi, 'Jeda' atau 'Stop' untuk berhenti. 'Halaman selanjutnya' atau 'Halaman sebelumnya' untuk navigasi. 'Ke halaman' diikuti angka untuk lompat. 'Percepat' atau 'Perlambat' untuk kecepatan. 'Ringkas' untuk ringkasan AI, atau 'Bacakan ringkasan' untuk mendengarnya.`,
+    pageCommands: "Ini halaman Pembaca. Ucapkan 'Putar' untuk narasi, 'Jeda' untuk berhenti. 'Halaman selanjutnya', 'Halaman sebelumnya', atau 'Ke halaman' diikuti angka. 'Percepat', 'Perlambat'. 'Ringkas' untuk ringkasan AI, 'Bacakan ringkasan' untuk mendengarnya.",
     notFound: "Buku tidak ditemukan",
     sectionOf: (current: number, total: number) => `Halaman ${current} dari ${total}`,
     readingProgress: "Progress membaca",

@@ -99,7 +99,7 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
   { pattern: /\b(play|putar|mulai|start|continue|lanjutkan|resume)\b/i, intent: "reader_play" },
   { pattern: /\b(pause|jeda|berhenti|stop|hentikan)\b/i, intent: "reader_pause" },
   { pattern: /\b(summarize|summary|ringkas(?:an|kan)?|rangkum(?:an|kan)?|inti(?:sari)?|kesimpulan)\b/i, intent: "reader_summarize" },
-  { pattern: /\b(read\s*(?:it\s*)?aloud|read\s*(?:the\s*)?summary\s*(?:aloud)?|bacakan|baca\s*(?:keras|nyaring)|baca(?:kan)?\s*ringkasan)\b/i, intent: "reader_read_aloud" },
+  { pattern: /\b(read\s*(?:it\s*)?aloud|read\s*(?:the\s*)?summar(?:y|ize)\s*(?:aloud)?|bacakan|baca\s*(?:keras|nyaring)|baca(?:kan)?\s*ringkasan)\b/i, intent: "reader_read_aloud" },
   { pattern: /\b(?:go\s*(?:to\s*)?page|halaman)\s+(\d+)\b/i, intent: "reader_goto_page", paramGroup: 1 },
   { pattern: /\b(?:ke\s*halaman|pindah\s*(?:ke\s*)?halaman)\s+(\d+)\b/i, intent: "reader_goto_page", paramGroup: 1 },
 
