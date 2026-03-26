@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, voiceHints, type Book } from "@/constants/data";
+import { sampleBooks, purchasedBookIds, assignedBookIds, voiceHints, type Book } from "@/constants/data";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -153,11 +153,28 @@ export default function PenjelajahScreen() {
   const categoriesText = genreNames.join(", ");
   useTTSAnnounce(t.explorer.mountAnnounce(sampleBooks.length) + " " + t.explorer.categoriesAnnounce(categoriesText));
 
+  const purchasedBooks = sampleBooks.filter((b) => purchasedBookIds.includes(b.id));
+  const assignedBooks = sampleBooks.filter((b) => assignedBookIds.includes(b.id));
+
   useEffect(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
       if (intent === "repeat_commands") {
         AccessibilityInfo.announceForAccessibility(t.explorer.pageCommands);
         speakText(t.explorer.pageCommands, selectedVoice, 1).catch(() => {});
+        return true;
+      }
+      if (intent === "list_paid_books") {
+        const titles = purchasedBooks.map((b) => b.title).join(", ");
+        const msg = t.collection.paidBooksAnnounce(purchasedBooks.length, titles);
+        AccessibilityInfo.announceForAccessibility(msg);
+        speakText(msg, selectedVoice, 1).catch(() => {});
+        return true;
+      }
+      if (intent === "list_assigned_books") {
+        const titles = assignedBooks.map((b) => b.title).join(", ");
+        const msg = t.collection.assignedBooksAnnounce(assignedBooks.length, titles);
+        AccessibilityInfo.announceForAccessibility(msg);
+        speakText(msg, selectedVoice, 1).catch(() => {});
         return true;
       }
       if (intent === "search_book" && param) {

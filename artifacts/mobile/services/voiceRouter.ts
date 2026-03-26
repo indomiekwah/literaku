@@ -69,6 +69,11 @@ export const BOOK_DETAIL_ONLY_INTENTS = new Set<VoiceIntent>([
   "open_preview", "read_full",
 ]);
 
+export const REGEX_PREFERRED_INTENTS = new Set<VoiceIntent>([
+  "list_paid_books", "list_assigned_books",
+  "list_recent_books", "list_bookmarked_books",
+]);
+
 const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] = [
   { pattern: /\b(go\s*(?:back\s*)?(?:to\s*)?home|ke\s*beranda|pulang|kembali\s*ke\s*(?:beranda|home))\b/i, intent: "nav_home" },
   { pattern: /\b((?:open|go\s*to|buka|show)\s*(?:the\s*)?(?:explorer|penjelajah|jelajah)|buka\s*penjelajah)\b/i, intent: "nav_explorer" },
@@ -101,8 +106,8 @@ const PATTERNS: { pattern: RegExp; intent: VoiceIntent; paramGroup?: number }[] 
 
   { pattern: /\b(?:paid\s*books?|purchased\s*books?|buku\s*(?:yang\s*)?(?:dibeli|dibayar|beli))\b/i, intent: "list_paid_books" },
   { pattern: /\b(?:assigned\s*books?|institution\s*books?|buku\s*(?:yang\s*)?(?:di\s*assign|institusi|sekolah|ditugaskan))\b/i, intent: "list_assigned_books" },
-  { pattern: /\b(?:recent\s*books?|recently\s*read|buku\s*(?:yang\s*)?(?:baru\s*dibaca|terbaru|terakhir))\b/i, intent: "list_recent_books" },
-  { pattern: /\b(?:bookmarked?\s*books?|my\s*bookmarks?|buku\s*(?:yang\s*)?(?:di\s*bookmark|ditandai|bookmark))\b/i, intent: "list_bookmarked_books" },
+  { pattern: /\b(?:recent(?:ly)?\s*(?:read|books?)?|buku\s*(?:yang\s*)?(?:baru\s*dibaca|terbaru|terakhir))\b/i, intent: "list_recent_books" },
+  { pattern: /\b(?:bookmarks?(?:ed)?\s*(?:books?)?|my\s*bookmarks?|buku\s*(?:yang\s*)?(?:di\s*bookmark|ditandai|bookmark))\b/i, intent: "list_bookmarked_books" },
 
   { pattern: /\b(?:join|request|gabung|daftar)\s+(.+)/i, intent: "join_institution_code", paramGroup: 1 },
 
@@ -226,6 +231,12 @@ export async function matchVoiceIntent(
       }
 
       if (regexResult.intent !== "unknown" && regexResult.confidence === 1) {
+        if (REGEX_PREFERRED_INTENTS.has(regexResult.intent)) {
+          console.log(
+            `Voice: regex-preferred intent "${regexResult.intent}" overrides CLU "${cluResult.intent}" (${(cluResult.confidence * 100).toFixed(0)}%)`
+          );
+          return regexResult;
+        }
         if (
           regexResult.intent !== cluResult.intent &&
           cluResult.confidence < 0.8
