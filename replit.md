@@ -80,6 +80,13 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - **AI Summarize Routes**:
     - `POST /api/ai/summarize` - Azure OpenAI text summarization (bilingual EN/ID system prompts, GPT-4.1-mini, 30s timeout, 10K char limit).
     - `GET /api/ai/status` - Check Azure OpenAI configuration status.
+- **Books Routes (Azure Blob Storage)**:
+    - `POST /api/books/upload` - Upload PDF book (multipart: pdf file + metadata fields). Extracts page count via pdfjs-dist, stores PDF in `books` container and metadata JSON in `metadata` container.
+    - `GET /api/books` - List all books (metadata from `metadata` container).
+    - `GET /api/books/:bookId` - Get single book metadata.
+    - `GET /api/books/:bookId/pages` - Extract text from PDF pages. Optional `?page=N` for single page.
+    - `DELETE /api/books/:bookId` - Delete book (removes PDF + metadata blobs).
+    - **Storage**: Azure Blob Storage (`literakustorage` account, Southeast Asia region). Containers: `books` (PDFs), `metadata` (JSON). Connection string auto-builds from AccountKey if full string not provided.
 - **Data Validation**: Uses Zod schemas generated from OpenAPI spec for request and response validation.
 - **Build**: Uses esbuild for production bundling.
 - **Deployment**: Replit (dev) → Azure App Service B1/B2 (prod). ffmpeg required for audio conversion.
