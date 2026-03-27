@@ -310,6 +310,7 @@ const en = {
   },
   overlay: {
     listening: "Listening...",
+    hearingYou: "Hearing you...",
     speakNaturally: "Speak naturally",
     processing: "Processing...",
     dismissHint: "Swipe right or tap to stop",
@@ -657,6 +658,7 @@ const id: typeof en = {
   },
   overlay: {
     listening: "Saya mendengarkan...",
+    hearingYou: "Mendengar Anda...",
     speakNaturally: "Bicara saja secara alami",
     processing: "Memproses...",
     dismissHint: "Swipe kanan atau tap untuk berhenti",

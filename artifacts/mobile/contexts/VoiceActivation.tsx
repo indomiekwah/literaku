@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useState, useRef } from "react";
+import React, { createContext, useContext, useCallback, useState, useRef, useEffect } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
@@ -28,6 +28,7 @@ interface VoiceActivationContextType {
   dismissVoice: () => void;
   isVoiceActive: boolean;
   isListening: boolean;
+  isSpeechDetected: boolean;
   transcribedText: string;
   onTranscription: (callback: TranscriptionCallback) => void;
   clearTranscriptionCallback: () => void;
@@ -38,27 +39,67 @@ const VoiceActivationContext = createContext<VoiceActivationContextType>({
   dismissVoice: () => {},
   isVoiceActive: false,
   isListening: false,
+  isSpeechDetected: false,
   transcribedText: "",
   onTranscription: () => {},
   clearTranscriptionCallback: () => {},
 });
 
+const NO_SPEECH_TIMEOUT_MS = 5000;
+const MAX_RECORDING_MS = 15000;
+
 export function VoiceActivationProvider({ children }: { children: React.ReactNode }) {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeechDetected, setIsSpeechDetected] = useState(false);
   const [transcribedText, setTranscribedText] = useState("");
   const recorderRef = useRef<AudioRecorder | null>(null);
   const callbackRef = useRef<TranscriptionCallback | null>(null);
-  const listenTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionIdRef = useRef(0);
+  const noSpeechTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxRecordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { speed, setSpeed, selectedVoice, language, interactionMode, setInteractionMode } = useReadingPreferences();
 
+  const clearTimersInline = () => {
+    if (noSpeechTimeoutRef.current) {
+      clearTimeout(noSpeechTimeoutRef.current);
+      noSpeechTimeoutRef.current = null;
+    }
+    if (maxRecordingTimeoutRef.current) {
+      clearTimeout(maxRecordingTimeoutRef.current);
+      maxRecordingTimeoutRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      sessionIdRef.current++;
+      clearTimersInline();
+      if (dismissTimeoutRef.current) {
+        clearTimeout(dismissTimeoutRef.current);
+        dismissTimeoutRef.current = null;
+      }
+      if (recorderRef.current) {
+        recorderRef.current.cancel();
+        recorderRef.current = null;
+      }
+    };
+  }, []);
+
   const stopRecording = useCallback(async () => {
-    if (!recorderRef.current) return;
+    const recorder = recorderRef.current;
+    if (!recorder) return;
+    const mySession = sessionIdRef.current;
     try {
-      const audioData = await recorderRef.current.stop();
-      recorderRef.current = null;
+      clearTimersInline();
+      const audioData = await recorder.stop();
+      if (recorderRef.current === recorder) {
+        recorderRef.current = null;
+      }
+      if (mySession !== sessionIdRef.current) return;
       setIsListening(false);
+      setIsSpeechDetected(false);
 
       const lang = language === "id" ? "id-ID" : "en-US";
       console.log(`VoiceActivation: sending audio for STT, type=${typeof audioData}, lang=${lang}`);
@@ -66,6 +107,8 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
       const result = typeof audioData === "string"
         ? await speechToTextFromUri(audioData, lang)
         : await speechToText(audioData, lang);
+
+      if (mySession !== sessionIdRef.current) return;
 
       console.log(`VoiceActivation: STT result status=${result.RecognitionStatus}`);
       const displayText = result.DisplayText || result.NBest?.[0]?.Display || "";
@@ -77,6 +120,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
         const cluLang = language === "id" ? "id" : "en";
         const { intent, param, confidence, source } = await matchVoiceIntent(text, cluLang);
+        if (mySession !== sessionIdRef.current) return;
         console.log(`Voice intent: ${intent}, param: ${param}, confidence: ${confidence}, source: ${source}, text: ${text}`);
 
         if (intent === "speed_change" && param) {
@@ -215,12 +259,47 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
     try {
       const recorder = new AudioRecorder();
       recorderRef.current = recorder;
-      await recorder.start();
+
+      await recorder.start({
+        onSpeechStarted: () => {
+          setIsSpeechDetected(true);
+          if (noSpeechTimeoutRef.current) {
+            clearTimeout(noSpeechTimeoutRef.current);
+            noSpeechTimeoutRef.current = null;
+          }
+        },
+        onSilenceDetected: () => {
+          clearTimersInline();
+          stopRecording();
+        },
+      });
+
       setIsListening(true);
 
-      listenTimeoutRef.current = setTimeout(() => {
+      noSpeechTimeoutRef.current = setTimeout(() => {
+        if (!recorderRef.current) return;
+        console.log("VoiceActivation: no speech detected, cancelling");
+        recorderRef.current.cancel();
+        recorderRef.current = null;
+        clearTimersInline();
+        setIsListening(false);
+        setIsSpeechDetected(false);
+        const msg = language === "id"
+          ? "Tidak terdengar suara. Coba lagi."
+          : "No speech detected. Please try again.";
+        setTranscribedText(msg);
+        AccessibilityInfo.announceForAccessibility(msg);
+        speakText(msg, selectedVoice, 1).catch(() => {});
+        dismissTimeoutRef.current = setTimeout(() => {
+          setIsVoiceActive(false);
+          setTranscribedText("");
+        }, 2000);
+      }, NO_SPEECH_TIMEOUT_MS);
+
+      maxRecordingTimeoutRef.current = setTimeout(() => {
+        console.log("VoiceActivation: max recording duration reached");
         stopRecording();
-      }, 7000);
+      }, MAX_RECORDING_MS);
     } catch (err: any) {
       console.error("Mic access error:", err);
       const msg = language === "id"
@@ -238,39 +317,37 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
   const activateVoice = useCallback(() => {
     stopTTS();
+    sessionIdRef.current++;
     if (dismissTimeoutRef.current) {
       clearTimeout(dismissTimeoutRef.current);
       dismissTimeoutRef.current = null;
     }
-    if (listenTimeoutRef.current) {
-      clearTimeout(listenTimeoutRef.current);
-      listenTimeoutRef.current = null;
-    }
+    clearTimersInline();
     if (recorderRef.current) {
       recorderRef.current.cancel();
       recorderRef.current = null;
     }
     setIsVoiceActive(true);
     setIsListening(false);
+    setIsSpeechDetected(false);
     setTranscribedText("");
     startRecording();
   }, [startRecording]);
 
   const dismissVoice = useCallback(() => {
+    sessionIdRef.current++;
     if (dismissTimeoutRef.current) {
       clearTimeout(dismissTimeoutRef.current);
       dismissTimeoutRef.current = null;
     }
-    if (listenTimeoutRef.current) {
-      clearTimeout(listenTimeoutRef.current);
-      listenTimeoutRef.current = null;
-    }
+    clearTimersInline();
     if (recorderRef.current) {
       recorderRef.current.cancel();
       recorderRef.current = null;
     }
     setIsVoiceActive(false);
     setIsListening(false);
+    setIsSpeechDetected(false);
     setTranscribedText("");
   }, []);
 
@@ -284,7 +361,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
   return (
     <VoiceActivationContext.Provider
-      value={{ activateVoice, dismissVoice, isVoiceActive, isListening, transcribedText, onTranscription, clearTranscriptionCallback }}
+      value={{ activateVoice, dismissVoice, isVoiceActive, isListening, isSpeechDetected, transcribedText, onTranscription, clearTranscriptionCallback }}
     >
       {children}
     </VoiceActivationContext.Provider>

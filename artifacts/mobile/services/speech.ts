@@ -570,6 +570,18 @@ export function isTTSPlaying(): boolean {
   return currentSoundNative !== null;
 }
 
+export interface AudioRecorderCallbacks {
+  onSpeechStarted?: () => void;
+  onSilenceDetected?: () => void;
+}
+
+const SILENCE_THRESHOLD_DB = -40;
+const SILENCE_DURATION_MS = 1200;
+const SPEECH_THRESHOLD_DB = -35;
+const METERING_INTERVAL_MS = 100;
+const WEB_SILENCE_RMS_THRESHOLD = 0.015;
+const WEB_SPEECH_RMS_THRESHOLD = 0.025;
+
 export class AudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
@@ -577,7 +589,20 @@ export class AudioRecorder {
   private nativeRecording: any = null;
   private recordedMimeType: string = "audio/webm";
 
-  async start(): Promise<void> {
+  private callbacks: AudioRecorderCallbacks = {};
+  private speechDetected: boolean = false;
+  private silenceStartTime: number | null = null;
+  private webAnalyser: AnalyserNode | null = null;
+  private webAudioCtx: AudioContext | null = null;
+  private webMeterInterval: ReturnType<typeof setInterval> | null = null;
+  private stopped: boolean = false;
+
+  async start(callbacks?: AudioRecorderCallbacks): Promise<void> {
+    this.callbacks = callbacks || {};
+    this.speechDetected = false;
+    this.silenceStartTime = null;
+    this.stopped = false;
+
     if (Platform.OS === "web") {
       this.chunks = [];
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -601,6 +626,31 @@ export class AudioRecorder {
       };
 
       this.mediaRecorder.start(100);
+
+      try {
+        const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+          this.webAudioCtx = new AudioContextClass();
+          const source = this.webAudioCtx!.createMediaStreamSource(this.stream);
+          this.webAnalyser = this.webAudioCtx!.createAnalyser();
+          this.webAnalyser.fftSize = 512;
+          source.connect(this.webAnalyser);
+          const dataArray = new Float32Array(this.webAnalyser.fftSize);
+
+          this.webMeterInterval = setInterval(() => {
+            if (this.stopped || !this.webAnalyser) return;
+            this.webAnalyser.getFloatTimeDomainData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i] * dataArray[i];
+            }
+            const rms = Math.sqrt(sum / dataArray.length);
+            this.processAudioLevel(rms, WEB_SPEECH_RMS_THRESHOLD, WEB_SILENCE_RMS_THRESHOLD);
+          }, METERING_INTERVAL_MS);
+        }
+      } catch (e) {
+        console.warn("AudioRecorder: web metering unavailable", e);
+      }
     } else {
       const { Audio } = await import("expo-av");
       const permission = await Audio.requestPermissionsAsync();
@@ -638,14 +688,55 @@ export class AudioRecorder {
           mimeType: "audio/webm",
           bitsPerSecond: 128000,
         },
+        isMeteringEnabled: true,
       } as any);
+
+      recording.setOnRecordingStatusUpdate((status: any) => {
+        if (this.stopped || !status.isRecording) return;
+        const metering = status.metering;
+        if (metering === undefined || metering === null) return;
+        this.processAudioLevel(metering, SPEECH_THRESHOLD_DB, SILENCE_THRESHOLD_DB);
+      });
+      recording.setProgressUpdateInterval(METERING_INTERVAL_MS);
+
       await recording.startAsync();
       this.nativeRecording = recording;
-      console.log(`AudioRecorder: native recording started, platform=${Platform.OS}`);
+      console.log(`AudioRecorder: native recording started with metering, platform=${Platform.OS}`);
+    }
+  }
+
+  private processAudioLevel(level: number, speechThreshold: number, silenceThreshold: number): void {
+    if (this.stopped) return;
+
+    const isSpeech = level > speechThreshold;
+    const isSilence = level <= silenceThreshold;
+
+    if (isSpeech && !this.speechDetected) {
+      this.speechDetected = true;
+      this.silenceStartTime = null;
+      console.log(`AudioRecorder: speech detected, level=${typeof level === 'number' ? level.toFixed(2) : level}`);
+      this.callbacks.onSpeechStarted?.();
+    }
+
+    if (this.speechDetected) {
+      if (isSilence) {
+        if (this.silenceStartTime === null) {
+          this.silenceStartTime = Date.now();
+        } else if (Date.now() - this.silenceStartTime >= SILENCE_DURATION_MS) {
+          console.log(`AudioRecorder: silence detected after speech (${SILENCE_DURATION_MS}ms)`);
+          this.stopped = true;
+          this.callbacks.onSilenceDetected?.();
+        }
+      } else {
+        this.silenceStartTime = null;
+      }
     }
   }
 
   async stop(): Promise<Blob | string> {
+    this.stopped = true;
+    this.stopMetering();
+
     if (Platform.OS === "web") {
       return new Promise((resolve, reject) => {
         if (!this.mediaRecorder) {
@@ -680,6 +771,9 @@ export class AudioRecorder {
   }
 
   cancel(): void {
+    this.stopped = true;
+    this.stopMetering();
+
     if (Platform.OS === "web") {
       if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
         this.mediaRecorder.stop();
@@ -693,7 +787,20 @@ export class AudioRecorder {
     }
   }
 
+  private stopMetering(): void {
+    if (this.webMeterInterval) {
+      clearInterval(this.webMeterInterval);
+      this.webMeterInterval = null;
+    }
+    if (this.webAudioCtx) {
+      this.webAudioCtx.close().catch(() => {});
+      this.webAudioCtx = null;
+    }
+    this.webAnalyser = null;
+  }
+
   private cleanup(): void {
+    this.stopMetering();
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
