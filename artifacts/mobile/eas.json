@@ -6,6 +6,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "ee2fec00-80a9-4353-ba91-22d7568a13f5-00-g5gshc342vyc.riker.replit.dev"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
@@ -13,11 +16,17 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "ee2fec00-80a9-4353-ba91-22d7568a13f5-00-g5gshc342vyc.riker.replit.dev"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "ee2fec00-80a9-4353-ba91-22d7568a13f5-00-g5gshc342vyc.riker.replit.dev"
+      },
       "android": {
         "buildType": "app-bundle"
       }
