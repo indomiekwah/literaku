@@ -4,6 +4,23 @@ const API_BASE = Platform.OS === "web"
   ? "/api"
   : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
 
+let FileSystem: any = null;
+if (Platform.OS !== "web") {
+  try {
+    FileSystem = require("expo-file-system");
+  } catch (e) {}
+}
+
+async function writeBufferToTempFile(buffer: ArrayBuffer): Promise<string> {
+  if (!FileSystem) throw new Error("FileSystem not available");
+  const base64 = arrayBufferToBase64(buffer);
+  const path = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
+  await FileSystem.writeAsStringAsync(path, base64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return path;
+}
+
 export interface STTNBestEntry {
   Confidence: number;
   Lexical: string;
@@ -249,22 +266,29 @@ export async function speakText(
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error("TTS fetch failed:", err.message);
       throw err;
     }
 
     if (myGeneration !== ttsGeneration) return;
 
-    const base64 = arrayBufferToBase64(arrayBuffer);
-    const dataUri = `data:audio/mpeg;base64,${base64}`;
+    let fileUri: string;
+    try {
+      fileUri = await writeBufferToTempFile(arrayBuffer);
+    } catch (err: any) {
+      console.error("TTS write temp file failed:", err.message);
+      throw err;
+    }
 
     const { sound } = await Audio.Sound.createAsync(
-      { uri: dataUri },
+      { uri: fileUri },
       { shouldPlay: true }
     );
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
+      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
       return;
     }
 
@@ -275,6 +299,7 @@ export async function speakText(
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
+          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
           resolve();
         }
       });
@@ -378,22 +403,29 @@ export async function speakTextWithProgress(
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error("TTS fetch failed (progress):", err.message);
       throw err;
     }
 
     if (myGeneration !== ttsGeneration) return;
 
-    const base64 = arrayBufferToBase64(arrayBuffer);
-    const dataUri = `data:audio/mpeg;base64,${base64}`;
+    let fileUri: string;
+    try {
+      fileUri = await writeBufferToTempFile(arrayBuffer);
+    } catch (err: any) {
+      console.error("TTS write temp file failed:", err.message);
+      throw err;
+    }
 
     const { sound } = await Audio.Sound.createAsync(
-      { uri: dataUri },
+      { uri: fileUri },
       { shouldPlay: true, progressUpdateIntervalMillis: 60 }
     );
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
+      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
       return;
     }
 
@@ -403,6 +435,7 @@ export async function speakTextWithProgress(
       sound.setOnPlaybackStatusUpdate((status: any) => {
         if (!status.isLoaded) {
           if (currentSoundNative === sound) currentSoundNative = null;
+          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
           resolve();
           return;
         }
@@ -412,6 +445,7 @@ export async function speakTextWithProgress(
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
+          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
           resolve();
         }
       });
