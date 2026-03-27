@@ -106,8 +106,20 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 **Database Layer (`lib/db`)**:
 - **ORM**: Drizzle ORM.
 - **Database**: PostgreSQL.
-- **Schema**: Defines database schemas and exports a Drizzle client instance.
-- **Migrations**: Handled via Drizzle Kit.
+- **Schema**: Tables: `institutions`, `users` (role enum: super_admin/operator/student), `book_catalog`, `book_assignments`, `reading_progress`, `digitization_requests`.
+- **Migrations**: Handled via Drizzle Kit (`pnpm --filter @workspace/db run push`).
+- **Seed**: `pnpm --filter @workspace/scripts run seed-admin` creates default super_admin (admin@literaku.id).
+
+**Dashboard API Routes (`artifacts/api-server`)**:
+- **Auth**: `POST /api/auth/login` (JWT), `GET /api/auth/me`.
+- **Admin** (super_admin only): CRUD institutions, create/list operators, dashboard stats.
+  - `GET /api/admin/stats`, `GET/POST /api/admin/institutions`, `GET/PUT/DELETE /api/admin/institutions/:id`, `GET/POST /api/admin/operators`.
+- **Operator** (operator only): Register students, assign books, view progress.
+  - `GET/POST /api/operator/students`, `POST /api/operator/students/bulk` (CSV), `POST /api/operator/assignments`, `POST /api/operator/assignments/bulk`, `DELETE /api/operator/assignments/:id`, `GET /api/operator/progress`.
+- **Student**: `GET /api/student/books` (assigned books from institution).
+- **Books**: `GET/POST /api/books`, `GET/PUT/DELETE /api/books/:id`.
+- **Digitization**: `GET/POST /api/digitization-requests`, `PUT /api/digitization-requests/:id`.
+- **Auth**: JWT-based with role-based middleware (bcrypt for password hashing).
 
 **API Specification & Codegen (`lib/api-spec`)**:
 - **Specification**: OpenAPI 3.1 (`openapi.yaml`).
@@ -116,8 +128,21 @@ The project is structured as a pnpm monorepo, organizing applications and shared
     - `lib/api-client-react`: Generated React Query hooks and fetch client.
     - `lib/api-zod`: Generated Zod schemas for API validation.
 
+**Web Dashboard (`artifacts/dashboard`)**:
+- **Name**: Literaku Dashboard (React + Vite web app)
+- **Preview Path**: `/dashboard/`
+- **Port**: 23183
+- **Purpose**: 3-tier management dashboard for Admin → Operator → Student management.
+- **Auth**: JWT-based login (email + password). Token stored in localStorage, sent as Bearer header.
+- **Admin Pages**: Dashboard Overview (stats), Activity Feed, Institutions CRUD, Operators management, Book Catalog CRUD, Digitization Requests management.
+- **Operator Pages**: My Students (register/bulk CSV), Book Assignments (assign/bulk/unassign), Reading Progress, Submit Digitization Request.
+- **Navigation**: Sidebar with role-based menu items. Admin sees admin routes, Operator sees operator routes.
+- **Default Admin**: `admin@literaku.id` / `LiterakuAdmin2024!` (seeded via `pnpm --filter @workspace/scripts run seed-admin`).
+- **Key Files**: `src/App.tsx` (routing), `src/lib/api.ts` (fetch wrapper), `src/hooks/use-auth.ts`, `src/hooks/use-admin.ts`, `src/hooks/use-operator.ts`, `src/hooks/use-books.ts`, `src/components/layout/DashboardLayout.tsx`.
+- **Dependencies**: framer-motion, recharts, react-hook-form, @hookform/resolvers, date-fns, zod.
+
 **Monorepo Structure**:
-- `artifacts/`: Deployable applications (e.g., `api-server`, `mobile`).
+- `artifacts/`: Deployable applications (e.g., `api-server`, `mobile`, `dashboard`).
 - `lib/`: Shared libraries (e.g., `api-spec`, `api-client-react`, `api-zod`, `db`).
 - `scripts/`: Utility scripts.
 

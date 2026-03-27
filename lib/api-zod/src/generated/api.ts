@@ -14,3 +14,597 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Login with email and password
+ */
+export const LoginBody = zod.object({
+  email: zod.string().email(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
+  token: zod.string(),
+  user: zod.object({
+    id: zod.number(),
+    email: zod.string(),
+    name: zod.string(),
+    role: zod.enum(["super_admin", "operator", "student"]),
+    institutionId: zod.number().nullish(),
+  }),
+});
+
+/**
+ * @summary Get current authenticated user
+ */
+export const GetCurrentUserResponse = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.enum(["super_admin", "operator", "student"]),
+  institutionId: zod.number().nullish(),
+});
+
+/**
+ * Creates or finds a student user by email and returns a JWT token. Used after OAuth login to bridge into the dashboard auth system.
+ * @summary Exchange OAuth credentials for a student JWT token
+ */
+export const StudentTokenExchangeBody = zod.object({
+  idToken: zod
+    .string()
+    .describe("OAuth ID token (Google) or access token (Microsoft)"),
+  provider: zod.enum(["google", "microsoft"]).describe("OAuth provider"),
+});
+
+export const StudentTokenExchangeResponse = zod.object({
+  token: zod.string(),
+  user: zod.object({
+    id: zod.number(),
+    email: zod.string(),
+    name: zod.string(),
+    role: zod.enum(["super_admin", "operator", "student"]),
+    institutionId: zod.number().nullish(),
+  }),
+});
+
+/**
+ * @summary Get global dashboard statistics
+ */
+export const GetAdminStatsResponse = zod.object({
+  totalInstitutions: zod.number(),
+  totalStudents: zod.number(),
+  totalOperators: zod.number(),
+  activeReaders: zod.number(),
+});
+
+/**
+ * @summary List all institutions
+ */
+export const ListInstitutionsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  address: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  contactPhone: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListInstitutionsResponse = zod.array(ListInstitutionsResponseItem);
+
+/**
+ * @summary Create a new institution
+ */
+export const CreateInstitutionBody = zod.object({
+  name: zod.string(),
+  address: zod.string().optional(),
+  contactEmail: zod.string().optional(),
+  contactPhone: zod.string().optional(),
+});
+
+/**
+ * @summary Get institution by ID
+ */
+export const GetInstitutionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetInstitutionResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  address: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  contactPhone: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Update an institution
+ */
+export const UpdateInstitutionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateInstitutionBody = zod.object({
+  name: zod.string().optional(),
+  address: zod.string().optional(),
+  contactEmail: zod.string().optional(),
+  contactPhone: zod.string().optional(),
+  isActive: zod.boolean().optional(),
+});
+
+export const UpdateInstitutionResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  address: zod.string().nullish(),
+  contactEmail: zod.string().nullish(),
+  contactPhone: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Delete an institution
+ */
+export const DeleteInstitutionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteInstitutionResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List all operators
+ */
+export const ListOperatorsResponseItem = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  name: zod.string(),
+  role: zod.string(),
+  institutionId: zod.number().nullish(),
+  isActive: zod.boolean().optional(),
+  createdAt: zod.date().optional(),
+  institution: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      address: zod.string().nullish(),
+      contactEmail: zod.string().nullish(),
+      contactPhone: zod.string().nullish(),
+      isActive: zod.boolean(),
+      createdAt: zod.date(),
+      updatedAt: zod.date(),
+    })
+    .optional(),
+});
+export const ListOperatorsResponse = zod.array(ListOperatorsResponseItem);
+
+/**
+ * @summary Create an operator account
+ */
+export const CreateOperatorBody = zod.object({
+  email: zod.string().email(),
+  name: zod.string(),
+  password: zod.string(),
+  institutionId: zod.number(),
+});
+
+/**
+ * @summary View all recent activity across the platform
+ */
+export const getAdminActivityQueryLimitDefault = 50;
+
+export const GetAdminActivityQueryParams = zod.object({
+  limit: zod.coerce
+    .number()
+    .default(getAdminActivityQueryLimitDefault)
+    .describe("Maximum number of items per category (max 200)"),
+});
+
+export const GetAdminActivityResponse = zod.object({
+  recentAssignments: zod.array(
+    zod.object({
+      id: zod.number(),
+      bookId: zod.number(),
+      studentId: zod.number(),
+      institutionId: zod.number(),
+      assignedBy: zod.number().nullish(),
+      assignedAt: zod.date(),
+      dueDate: zod.date().nullish(),
+      isActive: zod.boolean(),
+      book: zod
+        .object({
+          id: zod.number(),
+          title: zod.string(),
+          author: zod.string().nullish(),
+          isbn: zod.string().nullish(),
+          language: zod.string(),
+          level: zod.string().nullish(),
+          coverImageUrl: zod.string().nullish(),
+          description: zod.string().nullish(),
+          isActive: zod.boolean(),
+          createdAt: zod.date(),
+          updatedAt: zod.date(),
+        })
+        .optional(),
+      institution: zod
+        .object({
+          id: zod.number().optional(),
+          name: zod.string().optional(),
+        })
+        .optional(),
+    }),
+  ),
+  recentProgress: zod.array(
+    zod.object({
+      id: zod.number(),
+      studentId: zod.number(),
+      bookId: zod.number(),
+      assignmentId: zod.number().nullish(),
+      pagesRead: zod.number(),
+      totalPages: zod.number().nullish(),
+      completionPercent: zod.number(),
+      lastReadAt: zod.date().nullish(),
+      startedAt: zod.date(),
+      completedAt: zod.date().nullish(),
+      createdAt: zod.date(),
+      updatedAt: zod.date(),
+      student: zod
+        .object({
+          id: zod.number().optional(),
+          name: zod.string().optional(),
+          email: zod.string().optional(),
+        })
+        .optional(),
+      book: zod
+        .object({
+          id: zod.number().optional(),
+          title: zod.string().optional(),
+          author: zod.string().nullish(),
+        })
+        .optional(),
+    }),
+  ),
+  recentUsers: zod.array(
+    zod.object({
+      id: zod.number(),
+      email: zod.string(),
+      name: zod.string(),
+      role: zod.enum(["super_admin", "operator", "student"]),
+      institutionId: zod.number().nullish(),
+    }),
+  ),
+});
+
+/**
+ * @summary List students in operator's institution
+ */
+export const ListStudentsResponseItem = zod.object({
+  id: zod.number(),
+  email: zod.string(),
+  name: zod.string(),
+  externalId: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date().optional(),
+});
+export const ListStudentsResponse = zod.array(ListStudentsResponseItem);
+
+/**
+ * @summary Register a student
+ */
+export const RegisterStudentBody = zod.object({
+  email: zod.string().email(),
+  name: zod.string(),
+  externalId: zod.string().optional(),
+});
+
+/**
+ * @summary Bulk register students via CSV
+ */
+export const BulkRegisterStudentsBody = zod.object({
+  csv: zod.string().describe("CSV data with columns email,name,external_id"),
+});
+
+export const BulkRegisterStudentsResponse = zod.object({
+  created: zod.number(),
+  errors: zod.array(zod.string()),
+});
+
+/**
+ * @summary Assign a book to a student
+ */
+export const CreateAssignmentBody = zod.object({
+  bookId: zod.number(),
+  studentId: zod.number(),
+  dueDate: zod.date().optional(),
+});
+
+/**
+ * @summary Assign a book to multiple students
+ */
+export const BulkCreateAssignmentsBody = zod.object({
+  bookId: zod.number(),
+  studentIds: zod.array(zod.number()),
+  dueDate: zod.date().optional(),
+});
+
+/**
+ * @summary Deactivate a book assignment
+ */
+export const DeleteAssignmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteAssignmentResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Bulk deactivate book assignments
+ */
+export const BulkUnassignBooksBody = zod.object({
+  assignmentIds: zod.array(zod.number()),
+});
+
+export const BulkUnassignBooksResponse = zod.object({
+  deactivated: zod.number(),
+  requested: zod.number(),
+});
+
+/**
+ * @summary Get reading progress for students
+ */
+export const GetReadingProgressQueryParams = zod.object({
+  studentId: zod.coerce.number().optional().describe("Filter by student ID"),
+});
+
+export const GetReadingProgressResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  bookId: zod.number(),
+  assignmentId: zod.number().nullish(),
+  pagesRead: zod.number(),
+  totalPages: zod.number().nullish(),
+  completionPercent: zod.number(),
+  lastReadAt: zod.date().nullish(),
+  startedAt: zod.date(),
+  completedAt: zod.date().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  student: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+      email: zod.string().optional(),
+    })
+    .optional(),
+  book: zod
+    .object({
+      id: zod.number().optional(),
+      title: zod.string().optional(),
+      author: zod.string().nullish(),
+    })
+    .optional(),
+});
+export const GetReadingProgressResponse = zod.array(
+  GetReadingProgressResponseItem,
+);
+
+/**
+ * @summary Get books assigned to the logged-in student
+ */
+export const GetStudentBooksResponseItem = zod.object({
+  id: zod.number(),
+  bookId: zod.number(),
+  studentId: zod.number(),
+  institutionId: zod.number(),
+  assignedBy: zod.number().nullish(),
+  assignedAt: zod.date(),
+  dueDate: zod.date().nullish(),
+  isActive: zod.boolean(),
+  book: zod
+    .object({
+      id: zod.number(),
+      title: zod.string(),
+      author: zod.string().nullish(),
+      isbn: zod.string().nullish(),
+      language: zod.string(),
+      level: zod.string().nullish(),
+      coverImageUrl: zod.string().nullish(),
+      description: zod.string().nullish(),
+      isActive: zod.boolean(),
+      createdAt: zod.date(),
+      updatedAt: zod.date(),
+    })
+    .optional(),
+  institution: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+    })
+    .optional(),
+});
+export const GetStudentBooksResponse = zod.array(GetStudentBooksResponseItem);
+
+/**
+ * @summary List all active books
+ */
+export const ListBooksResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  author: zod.string().nullish(),
+  isbn: zod.string().nullish(),
+  language: zod.string(),
+  level: zod.string().nullish(),
+  coverImageUrl: zod.string().nullish(),
+  description: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+export const ListBooksResponse = zod.array(ListBooksResponseItem);
+
+/**
+ * @summary Add a book to the catalog
+ */
+export const CreateBookBody = zod.object({
+  title: zod.string(),
+  author: zod.string().optional(),
+  isbn: zod.string().optional(),
+  language: zod.string().optional(),
+  level: zod.string().optional(),
+  coverImageUrl: zod.string().optional(),
+  description: zod.string().optional(),
+});
+
+/**
+ * @summary Get book by ID
+ */
+export const GetBookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetBookResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  author: zod.string().nullish(),
+  isbn: zod.string().nullish(),
+  language: zod.string(),
+  level: zod.string().nullish(),
+  coverImageUrl: zod.string().nullish(),
+  description: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Update a book
+ */
+export const UpdateBookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateBookBody = zod.object({
+  title: zod.string().optional(),
+  author: zod.string().optional(),
+  isbn: zod.string().optional(),
+  language: zod.string().optional(),
+  level: zod.string().optional(),
+  coverImageUrl: zod.string().optional(),
+  description: zod.string().optional(),
+  isActive: zod.boolean().optional(),
+});
+
+export const UpdateBookResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  author: zod.string().nullish(),
+  isbn: zod.string().nullish(),
+  language: zod.string(),
+  level: zod.string().nullish(),
+  coverImageUrl: zod.string().nullish(),
+  description: zod.string().nullish(),
+  isActive: zod.boolean(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+});
+
+/**
+ * @summary Delete a book
+ */
+export const DeleteBookParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteBookResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary List digitization requests
+ */
+export const ListDigitizationRequestsResponseItem = zod.object({
+  id: zod.number(),
+  institutionId: zod.number(),
+  requestedBy: zod.number(),
+  bookTitle: zod.string(),
+  bookAuthor: zod.string().nullish(),
+  bookIsbn: zod.string().nullish(),
+  status: zod.enum(["pending", "in_progress", "completed", "rejected"]),
+  notes: zod.string().nullish(),
+  adminNotes: zod.string().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  institution: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+    })
+    .optional(),
+  requester: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+      email: zod.string().optional(),
+    })
+    .optional(),
+});
+export const ListDigitizationRequestsResponse = zod.array(
+  ListDigitizationRequestsResponseItem,
+);
+
+/**
+ * @summary Submit a digitization request
+ */
+export const CreateDigitizationRequestBody = zod.object({
+  bookTitle: zod.string(),
+  bookAuthor: zod.string().optional(),
+  bookIsbn: zod.string().optional(),
+  notes: zod.string().optional(),
+});
+
+/**
+ * @summary Update digitization request status (admin only)
+ */
+export const UpdateDigitizationRequestParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDigitizationRequestBody = zod.object({
+  status: zod
+    .enum(["pending", "in_progress", "completed", "rejected"])
+    .optional(),
+  adminNotes: zod.string().optional(),
+});
+
+export const UpdateDigitizationRequestResponse = zod.object({
+  id: zod.number(),
+  institutionId: zod.number(),
+  requestedBy: zod.number(),
+  bookTitle: zod.string(),
+  bookAuthor: zod.string().nullish(),
+  bookIsbn: zod.string().nullish(),
+  status: zod.enum(["pending", "in_progress", "completed", "rejected"]),
+  notes: zod.string().nullish(),
+  adminNotes: zod.string().nullish(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  institution: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+    })
+    .optional(),
+  requester: zod
+    .object({
+      id: zod.number().optional(),
+      name: zod.string().optional(),
+      email: zod.string().optional(),
+    })
+    .optional(),
+});

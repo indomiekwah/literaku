@@ -8,3 +8,318 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Error {
+  error: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export type UserInfoRole = (typeof UserInfoRole)[keyof typeof UserInfoRole];
+
+export const UserInfoRole = {
+  super_admin: "super_admin",
+  operator: "operator",
+  student: "student",
+} as const;
+
+export interface UserInfo {
+  id: number;
+  email: string;
+  name: string;
+  role: UserInfoRole;
+  institutionId?: number | null;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: UserInfo;
+}
+
+export interface Institution {
+  id: number;
+  name: string;
+  address?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInstitutionRequest {
+  name: string;
+  address?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface UpdateInstitutionRequest {
+  name?: string;
+  address?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  isActive?: boolean;
+}
+
+export interface DashboardStats {
+  totalInstitutions: number;
+  totalStudents: number;
+  totalOperators: number;
+  activeReaders: number;
+}
+
+export interface CreateOperatorRequest {
+  email: string;
+  name: string;
+  password: string;
+  institutionId: number;
+}
+
+export interface OperatorInfo {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  institutionId?: number | null;
+  isActive?: boolean;
+  createdAt?: string;
+  institution?: Institution;
+}
+
+export interface CreateStudentRequest {
+  email: string;
+  name: string;
+  externalId?: string;
+}
+
+export interface BulkStudentRequest {
+  /** CSV data with columns email,name,external_id */
+  csv: string;
+}
+
+export interface BulkResult {
+  created: number;
+  errors: string[];
+}
+
+export interface StudentInfo {
+  id: number;
+  email: string;
+  name: string;
+  externalId?: string | null;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface Book {
+  id: number;
+  title: string;
+  author?: string | null;
+  isbn?: string | null;
+  language: string;
+  level?: string | null;
+  coverImageUrl?: string | null;
+  description?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBookRequest {
+  title: string;
+  author?: string;
+  isbn?: string;
+  language?: string;
+  level?: string;
+  coverImageUrl?: string;
+  description?: string;
+}
+
+export interface UpdateBookRequest {
+  title?: string;
+  author?: string;
+  isbn?: string;
+  language?: string;
+  level?: string;
+  coverImageUrl?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export type BookAssignmentInstitution = {
+  id?: number;
+  name?: string;
+};
+
+export interface BookAssignment {
+  id: number;
+  bookId: number;
+  studentId: number;
+  institutionId: number;
+  assignedBy?: number | null;
+  assignedAt: string;
+  dueDate?: string | null;
+  isActive: boolean;
+  book?: Book;
+  institution?: BookAssignmentInstitution;
+}
+
+export interface CreateAssignmentRequest {
+  bookId: number;
+  studentId: number;
+  dueDate?: string;
+}
+
+export interface BulkAssignmentRequest {
+  bookId: number;
+  studentIds: number[];
+  dueDate?: string;
+}
+
+export interface BulkAssignmentResult {
+  created: number;
+  skipped: number;
+}
+
+export interface BulkUnassignRequest {
+  assignmentIds: number[];
+}
+
+export interface BulkUnassignResult {
+  deactivated: number;
+  requested: number;
+}
+
+/**
+ * OAuth provider
+ */
+export type StudentTokenRequestProvider =
+  (typeof StudentTokenRequestProvider)[keyof typeof StudentTokenRequestProvider];
+
+export const StudentTokenRequestProvider = {
+  google: "google",
+  microsoft: "microsoft",
+} as const;
+
+export interface StudentTokenRequest {
+  /** OAuth ID token (Google) or access token (Microsoft) */
+  idToken: string;
+  /** OAuth provider */
+  provider: StudentTokenRequestProvider;
+}
+
+export type ReadingProgressStudent = {
+  id?: number;
+  name?: string;
+  email?: string;
+};
+
+export type ReadingProgressBook = {
+  id?: number;
+  title?: string;
+  author?: string | null;
+};
+
+export interface ReadingProgress {
+  id: number;
+  studentId: number;
+  bookId: number;
+  assignmentId?: number | null;
+  pagesRead: number;
+  totalPages?: number | null;
+  completionPercent: number;
+  lastReadAt?: string | null;
+  startedAt: string;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  student?: ReadingProgressStudent;
+  book?: ReadingProgressBook;
+}
+
+export interface AdminActivity {
+  recentAssignments: BookAssignment[];
+  recentProgress: ReadingProgress[];
+  recentUsers: UserInfo[];
+}
+
+export type DigitizationRequestStatus =
+  (typeof DigitizationRequestStatus)[keyof typeof DigitizationRequestStatus];
+
+export const DigitizationRequestStatus = {
+  pending: "pending",
+  in_progress: "in_progress",
+  completed: "completed",
+  rejected: "rejected",
+} as const;
+
+export type DigitizationRequestInstitution = {
+  id?: number;
+  name?: string;
+};
+
+export type DigitizationRequestRequester = {
+  id?: number;
+  name?: string;
+  email?: string;
+};
+
+export interface DigitizationRequest {
+  id: number;
+  institutionId: number;
+  requestedBy: number;
+  bookTitle: string;
+  bookAuthor?: string | null;
+  bookIsbn?: string | null;
+  status: DigitizationRequestStatus;
+  notes?: string | null;
+  adminNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  institution?: DigitizationRequestInstitution;
+  requester?: DigitizationRequestRequester;
+}
+
+export interface CreateDigitizationRequest {
+  bookTitle: string;
+  bookAuthor?: string;
+  bookIsbn?: string;
+  notes?: string;
+}
+
+export type UpdateDigitizationRequestStatus =
+  (typeof UpdateDigitizationRequestStatus)[keyof typeof UpdateDigitizationRequestStatus];
+
+export const UpdateDigitizationRequestStatus = {
+  pending: "pending",
+  in_progress: "in_progress",
+  completed: "completed",
+  rejected: "rejected",
+} as const;
+
+export interface UpdateDigitizationRequest {
+  status?: UpdateDigitizationRequestStatus;
+  adminNotes?: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export type GetAdminActivityParams = {
+  /**
+   * Maximum number of items per category (max 200)
+   */
+  limit?: number;
+};
+
+export type GetReadingProgressParams = {
+  /**
+   * Filter by student ID
+   */
+  studentId?: number;
+};

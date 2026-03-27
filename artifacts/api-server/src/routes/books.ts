@@ -3,8 +3,16 @@ import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
 import multer from "multer";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { randomUUID } from "crypto";
+import { db } from "@workspace/db";
+import {
+  bookCatalog,
+  digitizationRequests,
+} from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
+import { authMiddleware, requireRole } from "../middleware/auth";
 
-const booksRouter = Router();
+const router = Router();
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
@@ -16,19 +24,6 @@ const upload = multer({
     }
   },
 });
-
-const ADMIN_API_KEY = process.env["ADMIN_API_KEY"] || "literaku-admin-2026";
-
-function requireAdmin(req: Request, res: Response): boolean {
-  const authHeader = req.headers["authorization"];
-  const apiKey = req.headers["x-api-key"] as string | undefined;
-  const key = apiKey || (authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined);
-  if (!key || key !== ADMIN_API_KEY) {
-    res.status(401).json({ error: "Unauthorized. Admin API key required." });
-    return false;
-  }
-  return true;
-}
 
 function getConnectionString(): string {
   const raw = process.env["AZURE_STORAGE_CONNECTION_STRING"] || "";
@@ -155,13 +150,13 @@ interface BookMetadata {
   pdfBlobName: string;
 }
 
-booksRouter.post(
+router.post(
   "/books/upload",
+  authMiddleware,
+  requireRole("super_admin"),
   upload.single("pdf"),
   async (req: Request, res: Response) => {
     try {
-      if (!requireAdmin(req, res)) return;
-
       if (!req.file) {
         res.status(400).json({ error: "No PDF file provided" });
         return;
@@ -222,52 +217,7 @@ booksRouter.post(
   }
 );
 
-booksRouter.get("/books", async (_req: Request, res: Response) => {
-  try {
-    const metaContainer = await getContainer(METADATA_CONTAINER);
-    const books: BookMetadata[] = [];
-
-    for await (const blob of metaContainer.listBlobsFlat()) {
-      if (blob.name.endsWith(".json")) {
-        const content = (await downloadBlobToBuffer(metaContainer, blob.name)).toString("utf-8");
-        books.push(JSON.parse(content));
-      }
-    }
-
-    books.sort(
-      (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-    );
-
-    res.json({ books });
-  } catch (error: any) {
-    console.error("List books error:", error);
-    res.status(500).json({ error: error.message || "Failed to list books" });
-  }
-});
-
-booksRouter.get("/books/:bookId", async (req: Request, res: Response) => {
-  try {
-    const { bookId } = req.params;
-    const metaContainer = await getContainer(METADATA_CONTAINER);
-    const metaBlob = metaContainer.getBlockBlobClient(`${bookId}.json`);
-
-    const exists = await metaBlob.exists();
-    if (!exists) {
-      res.status(404).json({ error: "Book not found" });
-      return;
-    }
-
-    const content = (await downloadBlobToBuffer(metaContainer, `${bookId}.json`)).toString("utf-8");
-    const metadata: BookMetadata = JSON.parse(content);
-
-    res.json({ book: metadata });
-  } catch (error: any) {
-    console.error("Get book error:", error);
-    res.status(500).json({ error: error.message || "Failed to get book" });
-  }
-});
-
-booksRouter.get("/books/:bookId/pages", async (req: Request, res: Response) => {
+router.get("/books/:bookId/pages", async (req: Request, res: Response) => {
   try {
     const { bookId } = req.params;
     const pageParam = req.query["page"] as string | undefined;
@@ -316,30 +266,228 @@ booksRouter.get("/books/:bookId/pages", async (req: Request, res: Response) => {
   }
 });
 
-booksRouter.delete("/books/:bookId", async (req: Request, res: Response) => {
+router.get("/books", authMiddleware, async (_req, res) => {
   try {
-    if (!requireAdmin(req, res)) return;
-
-    const { bookId } = req.params;
-
-    const metaContainer = await getContainer(METADATA_CONTAINER);
-    const metaBlob = metaContainer.getBlockBlobClient(`${bookId}.json`);
-    const metaExists = await metaBlob.exists();
-    if (!metaExists) {
-      res.status(404).json({ error: "Book not found" });
-      return;
-    }
-
-    const booksContainer = await getContainer(BOOKS_CONTAINER);
-    const pdfBlob = booksContainer.getBlockBlobClient(`${bookId}.pdf`);
-
-    await Promise.all([metaBlob.deleteIfExists(), pdfBlob.deleteIfExists()]);
-
-    res.json({ success: true, message: `Book "${bookId}" deleted` });
-  } catch (error: any) {
-    console.error("Delete book error:", error);
-    res.status(500).json({ error: error.message || "Failed to delete book" });
+    const result = await db.query.bookCatalog.findMany({
+      where: eq(bookCatalog.isActive, true),
+      orderBy: (b, { desc }) => [desc(b.createdAt)],
+    });
+    res.json(result);
+  } catch (err) {
+    console.error("List books error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-export default booksRouter;
+router.get("/books/:id", authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const book = await db.query.bookCatalog.findFirst({
+      where: eq(bookCatalog.id, id),
+    });
+    if (!book) {
+      res.status(404).json({ error: "Book not found" });
+      return;
+    }
+    res.json(book);
+  } catch (err) {
+    console.error("Get book error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post(
+  "/books",
+  authMiddleware,
+  requireRole("super_admin", "operator"),
+  async (req, res) => {
+    try {
+      const { title, author, isbn, language, level, coverImageUrl, description } =
+        req.body;
+      if (!title) {
+        res.status(400).json({ error: "Book title is required" });
+        return;
+      }
+
+      const [book] = await db
+        .insert(bookCatalog)
+        .values({
+          title,
+          author,
+          isbn,
+          language: language || "id",
+          level,
+          coverImageUrl,
+          description,
+        })
+        .returning();
+
+      res.status(201).json(book);
+    } catch (err) {
+      console.error("Create book error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+router.put(
+  "/books/:id",
+  authMiddleware,
+  requireRole("super_admin", "operator"),
+  async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const { title, author, isbn, language, level, coverImageUrl, description, isActive } =
+        req.body;
+
+      const [updated] = await db
+        .update(bookCatalog)
+        .set({
+          ...(title !== undefined && { title }),
+          ...(author !== undefined && { author }),
+          ...(isbn !== undefined && { isbn }),
+          ...(language !== undefined && { language }),
+          ...(level !== undefined && { level }),
+          ...(coverImageUrl !== undefined && { coverImageUrl }),
+          ...(description !== undefined && { description }),
+          ...(isActive !== undefined && { isActive }),
+          updatedAt: new Date(),
+        })
+        .where(eq(bookCatalog.id, id))
+        .returning();
+
+      if (!updated) {
+        res.status(404).json({ error: "Book not found" });
+        return;
+      }
+      res.json(updated);
+    } catch (err) {
+      console.error("Update book error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+router.delete(
+  "/books/:id",
+  authMiddleware,
+  requireRole("super_admin"),
+  async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const [deleted] = await db
+        .delete(bookCatalog)
+        .where(eq(bookCatalog.id, id))
+        .returning();
+
+      if (!deleted) {
+        res.status(404).json({ error: "Book not found" });
+        return;
+      }
+      res.json({ message: "Book deleted" });
+    } catch (err) {
+      console.error("Delete book error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+router.post(
+  "/digitization-requests",
+  authMiddleware,
+  requireRole("operator"),
+  async (req, res) => {
+    try {
+      const institutionId = req.user!.institutionId;
+      if (!institutionId) {
+        res.status(400).json({ error: "Operator is not assigned to an institution" });
+        return;
+      }
+
+      const { bookTitle, bookAuthor, bookIsbn, notes } = req.body;
+      if (!bookTitle) {
+        res.status(400).json({ error: "Book title is required" });
+        return;
+      }
+
+      const [request] = await db
+        .insert(digitizationRequests)
+        .values({
+          institutionId,
+          requestedBy: req.user!.userId,
+          bookTitle,
+          bookAuthor,
+          bookIsbn,
+          notes,
+        })
+        .returning();
+
+      res.status(201).json(request);
+    } catch (err) {
+      console.error("Create digitization request error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+router.get("/digitization-requests", authMiddleware, async (req, res) => {
+  try {
+    const user = req.user!;
+
+    let whereClause;
+    if (user.role === "super_admin") {
+      whereClause = undefined;
+    } else if (user.role === "operator" && user.institutionId) {
+      whereClause = eq(digitizationRequests.institutionId, user.institutionId);
+    } else {
+      res.status(403).json({ error: "Insufficient permissions" });
+      return;
+    }
+
+    const result = await db.query.digitizationRequests.findMany({
+      where: whereClause,
+      with: {
+        institution: { columns: { id: true, name: true } },
+        requester: { columns: { id: true, name: true, email: true } },
+      },
+      orderBy: (dr, { desc }) => [desc(dr.createdAt)],
+    });
+    res.json(result);
+  } catch (err) {
+    console.error("List digitization requests error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.put(
+  "/digitization-requests/:id",
+  authMiddleware,
+  requireRole("super_admin"),
+  async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const { status, adminNotes } = req.body;
+
+      const [updated] = await db
+        .update(digitizationRequests)
+        .set({
+          ...(status !== undefined && { status }),
+          ...(adminNotes !== undefined && { adminNotes }),
+          updatedAt: new Date(),
+        })
+        .where(eq(digitizationRequests.id, id))
+        .returning();
+
+      if (!updated) {
+        res.status(404).json({ error: "Digitization request not found" });
+        return;
+      }
+      res.json(updated);
+    } catch (err) {
+      console.error("Update digitization request error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+export default router;
