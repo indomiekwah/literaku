@@ -78,7 +78,6 @@
   --popover-foreground: 222 47% 11%;
   --popover-border: 214 32% 91%;
 
-  /* Literaku Blue: #1976D2 -> HSL 210 79% 46% */
   --primary: 210 79% 46%;
   --primary-foreground: 210 40% 98%;
   
@@ -120,6 +119,14 @@
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
+
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
 .dark {
@@ -161,6 +168,12 @@
   --sidebar-accent: 217 33% 17%;
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-ring: 210 79% 56%;
+
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
 }
 
 @layer base {
@@ -178,7 +191,6 @@
   }
 }
 
-/* Beautiful custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -191,4 +203,13 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/50;
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
+  }
+  .hover-card-effect {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/20;
+  }
 }

@@ -5,8 +5,12 @@ packages:
   "react-hook-form": "For robust form state management"
   "@hookform/resolvers": "For Zod schema validation integration"
   "zod": "For form validation schemas"
+  "lucide-react": "High quality SVG icons for the dashboard"
 
 images:
+  - path: "artifacts/dashboard/public/images/login-bg.png"
+    description: "Abstract 3D smooth wave gradient in corporate blue, indigo, and soft cyan, elegant, clean, educational tech theme, very premium and professional"
+    aspect_ratio: "16:9"
   - path: "artifacts/dashboard/public/images/auth-bg.png"
     description: "Abstract modern geometric waves in deep primary blue and soft teal, smooth gradient mesh, clean professional corporate aesthetic"
     aspect_ratio: "16:9"
@@ -18,3 +22,6 @@ notes:
   - "The backend API is served at /api"
   - "JWT tokens are stored in localStorage as 'auth_token'"
   - "Roles are 'super_admin' and 'operator'"
+  - "Building mock API layer since backend endpoints don't exist yet"
+  - "Using wouter for routing with a custom guard for Admin/Operator roles"
+  - "Using TanStack query for local state management mimicking server state"

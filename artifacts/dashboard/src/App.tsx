@@ -2,109 +2,94 @@ import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/use-auth";
-import { ReactNode, useEffect } from "react";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
 
-// Layout
-import DashboardLayout from "@/components/layout/DashboardLayout";
-
-// Pages
-import Login from "@/pages/auth/Login";
-import AdminDashboard from "@/pages/admin/Dashboard";
-import ActivityFeed from "@/pages/admin/ActivityFeed";
-import Institutions from "@/pages/admin/Institutions";
-import Operators from "@/pages/admin/Operators";
-import Books from "@/pages/admin/Books";
-import AdminDigitization from "@/pages/admin/Digitization";
-import OperatorStudents from "@/pages/operator/Students";
-import OperatorAssignments from "@/pages/operator/Assignments";
-import OperatorProgress from "@/pages/operator/Progress";
-import OperatorDigitization from "@/pages/operator/Digitization";
+import Login from "@/pages/login";
+import AdminDashboard from "@/pages/admin/dashboard";
+import AdminInstitutions from "@/pages/admin/institutions";
+import AdminInstitutionDetail from "@/pages/admin/institution-detail";
+import AdminOperators from "@/pages/admin/operators";
+import AdminBooks from "@/pages/admin/books";
+import AdminStats from "@/pages/admin/stats";
+import OperatorDashboard from "@/pages/operator/dashboard";
+import OperatorStudents from "@/pages/operator/students";
+import OperatorStudentDetail from "@/pages/operator/student-detail";
+import OperatorBookAssignment from "@/pages/operator/book-assignment";
+import OperatorReports from "@/pages/operator/reports";
+import OperatorDigitization from "@/pages/operator/digitization";
+import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
-// Route Protection
-function ProtectedRoute({ children, allowedRole }: { children: ReactNode; allowedRole: string }) {
+function ProtectedRoute({ component: Component, role }: { component: React.ComponentType; role: 'admin' | 'operator' }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        setLocation("/login");
-      } else if (user.role !== allowedRole) {
-        setLocation(user.role === "super_admin" ? "/admin" : "/operator");
-      }
-    }
-  }, [user, isLoading, setLocation, allowedRole]);
-
-  if (isLoading || !user || user.role !== allowedRole) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
-}
+  if (!user || user.role !== role) {
+    setLocation('/');
+    return null;
+  }
 
-// Global Redirect
-function RootRedirect() {
-  const { user, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) setLocation("/login");
-      else if (user.role === "super_admin") setLocation("/admin");
-      else setLocation("/operator");
-    }
-  }, [user, isLoading, setLocation]);
-
-  return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+  return (
+    <DashboardLayout>
+      <Component />
+    </DashboardLayout>
+  );
 }
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={RootRedirect} />
-      <Route path="/login" component={Login} />
-      
-      {/* Admin Routes */}
+      <Route path="/" component={Login} />
+
       <Route path="/admin">
-        <ProtectedRoute allowedRole="super_admin"><AdminDashboard /></ProtectedRoute>
-      </Route>
-      <Route path="/admin/activity">
-        <ProtectedRoute allowedRole="super_admin"><ActivityFeed /></ProtectedRoute>
+        {() => <ProtectedRoute role="admin" component={AdminDashboard} />}
       </Route>
       <Route path="/admin/institutions">
-        <ProtectedRoute allowedRole="super_admin"><Institutions /></ProtectedRoute>
+        {() => <ProtectedRoute role="admin" component={AdminInstitutions} />}
+      </Route>
+      <Route path="/admin/institutions/:id">
+        {() => <ProtectedRoute role="admin" component={AdminInstitutionDetail} />}
       </Route>
       <Route path="/admin/operators">
-        <ProtectedRoute allowedRole="super_admin"><Operators /></ProtectedRoute>
+        {() => <ProtectedRoute role="admin" component={AdminOperators} />}
       </Route>
       <Route path="/admin/books">
-        <ProtectedRoute allowedRole="super_admin"><Books /></ProtectedRoute>
+        {() => <ProtectedRoute role="admin" component={AdminBooks} />}
       </Route>
-      <Route path="/admin/digitization">
-        <ProtectedRoute allowedRole="super_admin"><AdminDigitization /></ProtectedRoute>
+      <Route path="/admin/stats">
+        {() => <ProtectedRoute role="admin" component={AdminStats} />}
       </Route>
 
-      {/* Operator Routes */}
       <Route path="/operator">
-        <ProtectedRoute allowedRole="operator"><OperatorStudents /></ProtectedRoute>
+        {() => <ProtectedRoute role="operator" component={OperatorDashboard} />}
       </Route>
-      <Route path="/operator/assignments">
-        <ProtectedRoute allowedRole="operator"><OperatorAssignments /></ProtectedRoute>
+      <Route path="/operator/students">
+        {() => <ProtectedRoute role="operator" component={OperatorStudents} />}
       </Route>
-      <Route path="/operator/progress">
-        <ProtectedRoute allowedRole="operator"><OperatorProgress /></ProtectedRoute>
+      <Route path="/operator/students/:id">
+        {() => <ProtectedRoute role="operator" component={OperatorStudentDetail} />}
+      </Route>
+      <Route path="/operator/books">
+        {() => <ProtectedRoute role="operator" component={OperatorBookAssignment} />}
+      </Route>
+      <Route path="/operator/reports">
+        {() => <ProtectedRoute role="operator" component={OperatorReports} />}
       </Route>
       <Route path="/operator/digitization">
-        <ProtectedRoute allowedRole="operator"><OperatorDigitization /></ProtectedRoute>
+        {() => <ProtectedRoute role="operator" component={OperatorDigitization} />}
       </Route>
 
-      {/* 404 Fallback */}
-      <Route>
-        <RootRedirect />
-      </Route>
+      <Route component={NotFound} />
     </Switch>
   );
 }
@@ -114,9 +99,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <AuthProvider>
+            <Router />
+            <Toaster />
+          </AuthProvider>
         </WouterRouter>
-        <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
   );
