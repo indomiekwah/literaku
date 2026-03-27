@@ -264,6 +264,8 @@ export async function speakText(
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
     });
 
     let arrayBuffer: ArrayBuffer;
@@ -291,7 +293,7 @@ export async function speakText(
     try {
       const result = await Audio.Sound.createAsync(
         { uri: fileUri },
-        { shouldPlay: true }
+        { shouldPlay: true, volume: 1.0 }
       );
       sound = result.sound;
     } catch (err: any) {
@@ -420,6 +422,8 @@ export async function speakTextWithProgress(
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
     });
 
     let arrayBuffer: ArrayBuffer;
@@ -447,7 +451,7 @@ export async function speakTextWithProgress(
     try {
       const result = await Audio.Sound.createAsync(
         { uri: fileUri },
-        { shouldPlay: true, progressUpdateIntervalMillis: 60 }
+        { shouldPlay: true, volume: 1.0, progressUpdateIntervalMillis: 60 }
       );
       sound = result.sound;
     } catch (err: any) {
@@ -661,6 +665,8 @@ export class AudioRecorder {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
       });
 
       const recording = new Audio.Recording();
@@ -764,6 +770,8 @@ export class AudioRecorder {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
       });
 
       return uri!;
