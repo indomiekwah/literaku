@@ -1,8 +1,8 @@
 kind = "web"
-previewPath = "/dashboard/"
+previewPath = "/admin/"
 title = "Literaku Dashboard"
 version = "1.0.0"
-id = "artifacts/dashboard"
+id = "artifacts/admin"
 router = "path"
 
 [[integratedSkills]]
@@ -11,15 +11,15 @@ version = "1.0.0"
 
 [[services]]
 name = "web"
-paths = [ "/dashboard/" ]
-localPort = 23183
+paths = [ "/admin/" ]
+localPort = 23744
 
 [services.development]
-run = "pnpm --filter @workspace/dashboard run dev"
+run = "pnpm --filter @workspace/admin run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/dashboard", "run", "build" ]
-publicDir = "artifacts/dashboard/dist/public"
+build = [ "pnpm", "--filter", "@workspace/admin", "run", "build" ]
+publicDir = "artifacts/admin/dist/public"
 serve = "static"
 
 [[services.production.rewrites]]
@@ -27,5 +27,5 @@ from = "/*"
 to = "/index.html"
 
 [services.env]
-PORT = "23183"
-BASE_PATH = "/dashboard/"
+PORT = "23744"
+BASE_PATH = "/admin/"

@@ -30,7 +30,7 @@ The project is structured as a pnpm monorepo with TypeScript, enabling efficient
 
 **Dashboard Web App (React + Vite)**:
 - **Purpose**: Admin and institution operator web dashboard for managing the Literaku platform.
-- **Location**: `artifacts/dashboard/`
+- **Location**: `artifacts/admin/`
 - **User Roles**: Admin (super admin) and Operator (institution-level). Role-based routing and sidebar navigation.
 - **Admin Features**: Dashboard overview with stats, institution management (CRUD), operator account management, book catalog, global reading analytics with charts.
 - **Operator Features**: Institution dashboard, student directory with registration, book assignment, per-student reading progress reports, digitization request submission.
@@ -71,10 +71,10 @@ The project is structured as a pnpm monorepo with TypeScript, enabling efficient
 **API Specification & Codegen (`lib/api-spec`)**:
 - OpenAPI 3.1 specification (`openapi.yaml`) drives code generation via Orval, producing React Query hooks, fetch clients, and Zod schemas for API validation.
 
-**Web Dashboard (`artifacts/dashboard`)**:
+**Web Dashboard (`artifacts/admin`)**:
 - **Name**: Literaku Dashboard (React + Vite web app)
-- **Preview Path**: `/dashboard/`
-- **Port**: 23183
+- **Preview Path**: `/admin/`
+- **Port**: 23744
 - **Purpose**: 3-tier management dashboard for Admin → Operator → Student management.
 - **Auth**: JWT-based login (email + password). Token stored in localStorage, sent as Bearer header. Mock API with demo accounts: admin@literaku.com/admin123 (admin), operator@literaku.com/operator123 (operator).
 - **Admin Pages**: Dashboard Overview (stats), Institutions CRUD with detail view, Operators management, Book Catalog CRUD, Global Analytics (Recharts).
@@ -84,7 +84,7 @@ The project is structured as a pnpm monorepo with TypeScript, enabling efficient
 - **Dependencies**: framer-motion, recharts, react-hook-form, @hookform/resolvers, date-fns, zod.
 
 **Monorepo Structure**:
-- `artifacts/`: Deployable applications (e.g., `api-server`, `mobile`, `dashboard`).
+- `artifacts/`: Deployable applications (e.g., `api-server`, `mobile`, `admin`).
 - `lib/`: Shared libraries (e.g., `api-spec`, `api-client-react`, `api-zod`, `db`).
 - `scripts/`: Utility scripts.
 
