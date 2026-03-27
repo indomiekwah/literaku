@@ -29,7 +29,7 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
   const wave3 = useRef(new Animated.Value(0)).current;
   const wave4 = useRef(new Animated.Value(0)).current;
   const { language } = useReadingPreferences();
-  const { isListening, isSpeechDetected, transcribedText } = useVoiceActivation();
+  const { isListening, transcribedText } = useVoiceActivation();
   const t = getTranslations(language);
 
   const langLabel = language === "en" ? "English" : "Indonesian";
@@ -116,16 +116,16 @@ export default function SwipeVoiceOverlay({ visible, onDismiss }: SwipeVoiceOver
   };
 
   const statusText = isListening
-    ? (isSpeechDetected ? (t.overlay.hearingYou || "Hearing you...") : t.overlay.listening)
+    ? t.overlay.listening
     : transcribedText
     ? `"${transcribedText}"`
-    : t.overlay.processing || "Processing...";
+    : t.overlay.listening;
 
   const subtitleText = isListening
     ? t.overlay.speakNaturally
     : transcribedText
     ? t.overlay.processing || "Processing..."
-    : "";
+    : t.overlay.speakNaturally;
 
   return (
     <Animated.View

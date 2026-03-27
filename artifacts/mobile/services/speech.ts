@@ -4,23 +4,6 @@ const API_BASE = Platform.OS === "web"
   ? "/api"
   : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
 
-let FileSystem: any = null;
-if (Platform.OS !== "web") {
-  try {
-    FileSystem = require("expo-file-system");
-  } catch (e) {}
-}
-
-async function writeBufferToTempFile(buffer: ArrayBuffer): Promise<string> {
-  if (!FileSystem) throw new Error("FileSystem not available");
-  const base64 = arrayBufferToBase64(buffer);
-  const path = `${FileSystem.cacheDirectory}tts_${Date.now()}.mp3`;
-  await FileSystem.writeAsStringAsync(path, base64, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return path;
-}
-
 export interface STTNBestEntry {
   Confidence: number;
   Lexical: string;
@@ -125,7 +108,6 @@ export function getAzureVoiceName(voiceId: string): string {
 
 let currentAudioWeb: HTMLAudioElement | null = null;
 let currentSoundNative: any = null;
-let currentTempFileUri: string | null = null;
 let ttsGeneration = 0;
 let currentAbortController: AbortController | null = null;
 
@@ -198,10 +180,6 @@ export function stopTTSPlayback(): void {
       currentSoundNative.unloadAsync().catch(() => {});
       currentSoundNative = null;
     }
-    if (currentTempFileUri && FileSystem) {
-      FileSystem.deleteAsync(currentTempFileUri, { idempotent: true }).catch(() => {});
-      currentTempFileUri = null;
-    }
   }
 }
 
@@ -264,8 +242,6 @@ export async function speakText(
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
     });
 
     let arrayBuffer: ArrayBuffer;
@@ -273,40 +249,22 @@ export async function speakText(
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
-      console.error("TTS fetch failed:", err.message);
       throw err;
     }
 
     if (myGeneration !== ttsGeneration) return;
 
-    let fileUri: string;
-    try {
-      fileUri = await writeBufferToTempFile(arrayBuffer);
-    } catch (err: any) {
-      console.error("TTS write temp file failed:", err.message);
-      throw err;
-    }
+    const base64 = arrayBufferToBase64(arrayBuffer);
+    const dataUri = `data:audio/mpeg;base64,${base64}`;
 
-    currentTempFileUri = fileUri;
-
-    let sound: any;
-    try {
-      const result = await Audio.Sound.createAsync(
-        { uri: fileUri },
-        { shouldPlay: true, volume: 1.0 }
-      );
-      sound = result.sound;
-    } catch (err: any) {
-      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-      if (currentTempFileUri === fileUri) currentTempFileUri = null;
-      throw err;
-    }
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: dataUri },
+      { shouldPlay: true }
+    );
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
-      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-      if (currentTempFileUri === fileUri) currentTempFileUri = null;
       return;
     }
 
@@ -314,18 +272,9 @@ export async function speakText(
 
     return new Promise((resolve) => {
       sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (!status.isLoaded) {
-          if (currentSoundNative === sound) currentSoundNative = null;
-          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-          if (currentTempFileUri === fileUri) currentTempFileUri = null;
-          resolve();
-          return;
-        }
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
-          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
         }
       });
@@ -422,8 +371,6 @@ export async function speakTextWithProgress(
       allowsRecordingIOS: false,
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
     });
 
     let arrayBuffer: ArrayBuffer;
@@ -431,40 +378,22 @@ export async function speakTextWithProgress(
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
-      console.error("TTS fetch failed (progress):", err.message);
       throw err;
     }
 
     if (myGeneration !== ttsGeneration) return;
 
-    let fileUri: string;
-    try {
-      fileUri = await writeBufferToTempFile(arrayBuffer);
-    } catch (err: any) {
-      console.error("TTS write temp file failed:", err.message);
-      throw err;
-    }
+    const base64 = arrayBufferToBase64(arrayBuffer);
+    const dataUri = `data:audio/mpeg;base64,${base64}`;
 
-    currentTempFileUri = fileUri;
-
-    let sound: any;
-    try {
-      const result = await Audio.Sound.createAsync(
-        { uri: fileUri },
-        { shouldPlay: true, volume: 1.0, progressUpdateIntervalMillis: 60 }
-      );
-      sound = result.sound;
-    } catch (err: any) {
-      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-      if (currentTempFileUri === fileUri) currentTempFileUri = null;
-      throw err;
-    }
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: dataUri },
+      { shouldPlay: true, progressUpdateIntervalMillis: 60 }
+    );
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
-      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-      if (currentTempFileUri === fileUri) currentTempFileUri = null;
       return;
     }
 
@@ -474,8 +403,6 @@ export async function speakTextWithProgress(
       sound.setOnPlaybackStatusUpdate((status: any) => {
         if (!status.isLoaded) {
           if (currentSoundNative === sound) currentSoundNative = null;
-          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
           return;
         }
@@ -485,8 +412,6 @@ export async function speakTextWithProgress(
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
-          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
-          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
         }
       });
@@ -574,18 +499,6 @@ export function isTTSPlaying(): boolean {
   return currentSoundNative !== null;
 }
 
-export interface AudioRecorderCallbacks {
-  onSpeechStarted?: () => void;
-  onSilenceDetected?: () => void;
-}
-
-const SILENCE_THRESHOLD_DB = -40;
-const SILENCE_DURATION_MS = 1200;
-const SPEECH_THRESHOLD_DB = -35;
-const METERING_INTERVAL_MS = 100;
-const WEB_SILENCE_RMS_THRESHOLD = 0.015;
-const WEB_SPEECH_RMS_THRESHOLD = 0.025;
-
 export class AudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
@@ -593,20 +506,7 @@ export class AudioRecorder {
   private nativeRecording: any = null;
   private recordedMimeType: string = "audio/webm";
 
-  private callbacks: AudioRecorderCallbacks = {};
-  private speechDetected: boolean = false;
-  private silenceStartTime: number | null = null;
-  private webAnalyser: AnalyserNode | null = null;
-  private webAudioCtx: AudioContext | null = null;
-  private webMeterInterval: ReturnType<typeof setInterval> | null = null;
-  private stopped: boolean = false;
-
-  async start(callbacks?: AudioRecorderCallbacks): Promise<void> {
-    this.callbacks = callbacks || {};
-    this.speechDetected = false;
-    this.silenceStartTime = null;
-    this.stopped = false;
-
+  async start(): Promise<void> {
     if (Platform.OS === "web") {
       this.chunks = [];
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -630,31 +530,6 @@ export class AudioRecorder {
       };
 
       this.mediaRecorder.start(100);
-
-      try {
-        const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
-        if (AudioContextClass) {
-          this.webAudioCtx = new AudioContextClass();
-          const source = this.webAudioCtx!.createMediaStreamSource(this.stream);
-          this.webAnalyser = this.webAudioCtx!.createAnalyser();
-          this.webAnalyser.fftSize = 512;
-          source.connect(this.webAnalyser);
-          const dataArray = new Float32Array(this.webAnalyser.fftSize);
-
-          this.webMeterInterval = setInterval(() => {
-            if (this.stopped || !this.webAnalyser) return;
-            this.webAnalyser.getFloatTimeDomainData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-              sum += dataArray[i] * dataArray[i];
-            }
-            const rms = Math.sqrt(sum / dataArray.length);
-            this.processAudioLevel(rms, WEB_SPEECH_RMS_THRESHOLD, WEB_SILENCE_RMS_THRESHOLD);
-          }, METERING_INTERVAL_MS);
-        }
-      } catch (e) {
-        console.warn("AudioRecorder: web metering unavailable", e);
-      }
     } else {
       const { Audio } = await import("expo-av");
       const permission = await Audio.requestPermissionsAsync();
@@ -665,8 +540,6 @@ export class AudioRecorder {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
       });
 
       const recording = new Audio.Recording();
@@ -694,55 +567,14 @@ export class AudioRecorder {
           mimeType: "audio/webm",
           bitsPerSecond: 128000,
         },
-        isMeteringEnabled: true,
       } as any);
-
-      recording.setOnRecordingStatusUpdate((status: any) => {
-        if (this.stopped || !status.isRecording) return;
-        const metering = status.metering;
-        if (metering === undefined || metering === null) return;
-        this.processAudioLevel(metering, SPEECH_THRESHOLD_DB, SILENCE_THRESHOLD_DB);
-      });
-      recording.setProgressUpdateInterval(METERING_INTERVAL_MS);
-
       await recording.startAsync();
       this.nativeRecording = recording;
-      console.log(`AudioRecorder: native recording started with metering, platform=${Platform.OS}`);
-    }
-  }
-
-  private processAudioLevel(level: number, speechThreshold: number, silenceThreshold: number): void {
-    if (this.stopped) return;
-
-    const isSpeech = level > speechThreshold;
-    const isSilence = level <= silenceThreshold;
-
-    if (isSpeech && !this.speechDetected) {
-      this.speechDetected = true;
-      this.silenceStartTime = null;
-      console.log(`AudioRecorder: speech detected, level=${typeof level === 'number' ? level.toFixed(2) : level}`);
-      this.callbacks.onSpeechStarted?.();
-    }
-
-    if (this.speechDetected) {
-      if (isSilence) {
-        if (this.silenceStartTime === null) {
-          this.silenceStartTime = Date.now();
-        } else if (Date.now() - this.silenceStartTime >= SILENCE_DURATION_MS) {
-          console.log(`AudioRecorder: silence detected after speech (${SILENCE_DURATION_MS}ms)`);
-          this.stopped = true;
-          this.callbacks.onSilenceDetected?.();
-        }
-      } else {
-        this.silenceStartTime = null;
-      }
+      console.log(`AudioRecorder: native recording started, platform=${Platform.OS}`);
     }
   }
 
   async stop(): Promise<Blob | string> {
-    this.stopped = true;
-    this.stopMetering();
-
     if (Platform.OS === "web") {
       return new Promise((resolve, reject) => {
         if (!this.mediaRecorder) {
@@ -770,8 +602,6 @@ export class AudioRecorder {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
       });
 
       return uri!;
@@ -779,9 +609,6 @@ export class AudioRecorder {
   }
 
   cancel(): void {
-    this.stopped = true;
-    this.stopMetering();
-
     if (Platform.OS === "web") {
       if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
         this.mediaRecorder.stop();
@@ -795,20 +622,7 @@ export class AudioRecorder {
     }
   }
 
-  private stopMetering(): void {
-    if (this.webMeterInterval) {
-      clearInterval(this.webMeterInterval);
-      this.webMeterInterval = null;
-    }
-    if (this.webAudioCtx) {
-      this.webAudioCtx.close().catch(() => {});
-      this.webAudioCtx = null;
-    }
-    this.webAnalyser = null;
-  }
-
   private cleanup(): void {
-    this.stopMetering();
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
       this.stream = null;
