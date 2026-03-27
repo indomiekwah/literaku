@@ -125,6 +125,7 @@ export function getAzureVoiceName(voiceId: string): string {
 
 let currentAudioWeb: HTMLAudioElement | null = null;
 let currentSoundNative: any = null;
+let currentTempFileUri: string | null = null;
 let ttsGeneration = 0;
 let currentAbortController: AbortController | null = null;
 
@@ -196,6 +197,10 @@ export function stopTTSPlayback(): void {
       currentSoundNative.stopAsync().catch(() => {});
       currentSoundNative.unloadAsync().catch(() => {});
       currentSoundNative = null;
+    }
+    if (currentTempFileUri && FileSystem) {
+      FileSystem.deleteAsync(currentTempFileUri, { idempotent: true }).catch(() => {});
+      currentTempFileUri = null;
     }
   }
 }
@@ -280,15 +285,26 @@ export async function speakText(
       throw err;
     }
 
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: fileUri },
-      { shouldPlay: true }
-    );
+    currentTempFileUri = fileUri;
+
+    let sound: any;
+    try {
+      const result = await Audio.Sound.createAsync(
+        { uri: fileUri },
+        { shouldPlay: true }
+      );
+      sound = result.sound;
+    } catch (err: any) {
+      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+      if (currentTempFileUri === fileUri) currentTempFileUri = null;
+      throw err;
+    }
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
       if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+      if (currentTempFileUri === fileUri) currentTempFileUri = null;
       return;
     }
 
@@ -296,10 +312,18 @@ export async function speakText(
 
     return new Promise((resolve) => {
       sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (!status.isLoaded) {
+          if (currentSoundNative === sound) currentSoundNative = null;
+          if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+          if (currentTempFileUri === fileUri) currentTempFileUri = null;
+          resolve();
+          return;
+        }
         if (status.didJustFinish) {
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
           if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
         }
       });
@@ -417,15 +441,26 @@ export async function speakTextWithProgress(
       throw err;
     }
 
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: fileUri },
-      { shouldPlay: true, progressUpdateIntervalMillis: 60 }
-    );
+    currentTempFileUri = fileUri;
+
+    let sound: any;
+    try {
+      const result = await Audio.Sound.createAsync(
+        { uri: fileUri },
+        { shouldPlay: true, progressUpdateIntervalMillis: 60 }
+      );
+      sound = result.sound;
+    } catch (err: any) {
+      if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+      if (currentTempFileUri === fileUri) currentTempFileUri = null;
+      throw err;
+    }
 
     if (myGeneration !== ttsGeneration) {
       sound.stopAsync().catch(() => {});
       sound.unloadAsync().catch(() => {});
       if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+      if (currentTempFileUri === fileUri) currentTempFileUri = null;
       return;
     }
 
@@ -436,6 +471,7 @@ export async function speakTextWithProgress(
         if (!status.isLoaded) {
           if (currentSoundNative === sound) currentSoundNative = null;
           if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
           return;
         }
@@ -446,6 +482,7 @@ export async function speakTextWithProgress(
           sound.unloadAsync().catch(() => {});
           if (currentSoundNative === sound) currentSoundNative = null;
           if (FileSystem) FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+          if (currentTempFileUri === fileUri) currentTempFileUri = null;
           resolve();
         }
       });
