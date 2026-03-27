@@ -215,10 +215,21 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
     try {
       const recorder = new AudioRecorder();
       recorderRef.current = recorder;
+
+      recorder.onSilence(() => {
+        console.log("VoiceActivation: silence detected, stopping recording");
+        if (listenTimeoutRef.current) {
+          clearTimeout(listenTimeoutRef.current);
+          listenTimeoutRef.current = null;
+        }
+        stopRecording();
+      });
+
       await recorder.start();
       setIsListening(true);
 
       listenTimeoutRef.current = setTimeout(() => {
+        console.log("VoiceActivation: max timeout reached, stopping recording");
         stopRecording();
       }, 7000);
     } catch (err: any) {

@@ -499,6 +499,13 @@ export function isTTSPlaying(): boolean {
   return currentSoundNative !== null;
 }
 
+const SILENCE_THRESHOLD_WEB = 0.015;
+const SILENCE_THRESHOLD_NATIVE_DB = -40;
+const SPEECH_THRESHOLD_WEB = 0.03;
+const SPEECH_THRESHOLD_NATIVE_DB = -30;
+const SILENCE_DURATION_MS = 1500;
+const MIN_SPEECH_DURATION_MS = 300;
+
 export class AudioRecorder {
   private mediaRecorder: MediaRecorder | null = null;
   private chunks: Blob[] = [];
@@ -506,7 +513,24 @@ export class AudioRecorder {
   private nativeRecording: any = null;
   private recordedMimeType: string = "audio/webm";
 
+  private onSilenceCallback: (() => void) | null = null;
+  private silenceTimerId: ReturnType<typeof setTimeout> | null = null;
+  private speechDetected: boolean = false;
+  private speechStartTime: number = 0;
+  private analyserNode: AnalyserNode | null = null;
+  private audioContext: AudioContext | null = null;
+  private silenceCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private cancelled: boolean = false;
+
+  onSilence(callback: () => void): void {
+    this.onSilenceCallback = callback;
+  }
+
   async start(): Promise<void> {
+    this.cancelled = false;
+    this.speechDetected = false;
+    this.speechStartTime = 0;
+
     if (Platform.OS === "web") {
       this.chunks = [];
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -530,6 +554,8 @@ export class AudioRecorder {
       };
 
       this.mediaRecorder.start(100);
+
+      this.setupWebSilenceDetection();
     } else {
       const { Audio } = await import("expo-av");
       const permission = await Audio.requestPermissionsAsync();
@@ -568,13 +594,99 @@ export class AudioRecorder {
           bitsPerSecond: 128000,
         },
       } as any);
+
+      recording.setOnRecordingStatusUpdate((status: any) => {
+        if (this.cancelled || !status.isRecording) return;
+        const metering = status.metering ?? -160;
+        this.handleNativeMetering(metering);
+      });
+      recording.setProgressUpdateInterval(100);
+
       await recording.startAsync();
       this.nativeRecording = recording;
       console.log(`AudioRecorder: native recording started, platform=${Platform.OS}`);
     }
   }
 
+  private setupWebSilenceDetection(): void {
+    if (!this.stream || !this.onSilenceCallback) return;
+
+    try {
+      this.audioContext = new AudioContext();
+      const source = this.audioContext.createMediaStreamSource(this.stream);
+      this.analyserNode = this.audioContext.createAnalyser();
+      this.analyserNode.fftSize = 512;
+      this.analyserNode.smoothingTimeConstant = 0.3;
+      source.connect(this.analyserNode);
+
+      const dataArray = new Float32Array(this.analyserNode.fftSize);
+
+      this.silenceCheckInterval = setInterval(() => {
+        if (this.cancelled || !this.analyserNode) return;
+
+        this.analyserNode.getFloatTimeDomainData(dataArray);
+        let rms = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          rms += dataArray[i] * dataArray[i];
+        }
+        rms = Math.sqrt(rms / dataArray.length);
+
+        if (rms > SPEECH_THRESHOLD_WEB) {
+          if (!this.speechDetected) {
+            this.speechDetected = true;
+            this.speechStartTime = Date.now();
+            console.log("AudioRecorder: speech detected (web)");
+          }
+          if (this.silenceTimerId) {
+            clearTimeout(this.silenceTimerId);
+            this.silenceTimerId = null;
+          }
+        } else if (rms < SILENCE_THRESHOLD_WEB && this.speechDetected) {
+          const speechDuration = Date.now() - this.speechStartTime;
+          if (speechDuration >= MIN_SPEECH_DURATION_MS && !this.silenceTimerId) {
+            this.silenceTimerId = setTimeout(() => {
+              if (!this.cancelled && this.onSilenceCallback) {
+                console.log(`AudioRecorder: silence detected after ${speechDuration}ms speech (web)`);
+                this.onSilenceCallback();
+              }
+            }, SILENCE_DURATION_MS);
+          }
+        }
+      }, 80);
+    } catch (err) {
+      console.warn("AudioRecorder: Web silence detection setup failed, falling back to timeout", err);
+    }
+  }
+
+  private handleNativeMetering(meteringDb: number): void {
+    if (!this.onSilenceCallback) return;
+
+    if (meteringDb > SPEECH_THRESHOLD_NATIVE_DB) {
+      if (!this.speechDetected) {
+        this.speechDetected = true;
+        this.speechStartTime = Date.now();
+        console.log(`AudioRecorder: speech detected (native), dB=${meteringDb.toFixed(1)}`);
+      }
+      if (this.silenceTimerId) {
+        clearTimeout(this.silenceTimerId);
+        this.silenceTimerId = null;
+      }
+    } else if (meteringDb < SILENCE_THRESHOLD_NATIVE_DB && this.speechDetected) {
+      const speechDuration = Date.now() - this.speechStartTime;
+      if (speechDuration >= MIN_SPEECH_DURATION_MS && !this.silenceTimerId) {
+        this.silenceTimerId = setTimeout(() => {
+          if (!this.cancelled && this.onSilenceCallback) {
+            console.log(`AudioRecorder: silence detected after ${speechDuration}ms speech (native), dB=${meteringDb.toFixed(1)}`);
+            this.onSilenceCallback();
+          }
+        }, SILENCE_DURATION_MS);
+      }
+    }
+  }
+
   async stop(): Promise<Blob | string> {
+    this.stopSilenceDetection();
+
     if (Platform.OS === "web") {
       return new Promise((resolve, reject) => {
         if (!this.mediaRecorder) {
@@ -609,6 +721,9 @@ export class AudioRecorder {
   }
 
   cancel(): void {
+    this.cancelled = true;
+    this.stopSilenceDetection();
+
     if (Platform.OS === "web") {
       if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
         this.mediaRecorder.stop();
@@ -620,6 +735,23 @@ export class AudioRecorder {
         this.nativeRecording = null;
       }
     }
+  }
+
+  private stopSilenceDetection(): void {
+    if (this.silenceTimerId) {
+      clearTimeout(this.silenceTimerId);
+      this.silenceTimerId = null;
+    }
+    if (this.silenceCheckInterval) {
+      clearInterval(this.silenceCheckInterval);
+      this.silenceCheckInterval = null;
+    }
+    if (this.audioContext) {
+      this.audioContext.close().catch(() => {});
+      this.audioContext = null;
+    }
+    this.analyserNode = null;
+    this.onSilenceCallback = null;
   }
 
   private cleanup(): void {
