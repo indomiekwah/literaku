@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, purchasedBookIds, assignedBookIds, voiceHints, type Book } from "@/constants/data";
+import { purchasedBookIds, assignedBookIds, voiceHints, type Book } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -66,10 +67,11 @@ export default function KoleksiScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, selectedVoice, isSubscribed } = useReadingPreferences();
+  const { books } = useBooks();
   const t = useT();
 
-  const purchasedBooks = sampleBooks.filter((b) => purchasedBookIds.includes(b.id));
-  const assignedBooks = sampleBooks.filter((b) => assignedBookIds.includes(b.id));
+  const purchasedBooks = books.filter((b) => purchasedBookIds.includes(b.id));
+  const assignedBooks = books.filter((b) => assignedBookIds.includes(b.id));
   const totalCount = purchasedBooks.length + assignedBooks.length;
 
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
@@ -98,7 +100,7 @@ export default function KoleksiScreen() {
         return true;
       }
       if ((intent === "open_book" || intent === "search_book") && param) {
-        const book = findBookByTitle(param);
+        const book = findBookByTitle(param, books);
         if (book) {
           const owned = purchasedBookIds.includes(book.id) || assignedBookIds.includes(book.id);
           if (owned || isSubscribed) {
@@ -114,7 +116,7 @@ export default function KoleksiScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t, isSubscribed]));
+  }, [selectedVoice, t, isSubscribed, books]));
 
   return (
     <SwipeVoiceWrapper>

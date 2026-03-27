@@ -130,6 +130,8 @@ The project is structured as a pnpm monorepo, organizing applications and shared
 - `hooks/useTTSAnnounce.ts` - Auto-announce on mount via TTS.
 - `hooks/useTranslation.ts` - Translation hook wrapping getTranslations().
 - `constants/translations.ts` - Full EN/ID translation strings.
+- `contexts/BooksContext.tsx` - Books data context (merges API books + local sampleBooks, 5-min auto-refresh, content cache for API PDFs).
+- `services/books.ts` - API client for fetching books list and page content from api-server.
 - `constants/data.ts` - Sample books, reading progress, voice hints per screen.
 - `components/SwipeHintBar.tsx` - Bottom bar showing voice command hints.
 - `components/SwipeVoiceWrapper.tsx` - Wrapper enabling swipe-left voice activation.

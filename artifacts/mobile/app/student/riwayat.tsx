@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, sampleHistory, sampleBookmarks, voiceHints } from "@/constants/data";
+import { sampleHistory, sampleBookmarks, voiceHints } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -25,14 +26,15 @@ import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 import { findBookByTitle } from "@/services/voiceRouter";
 
-function RecentBookCard({ bookId, lastPage, totalPages, timestamp, t }: {
+function RecentBookCard({ bookId, lastPage, totalPages, timestamp, t, allBooks }: {
   bookId: string;
   lastPage: number;
   totalPages: number;
   timestamp: string;
   t: ReturnType<typeof useT>;
+  allBooks: import("@/constants/data").Book[];
 }) {
-  const book = sampleBooks.find((b) => b.id === bookId);
+  const book = allBooks.find((b) => b.id === bookId);
   if (!book) return null;
 
   const progressPercent = Math.round((lastPage / totalPages) * 100);
@@ -67,8 +69,8 @@ function RecentBookCard({ bookId, lastPage, totalPages, timestamp, t }: {
   );
 }
 
-function BookmarkCard({ bookId, page, note }: { bookId: string; page: number; note?: string }) {
-  const book = sampleBooks.find((b) => b.id === bookId);
+function BookmarkCard({ bookId, page, note, allBooks }: { bookId: string; page: number; note?: string; allBooks: import("@/constants/data").Book[] }) {
+  const book = allBooks.find((b) => b.id === bookId);
   if (!book) return null;
 
   return (
@@ -110,6 +112,7 @@ export default function RiwayatScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, selectedVoice, isSubscribed } = useReadingPreferences();
+  const { books } = useBooks();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
@@ -137,7 +140,7 @@ export default function RiwayatScreen() {
       }
       if (intent === "list_bookmarked_books") {
         const titles = sampleBookmarks.map((bm) => {
-          const book = sampleBooks.find((b) => b.id === bm.bookId);
+          const book = books.find((b) => b.id === bm.bookId);
           return book ? book.title : "";
         }).filter(Boolean).join(", ");
         const msg = t.history.bookmarkedBooksAnnounce(sampleBookmarks.length, titles);
@@ -146,7 +149,7 @@ export default function RiwayatScreen() {
         return true;
       }
       if ((intent === "open_book" || intent === "search_book") && param) {
-        const book = findBookByTitle(param);
+        const book = findBookByTitle(param, books);
         if (book) {
           const inHistory = recentBookIds.includes(book.id) || bookmarkedBookIds.includes(book.id);
           if (inHistory || isSubscribed) {
@@ -162,7 +165,7 @@ export default function RiwayatScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t, isSubscribed]));
+  }, [selectedVoice, t, isSubscribed, books]));
 
   return (
     <SwipeVoiceWrapper>
@@ -200,6 +203,7 @@ export default function RiwayatScreen() {
                     totalPages={entry.totalPages}
                     timestamp={entry.timestamp}
                     t={t}
+                    allBooks={books}
                   />
                 ))
               ) : (
@@ -222,6 +226,7 @@ export default function RiwayatScreen() {
                     bookId={bm.bookId}
                     page={bm.page}
                     note={bm.note}
+                    allBooks={books}
                   />
                 ))
               ) : (

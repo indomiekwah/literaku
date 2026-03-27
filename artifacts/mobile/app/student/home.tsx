@@ -27,6 +27,7 @@ import { useTTSAnnounce } from "@/hooks/useTTSAnnounce";
 import { speakText } from "@/services/speech";
 import type { VoiceIntent } from "@/services/voiceRouter";
 import { findBookByTitle } from "@/services/voiceRouter";
+import { useBooks } from "@/contexts/BooksContext";
 
 interface NavButtonProps {
   label: string;
@@ -66,6 +67,7 @@ export default function StudentHomeScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, interactionMode, language, selectedVoice } = useReadingPreferences();
+  const { books } = useBooks();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
@@ -83,7 +85,7 @@ export default function StudentHomeScreen() {
         return true;
       }
       if (intent === "open_book" && param) {
-        const book = findBookByTitle(param);
+        const book = findBookByTitle(param, books);
         if (book) {
           router.push({ pathname: "/student/book/[id]", params: { id: book.id } });
           return true;
@@ -92,7 +94,7 @@ export default function StudentHomeScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t]));
+  }, [selectedVoice, t, books]));
 
   return (
     <SwipeVoiceWrapper>

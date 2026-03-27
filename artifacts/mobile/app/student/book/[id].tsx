@@ -18,7 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, purchasedBookIds, assignedBookIds, voiceHints } from "@/constants/data";
+import { purchasedBookIds, assignedBookIds, voiceHints } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -35,9 +36,10 @@ export default function BookDetailScreen() {
   const { isVoiceOnly, isSubscribed, selectedVoice } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const [showPreview, setShowPreview] = useState(false);
+  const { getBookById } = useBooks();
   const t = useT();
 
-  const book = sampleBooks.find((b) => b.id === id);
+  const book = getBookById(id);
   const genresText = book ? book.genres.join(", ") : "";
 
   useTTSAnnounce(book ? t.bookDetail.mountAnnounce(book.title, book.author, genresText) : "");

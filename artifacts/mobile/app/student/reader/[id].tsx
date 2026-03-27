@@ -19,7 +19,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, voiceHints } from "@/constants/data";
+import { voiceHints } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -74,15 +75,34 @@ export default function StudentReaderScreen() {
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { speed, textSize, isVoiceOnly, isSubscribed, selectedVoice, language } = useReadingPreferences();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
+  const { getBookById, getBookContent } = useBooks();
   const t = useT();
 
-  const book = sampleBooks.find((b) => b.id === id);
+  const book = getBookById(id);
   const isPreviewMode = preview === "true" && !isSubscribed;
+  const [loadedContent, setLoadedContent] = useState<string[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+
+  useEffect(() => {
+    if (!book || !id) return;
+    if (book.content.length > 0) {
+      setLoadedContent(book.content);
+      return;
+    }
+    setContentLoading(true);
+    getBookContent(id).then((pages) => {
+      setLoadedContent(pages);
+    }).catch(() => {
+      setLoadedContent(["Content could not be loaded."]);
+    }).finally(() => {
+      setContentLoading(false);
+    });
+  }, [book, id, getBookContent]);
 
   const visibleSections = useMemo(() => {
-    if (!book) return [];
-    return isPreviewMode ? [book.content[0]] : book.content;
-  }, [book, isPreviewMode]);
+    if (loadedContent.length === 0) return [];
+    return isPreviewMode ? [loadedContent[0]] : loadedContent;
+  }, [loadedContent, isPreviewMode]);
 
   const { tokens, sectionWordCounts } = useMemo(
     () => buildWordMap(visibleSections),
@@ -380,6 +400,19 @@ export default function StudentReaderScreen() {
         <View style={[styles.container, { paddingTop: topPadding }]}>
           <Text style={styles.errorText} accessibilityRole="alert">
             {t.reader.notFound}
+          </Text>
+        </View>
+      </SwipeVoiceWrapper>
+    );
+  }
+
+  if (contentLoading || loadedContent.length === 0) {
+    return (
+      <SwipeVoiceWrapper>
+        <View style={[styles.container, { paddingTop: topPadding, justifyContent: "center", alignItems: "center" }]}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={{ marginTop: 16, color: Colors.textSecondary, fontSize: 16 }}>
+            Loading content...
           </Text>
         </View>
       </SwipeVoiceWrapper>

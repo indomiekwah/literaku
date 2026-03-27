@@ -15,6 +15,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { BooksProvider } from "@/contexts/BooksContext";
 import { ReadingPreferencesProvider } from "@/contexts/ReadingPreferences";
 import { VoiceActivationProvider } from "@/contexts/VoiceActivation";
 
@@ -72,6 +73,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <BooksProvider>
           <ReadingPreferencesProvider>
             <VoiceActivationProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
@@ -81,6 +83,7 @@ export default function RootLayout() {
               </GestureHandlerRootView>
             </VoiceActivationProvider>
           </ReadingPreferencesProvider>
+          </BooksProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

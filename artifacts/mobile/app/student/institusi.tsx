@@ -18,7 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, voiceHints, findInstitutionByCode } from "@/constants/data";
+import { voiceHints, findInstitutionByCode } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -32,6 +33,7 @@ export default function InstitusiScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, selectedVoice } = useReadingPreferences();
+  const { books } = useBooks();
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
   const t = useT();
 
@@ -184,7 +186,7 @@ export default function InstitusiScreen() {
                     </Text>
                     <FlatList
                       horizontal
-                      data={institutionBookIds.map((id) => sampleBooks.find((b) => b.id === id)).filter(Boolean)}
+                      data={institutionBookIds.map((id) => books.find((b) => b.id === id)).filter(Boolean)}
                       keyExtractor={(item) => item!.id}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.horizontalList}

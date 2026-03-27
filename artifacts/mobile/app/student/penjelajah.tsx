@@ -18,7 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Colors from "@/constants/colors";
 import SwipeHintBar from "@/components/SwipeHintBar";
 import SwipeVoiceWrapper from "@/components/SwipeVoiceWrapper";
-import { sampleBooks, purchasedBookIds, assignedBookIds, voiceHints, type Book } from "@/constants/data";
+import { purchasedBookIds, assignedBookIds, voiceHints, type Book } from "@/constants/data";
+import { useBooks } from "@/contexts/BooksContext";
 import { useReadingPreferences } from "@/contexts/ReadingPreferences";
 import { useVoiceActivation } from "@/contexts/VoiceActivation";
 import { useT } from "@/hooks/useTranslation";
@@ -116,10 +117,10 @@ function normalizeGenreQuery(s: string): string {
   return s.replace(/[-_]/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
-function findGenreMatch(query: string): string | null {
+function findGenreMatch(query: string, allBooks: Book[]): string | null {
   const q = normalizeGenreQuery(query.replace(/\b(books?|buku|kategori|category)\b/gi, ""));
   if (!q) return null;
-  const allGenres = [...new Set(sampleBooks.flatMap((b) => b.genres))];
+  const allGenres = [...new Set(allBooks.flatMap((b) => b.genres))];
   const exact = allGenres.find((g) => normalizeGenreQuery(g) === q);
   if (exact) return exact;
   const partial = allGenres.find((g) => normalizeGenreQuery(g).includes(q) || q.includes(normalizeGenreQuery(g)));
@@ -132,11 +133,12 @@ export default function PenjelajahScreen() {
   const topPadding = isWeb ? 67 : insets.top;
   const bottomPadding = isWeb ? 34 : insets.bottom;
   const { isVoiceOnly, selectedVoice } = useReadingPreferences();
+  const { books } = useBooks();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const t = useT();
 
-  const genreGroups = useMemo(() => getGenreGroups(sampleBooks), []);
+  const genreGroups = useMemo(() => getGenreGroups(books), [books]);
   const genreNames = useMemo(() => genreGroups.map((g) => g.genre), [genreGroups]);
 
   const searchResults = useMemo(() => {
@@ -144,18 +146,18 @@ export default function PenjelajahScreen() {
     const q = searchQuery.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
     if (!q) return [];
     const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
-    return sampleBooks.filter(
+    return books.filter(
       (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || b.genres.some((g) => clean(g).includes(q))
     );
-  }, [searchQuery]);
+  }, [searchQuery, books]);
 
   const { onTranscription, clearTranscriptionCallback } = useVoiceActivation();
 
   const categoriesText = genreNames.join(", ");
-  useTTSAnnounce(t.explorer.mountAnnounce(sampleBooks.length) + " " + t.explorer.categoriesAnnounce(categoriesText));
+  useTTSAnnounce(t.explorer.mountAnnounce(books.length) + " " + t.explorer.categoriesAnnounce(categoriesText));
 
-  const purchasedBooks = sampleBooks.filter((b) => purchasedBookIds.includes(b.id));
-  const assignedBooks = sampleBooks.filter((b) => assignedBookIds.includes(b.id));
+  const purchasedBooks = books.filter((b) => purchasedBookIds.includes(b.id));
+  const assignedBooks = books.filter((b) => assignedBookIds.includes(b.id));
 
   useFocusEffect(useCallback(() => {
     onTranscription((_text: string, intent: VoiceIntent, param?: string) => {
@@ -183,7 +185,7 @@ export default function PenjelajahScreen() {
         setIsSearching(true);
         const q = param.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
         const clean = (s: string) => s.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
-        const matches = sampleBooks.filter(
+        const matches = books.filter(
           (b) => clean(b.title).includes(q) || clean(b.author).includes(q) || b.genres.some((g) => clean(g).includes(q))
         );
         if (matches.length > 0) {
@@ -203,9 +205,9 @@ export default function PenjelajahScreen() {
         return true;
       }
       if (intent === "browse_category" && param) {
-        const genreMatch = findGenreMatch(param);
+        const genreMatch = findGenreMatch(param, books);
         if (genreMatch) {
-          const booksInGenre = sampleBooks.filter((b) => b.genres.includes(genreMatch));
+          const booksInGenre = books.filter((b) => b.genres.includes(genreMatch));
           const titles = booksInGenre.map((b) => b.title).join(", ");
           const msg = t.explorer.categoryBooksAnnounce(genreMatch, booksInGenre.length, titles);
           AccessibilityInfo.announceForAccessibility(msg);
@@ -219,7 +221,7 @@ export default function PenjelajahScreen() {
       }
       if (intent === "open_book" && param) {
         const cleanQ = param.replace(/[.,!?'";\-:()]/g, "").toLowerCase();
-        const match = sampleBooks.find((b) =>
+        const match = books.find((b) =>
           b.title.replace(/[.,!?'";\-:()]/g, "").toLowerCase().includes(cleanQ)
         );
         if (match) {
@@ -233,7 +235,7 @@ export default function PenjelajahScreen() {
       return false;
     });
     return () => clearTranscriptionCallback();
-  }, [selectedVoice, t]));
+  }, [selectedVoice, t, books]));
 
   const handleClearSearch = () => {
     setSearchQuery("");

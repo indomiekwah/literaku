@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { AccessibilityInfo } from "react-native";
 import { speakText, analyzeCLU, isCLUAvailable } from "@/services/speech";
-import { sampleBooks } from "@/constants/data";
+import { sampleBooks, type Book } from "@/constants/data";
 
 const CONFIRM_SPEED = 1;
 
@@ -141,14 +141,14 @@ function cleanForSearch(text: string): string {
   return text.replace(/[.,!?'";\-:()]/g, "").trim().toLowerCase();
 }
 
-export function findBookByTitle(query: string) {
+export function findBookByTitle(query: string, allBooks: Book[] = sampleBooks) {
   const cleaned = cleanForSearch(query);
   if (!cleaned) return undefined;
 
-  const exact = sampleBooks.find(b => cleanForSearch(b.title) === cleaned);
+  const exact = allBooks.find(b => cleanForSearch(b.title) === cleaned);
   if (exact) return exact;
 
-  return sampleBooks.find(
+  return allBooks.find(
     b => cleanForSearch(b.title).includes(cleaned) || cleaned.includes(cleanForSearch(b.title))
   );
 }
