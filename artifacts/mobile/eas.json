@@ -9,17 +9,26 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "ee2fec00-80a9-4353-ba91-22d7568a13f5-00-g5gshc342vyc-3rfkxdsr.riker.replit.dev"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "workspace-indomiekwah.replit.app"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "workspace-indomiekwah.replit.app"
       }
     }
   }
