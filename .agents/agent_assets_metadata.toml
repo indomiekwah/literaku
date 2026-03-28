@@ -30,3 +30,9 @@ id = "bBviYRwVU20vxcA0mLmpw"
 uri = "file://.canvas/assets/literaku-architecture.png"
 type = "image"
 title = "Literaku System Architecture Diagram"
+
+[[outputs]]
+id = "c-73pQJfOHYjxatu0u7xE"
+uri = "file://screenshots/literaku-system-design.jpg"
+type = "image"
+title = "Literaku System Design Diagram"
