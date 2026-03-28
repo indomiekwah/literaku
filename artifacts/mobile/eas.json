@@ -20,7 +20,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_DOMAIN": "workspace-indomiekwah.replit.app"
+        "EXPO_PUBLIC_DOMAIN": "literakuusu.replit.app"
       }
     },
     "production": {
@@ -28,7 +28,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_DOMAIN": "workspace-indomiekwah.replit.app"
+        "EXPO_PUBLIC_DOMAIN": "literakuusu.replit.app"
       }
     }
   }
