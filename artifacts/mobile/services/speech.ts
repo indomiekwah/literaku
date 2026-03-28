@@ -114,8 +114,21 @@ let currentAbortController: AbortController | null = null;
 const TTS_CACHE_MAX = 30;
 const ttsCacheMap = new Map<string, ArrayBuffer>();
 
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
 function ttsCacheKey(text: string, voice: string, rate: number): string {
-  return `${voice}|${rate}|${text.slice(0, 200)}`;
+  if (text.length <= 300) {
+    return `${voice}|${rate}|${text}`;
+  }
+  return `${voice}|${rate}|${text.length}|${simpleHash(text)}`;
 }
 
 function getCachedTTS(key: string): ArrayBuffer | undefined {
@@ -154,15 +167,28 @@ async function fetchTTSAudio(
     body: JSON.stringify({ text, voice: azureVoice, rate }),
     signal,
   });
-  if (!res.ok) throw new Error("TTS request failed");
+  if (!res.ok) {
+    const errMsg = `TTS request failed (${res.status})`;
+    console.error(`[TTS] ${errMsg}`);
+    throw new Error(errMsg);
+  }
   const buffer = await res.arrayBuffer();
   setCachedTTS(cacheKey, buffer);
   return buffer;
 }
 
-export function stopTTSPlayback(): void {
-  ttsGeneration++;
+interface TTSQueueJob {
+  text: string;
+  voiceId: string;
+  rate: number;
+  resolve: () => void;
+  reject: (err: Error) => void;
+}
 
+let ttsPlayQueue: TTSQueueJob[] = [];
+let isTTSProcessing = false;
+
+function stopCurrentAudio(): void {
   if (currentAbortController) {
     currentAbortController.abort();
     currentAbortController = null;
@@ -176,9 +202,45 @@ export function stopTTSPlayback(): void {
     }
   } else {
     if (currentSoundNative) {
-      currentSoundNative.stopAsync().catch(() => {});
-      currentSoundNative.unloadAsync().catch(() => {});
+      currentSoundNative.unloadAsync().catch((err: any) => {
+        console.warn('[TTS] Native sound unload failed:', err?.message);
+      });
       currentSoundNative = null;
+    }
+  }
+}
+
+async function processTTSQueue(): Promise<void> {
+  if (isTTSProcessing) return;
+  isTTSProcessing = true;
+
+  while (ttsPlayQueue.length > 0) {
+    const job = ttsPlayQueue.shift()!;
+    try {
+      await playTTSAudioInternal(job.text, job.voiceId, job.rate);
+      job.resolve();
+    } catch (error: any) {
+      console.error('[TTS] Queue playback failed:', error?.message);
+      job.reject(error);
+    }
+  }
+
+  isTTSProcessing = false;
+}
+
+export function stopTTSPlayback(): void {
+  ttsGeneration++;
+  stopCurrentAudio();
+
+  const pending = ttsPlayQueue;
+  ttsPlayQueue = [];
+  isTTSProcessing = false;
+
+  if (pending.length > 0) {
+    console.log(`[TTS] Cleared ${pending.length} queued TTS job(s)`);
+    const cancelErr = new Error('TTS canceled');
+    for (const job of pending) {
+      job.reject(cancelErr);
     }
   }
 }
@@ -188,7 +250,21 @@ export async function speakText(
   voiceId: string = "v3",
   rate: number = 1
 ): Promise<void> {
-  stopTTSPlayback();
+  return new Promise((resolve, reject) => {
+    ttsPlayQueue.push({ text, voiceId, rate, resolve, reject });
+    if (!isTTSProcessing) {
+      processTTSQueue();
+    }
+  });
+}
+
+async function playTTSAudioInternal(
+  text: string,
+  voiceId: string = "v3",
+  rate: number = 1
+): Promise<void> {
+  stopCurrentAudio();
+  ttsGeneration++;
 
   const myGeneration = ttsGeneration;
   const abortController = new AbortController();
@@ -202,6 +278,7 @@ export async function speakText(
       audioBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error('[TTS] Fetch failed (web):', err?.message);
       throw err;
     }
 
@@ -227,28 +304,28 @@ export async function speakText(
       audio.onerror = () => {
         URL.revokeObjectURL(url);
         if (currentAudioWeb === audio) currentAudioWeb = null;
+        console.error('[TTS] Audio playback error (web)');
         reject(new Error("Audio playback failed"));
       };
       audio.play().catch((err) => {
         URL.revokeObjectURL(url);
         if (currentAudioWeb === audio) currentAudioWeb = null;
         if (myGeneration !== ttsGeneration) resolve();
-        else reject(err);
+        else {
+          console.error('[TTS] Audio.play() failed (web):', err?.message);
+          reject(err);
+        }
       });
     });
   } else {
     const { Audio } = await import("expo-av");
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-    });
 
     let arrayBuffer: ArrayBuffer;
     try {
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error('[TTS] Fetch failed (native):', err?.message);
       throw err;
     }
 
@@ -263,8 +340,9 @@ export async function speakText(
     );
 
     if (myGeneration !== ttsGeneration) {
-      sound.stopAsync().catch(() => {});
-      sound.unloadAsync().catch(() => {});
+      sound.unloadAsync().catch((err: any) => {
+        console.warn('[TTS] Cleanup unload failed:', err?.message);
+      });
       return;
     }
 
@@ -273,7 +351,9 @@ export async function speakText(
     return new Promise((resolve) => {
       sound.setOnPlaybackStatusUpdate((status: any) => {
         if (status.didJustFinish) {
-          sound.unloadAsync().catch(() => {});
+          sound.unloadAsync().catch((err: any) => {
+            console.warn('[TTS] Post-play unload failed:', err?.message);
+          });
           if (currentSoundNative === sound) currentSoundNative = null;
           resolve();
         }
@@ -304,6 +384,7 @@ export async function speakTextWithProgress(
       audioBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error('[TTS] Progress fetch failed (web):', err?.message);
       throw err;
     }
 
@@ -357,27 +438,27 @@ export async function speakTextWithProgress(
       };
       audio.onerror = () => {
         cleanup();
+        console.error('[TTS] Progress playback error (web)');
         reject(new Error("Audio playback failed"));
       };
       audio.play().catch((err) => {
         cleanup();
         if (myGeneration !== ttsGeneration) resolve();
-        else reject(err);
+        else {
+          console.error('[TTS] Progress play() failed (web):', err?.message);
+          reject(err);
+        }
       });
     });
   } else {
     const { Audio } = await import("expo-av");
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-    });
 
     let arrayBuffer: ArrayBuffer;
     try {
       arrayBuffer = await fetchTTSAudio(text, azureVoice, rate, abortController.signal);
     } catch (err: any) {
       if (err.name === "AbortError" || myGeneration !== ttsGeneration) return;
+      console.error('[TTS] Progress fetch failed (native):', err?.message);
       throw err;
     }
 
@@ -392,8 +473,9 @@ export async function speakTextWithProgress(
     );
 
     if (myGeneration !== ttsGeneration) {
-      sound.stopAsync().catch(() => {});
-      sound.unloadAsync().catch(() => {});
+      sound.unloadAsync().catch((err: any) => {
+        console.warn('[TTS] Progress cleanup unload failed:', err?.message);
+      });
       return;
     }
 
@@ -410,7 +492,9 @@ export async function speakTextWithProgress(
           onProgress(status.positionMillis || 0, status.durationMillis);
         }
         if (status.didJustFinish) {
-          sound.unloadAsync().catch(() => {});
+          sound.unloadAsync().catch((err: any) => {
+            console.warn('[TTS] Progress post-play unload failed:', err?.message);
+          });
           if (currentSoundNative === sound) currentSoundNative = null;
           resolve();
         }
@@ -731,7 +815,9 @@ export class AudioRecorder {
       this.cleanup();
     } else {
       if (this.nativeRecording) {
-        this.nativeRecording.stopAndUnloadAsync().catch(() => {});
+        this.nativeRecording.stopAndUnloadAsync().catch((err: any) => {
+          console.warn('[AudioRecorder] Cancel stop failed:', err?.message);
+        });
         this.nativeRecording = null;
       }
     }
@@ -747,7 +833,9 @@ export class AudioRecorder {
       this.silenceCheckInterval = null;
     }
     if (this.audioContext) {
-      this.audioContext.close().catch(() => {});
+      this.audioContext.close().catch((err: any) => {
+        console.warn('[AudioRecorder] AudioContext close failed:', err?.message);
+      });
       this.audioContext = null;
     }
     this.analyserNode = null;

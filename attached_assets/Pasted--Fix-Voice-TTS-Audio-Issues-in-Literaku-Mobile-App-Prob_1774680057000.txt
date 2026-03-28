@@ -1,0 +1,409 @@
+📋 Fix Voice/TTS Audio Issues in Literaku Mobile App
+Problem Summary
+The voice feedback system is inconsistent—users can give voice commands (STT works) but hear no audio response (TTS silent). Sound sometimes works but disappears after reinstall. This indicates audio context isn't properly initialized when the app starts, and TTS calls aren't coordinated.
+
+Root Causes Identified
+Audio mode not initialized at app startup → first TTS may fail silently
+Race conditions in TTS playback → multiple TTS calls overlap or cancel each other
+All errors silently swallowed → no logging/debugging feedback
+Resource/timeout leaks → state pollution between voice sessions
+Microphone permissions silently fail → reinstall resets permissions
+Navigation happens before TTS finishes → audio context switches mid-playback
+TTS cache collisions → truncated text keys cause wrong audio returned
+useTTSAnnounce hook design flawed → async coordination issues
+Phase 1: Audio Initialization (CRITICAL FIX)
+Issue 1.1: Initialize Audio Mode at App Startup
+File: artifacts/mobile/contexts/VoiceActivation.tsx
+
+Problem: Audio.setAudioModeAsync() is only called inside speakText() when actually playing audio. Different code paths set different audio modes, causing conflicts.
+
+Solution: Set a consistent, global audio mode once when VoiceActivationProvider mounts:
+
+// In VoiceActivationContext useEffect (around line 48-51):
+useEffect(() => {
+  // Initialize audio mode ONCE at app startup
+  if (Platform.OS !== 'web') {
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,        // Not recording
+      staysActiveInBackground: true,    // Audio continues even if app backgrounded
+      playsInSilentModeIOS: true,       // TTS plays even in silent mode
+      shouldDuckAndroid: true,          // Android auto-lowers other audio
+      playThroughEarpiece: false,       // Use speaker, not earpiece
+    }).catch(err => {
+      console.error('[VoiceContext] Audio init failed:', err);
+      // Log but don't crash - some devices may not support all modes
+    });
+  }
+
+  // IMPORTANT: Do NOT call Audio.setAudioModeAsync() again elsewhere
+  // (currently it's called inside speakText - we'll fix that in Phase 2)
+}, []);
+Why this matters:
+
+Ensures audio is ready BEFORE first TTS call
+Prevents "permission denied" errors on fresh installs
+Guarantees consistent audio behavior across all TTS calls
+Survives app background/foreground cycles
+Phase 2: Synchronize TTS Playback (CRITICAL FIX)
+Issue 2.1: Add TTS Playback Queue/Lock
+File: artifacts/mobile/services/speech.ts
+
+Problem: Multiple speakText() calls don't wait for each other. This causes overlapping audio or cancellations. For example:
+
+User says "next chapter" → TTS responds "Playing chapter 2..."
+Before that finishes, speed announcement interrupts: "Speed set to 1.5x"
+Both play at same time = garbled or one cuts off the other
+Solution: Create a simple queue to ensure only ONE TTS plays at a time:
+
+// Add to Speech class (around line 20-30):
+private ttsPlayQueue: Array<{ text: string; voice: string; rate: number }> = [];
+private isTTSPlaying = false;
+
+// Modify speakText() to use the queue:
+async speakText(text: string, voice?: string, rate?: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Add to queue with resolve/reject callbacks
+    this.ttsPlayQueue.push({
+      text,
+      voice: voice || this.selectedVoice,
+      rate: rate || this.speed,
+      resolve,
+      reject,
+    });
+
+    // If nothing is playing, start queue processing
+    if (!this.isTTSPlaying) {
+      this.processTTSQueue();
+    }
+  });
+}
+
+// New method: process queue one at a time
+private async processTTSQueue(): Promise<void> {
+  while (this.ttsPlayQueue.length > 0) {
+    this.isTTSPlaying = true;
+    const job = this.ttsPlayQueue.shift();
+    
+    try {
+      await this.playTTSAudio(job.text, job.voice, job.rate);
+      job.resolve();
+    } catch (error) {
+      console.error('[TTS] Playback failed:', error);
+      job.reject(error);
+    }
+  }
+  
+  this.isTTSPlaying = false;
+}
+
+// Extract current TTS logic into playTTSAudio():
+private async playTTSAudio(text: string, voice: string, rate: number): Promise<void> {
+  // This is your current speakText() logic
+  // Just refactored into a separate method
+}
+Why this matters:
+
+Ensures voice feedback plays sequentially, not overlapping
+Users hear complete responses without interruption
+Queue survives fast command sequences
+Fixes "speed increase → garbled audio" issue
+Issue 2.2: Stop Previous TTS Before Starting New One
+File: artifacts/mobile/services/speech.ts
+
+Problem: When navigation TTS is aborted, the abort controller is incremented but the audio doesn't actually stop immediately.
+
+Solution:
+
+// In stopTTSPlayback():
+stopTTSPlayback(): void {
+  // Prevent any pending TTS from completing
+  this.ttsGeneration++;
+  
+  // Immediately stop current playback
+  if (Platform.OS === 'web') {
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement.currentTime = 0;
+    }
+  } else {
+    // Native: unload sound immediately
+    if (this.playerRef) {
+      this.playerRef.unloadAsync().catch(() => {});
+    }
+  }
+  
+  // Clear queue so pending TTS jobs are discarded
+  this.ttsPlayQueue = [];
+  this.isTTSPlaying = false;
+}
+Phase 3: Error Visibility (MAJOR FIX)
+Issue 3.1: Log All Errors (Don't Swallow Silently)
+File: artifacts/mobile/services/speech.ts
+
+Problem: .catch(() => {}) appears in 8+ places. Users have zero feedback when:
+
+Microphone permission denied
+TTS fails to generate
+Network error talking to Azure
+Solution: Replace every .catch(() => {}) with:
+
+// Pattern 1: STT failure (around line 79)
+.catch(error => {
+  console.error('[STT] Recognition failed:', error?.message);
+  throw error; // Re-throw so caller knows it failed
+});
+
+// Pattern 2: TTS failure (around line 241)
+.catch(error => {
+  console.error('[TTS] Audio mode setup failed:', error?.message);
+  // Don't re-throw here - audio might still play
+});
+
+// Pattern 3: Network errors (cache miss)
+.catch(error => {
+  console.error('[TTS] Generation failed (cache miss):', error?.message);
+  throw error;
+});
+File: artifacts/mobile/contexts/VoiceActivation.tsx
+
+Replace (line 152):
+
+speakText(announcement).catch(() => {})  // OLD: Silent failure
+
+// NEW:
+speakText(announcement).catch(error => {
+  console.warn('[Voice] Speed announcement failed:', error);
+  // User doesn't hear it, but app still works
+});
+Replace (line 238-242 area - after CLU/route matching):
+
+router.replace(confirmUrl).catch(error => {
+  console.error('[Voice] Navigation failed:', error);
+  // Toast error to user or log
+});
+File: artifacts/mobile/services/voiceRouter.ts
+
+Replace all .catch(() => {}) with:
+
+.catch(error => {
+  console.error('[VoiceRouter] [action name] failed:', error);
+});
+Why this matters:
+
+Developers can see why TTS fails in console
+Permissions issues appear in logs
+Network problems are traceable
+Critical for debugging "no sound" issues
+Phase 4: Timeout & Resource Cleanup
+Issue 4.1: Clean Up dismissTimeoutRef
+File: artifacts/mobile/contexts/VoiceActivation.tsx
+
+Problem: Lines 149-227 set dismissTimeoutRef.current in 8+ places without clearing the old one. If component unmounts during timeout, the ref leaks.
+
+Solution: Create a helper and cleanup effect:
+
+// Near top of component (after state declarations):
+const clearDismissTimeout = useCallback(() => {
+  if (dismissTimeoutRef.current) {
+    clearTimeout(dismissTimeoutRef.current);
+    dismissTimeoutRef.current = null;
+  }
+}, []);
+
+// Update useEffect cleanup (line 48-51):
+useEffect(() => {
+  // ... audio init code ...
+  
+  return () => {
+    clearDismissTimeout(); // Clean up on unmount
+  };
+}, [clearDismissTimeout]);
+
+// Replace all dismissTimeoutRef.current = setTimeout(...) calls:
+// OLD:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 1500);
+
+// NEW:
+clearDismissTimeout(); // Always clear old timeout first
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 1500);
+Find & replace: Apply this pattern to all ~12 occurrences in the file (lines 149, 166, 181, 202, 206, 227, and others).
+
+Why this matters:
+
+Prevents timeout leaks that drain battery/memory
+Prevents "voice active" state lingering after navigation
+Cleans up on app close
+Phase 5: TTS Cache Fix
+Issue 5.1: Extend Cache Key to Full Text
+File: artifacts/mobile/services/speech.ts (around line 382-395)
+
+Problem: TTS cache keys are truncated at 200 characters. Two similar book passages return the same cached audio.
+
+Solution:
+
+// OLD (line 384):
+return `${voice}|${rate}|${text.slice(0, 200)}` // WRONG: truncates to 200 chars
+
+// NEW:
+function ttsCacheKey(text: string, voice: string, rate: number): string {
+  // Use full text, but ellipsis if very long to keep keys manageable
+  const maxKeyLength = 500;
+  const key = text.length > maxKeyLength 
+    ? text.slice(0, 250) + '[...]' + text.slice(-250)
+    : text;
+  return `${voice}|${rate}|${key}`;
+}
+Or use a hash function (if you want shorter keys):
+
+import hashcode from 'js-hashcode'; // or use crypto.subtle
+
+function ttsCacheKey(text: string, voice: string, rate: number): string {
+  return `${voice}|${rate}|${hashcode(text)}`; // Hash for unique key
+}
+Why this matters:
+
+Different passages get different audio instead of cached wrong responses
+Users hear correct TTS for their actual text
+Prevents "Why is that the wrong chapter audio?" confusion
+Phase 6: useTTSAnnounce Hook Fix
+Issue 6.1: Coordinate Accessibility Announcement & TTS
+File: artifacts/mobile/hooks/useTTSAnnounce.ts
+
+Problem: 500ms delay between screen reader announce and TTS, with no synchronization. If screen remounts, old audio persists.
+
+Solution:
+
+export function useTTSAnnounce(text: string): void {
+  const { speakText, stopTTSPlayback } = useContext(VoiceActivationContext);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!text) return;
+
+      // Announce immediately (doesn't play audio, just notifies screen reader)
+      announceForAccessibility(text);
+
+      // Start TTS after a brief delay to let screen reader speak first
+      const ttsDelay = setTimeout(() => {
+        speakText(text).catch(error => {
+          console.warn('[useTTSAnnounce] TTS failed:', error);
+          // Accessibility already announced, TTS is bonus feature
+        });
+      }, 300); // Reduced from 500ms for tighter coordination
+
+      // Cleanup: cancel TTS if component unfocuses before speech finishes
+      return () => {
+        clearTimeout(ttsDelay);
+        stopTTSPlayback(); // Stop any ongoing TTS
+      };
+    }, [text, speakText, stopTTSPlayback])
+  );
+}
+Why this matters:
+
+Screen reader users hear announcement immediately
+TTS plays after screen reader finishes (no overlap)
+Screen remount doesn't leave old audio playing
+Proper cleanup prevents double-announcements
+Phase 7: Permission Error Handling
+Issue 7.1: Add Explicit Permission Check
+File: artifacts/mobile/contexts/VoiceActivation.tsx
+
+Problem: Microphone permission errors are silent. No user feedback.
+
+Solution (around line 284 where permission errors are caught):
+
+// When permission error occurs:
+const handlePermissionError = async () => {
+  try {
+    const { status } = await Audio.getPermissionsAsync();
+    
+    if (status === 'denied') {
+      console.error('[Voice] Microphone permission denied by user');
+      Alert.alert(
+        'Microphone Permission Required',
+        'Literaku needs microphone access to use voice commands. Please enable it in Settings.',
+        [
+          { text: 'Cancel', onPress: () => setIsVoiceActive(false) },
+          { text: 'Open Settings', onPress: () => Linking.openURL('app-settings:') },
+        ]
+      );
+      return;
+    }
+    
+    if (status === 'undetermined') {
+      console.log('[Voice] Requesting microphone permission...');
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        console.error('[Voice] Microphone permission not granted');
+        setIsVoiceActive(false);
+      }
+    }
+  } catch (error) {
+    console.error('[Voice] Permission check failed:', error);
+    setIsVoiceActive(false);
+  }
+};
+Why this matters:
+
+Users understand why voice doesn't work after reinstall
+Clear path to fix permissions in system settings
+Reinstall won't mysteriously silence the app
+Testing Checklist
+After implementing all fixes:
+
+1. Audio Initialization Test
+[ ] Fresh app install → open app → give voice command → hear response
+[ ] Close app → reopen → voice command → hear response
+[ ] Background app → bring to foreground → voice command → hear response
+2. TTS Sequencing Test
+[ ] Say "open book" → hear response → say "next" → hear response (no overlap)
+[ ] Rapid commands: say "speed up, speed up, speed up" → hear 3 sequential confirmations
+[ ] Navigation with TTS: say "go home", wait for voice to finish → app navigates
+3. Error Logging Test
+[ ] Open DevTools → enter voice mode → run command
+[ ] Check console for [Voice], [TTS], [STT] logs
+[ ] Deliberately deny microphone permission → see error log and alert
+4. Reinstall Test
+[ ] Uninstall app completely
+[ ] Reinstall from scratch
+[ ] Give voice command → hear response (not silent)
+[ ] Repeat 3-4 times to confirm consistency
+5. Permission Test
+[ ] Revoke microphone permission in system settings
+[ ] Open app → try voice command → see "Permission Required" alert
+[ ] Tap "Open Settings" → enable permission → retry → works
+6. Cache Collision Test
+[ ] Open two long similar book passages
+[ ] Verify each gets correct TTS audio (different content)
+[ ] Not reused from cache incorrectly
+Deployment Order
+Phase 1 (Audio init) - MUST FIX FIRST
+Phase 2 (TTS queue) - MUST FIX SECOND
+Phase 3 (Error logging) - For debugging
+Phase 4 (Cleanup) - Memory/battery
+Phase 5 (Cache) - Data consistency
+Phase 6 (Hook fix) - Accessibility
+Phase 7 (Permissions) - UX
+Files to Modify
+artifacts/mobile/contexts/VoiceActivation.tsx ← CRITICAL (Phases 1, 4, 7)
+artifacts/mobile/services/speech.ts ← CRITICAL (Phases 2, 3, 5)
+artifacts/mobile/services/voiceRouter.ts (Phase 3)
+artifacts/mobile/hooks/useTTSAnnounce.ts (Phase 6)
+Rollback Plan
+Each phase is independently reversible. If audio breaks after a change:
+
+Revert last modified file
+Check console logs for [Voice] or [TTS] errors
+File an issue with the error message
+Summary
+Issue	Root Cause	Impact
+Audio failures	No initialization at app startup	First/random TTS fails
+Overlapping audio	Uncoordinated speakText() calls	Garbled sound
+Memory leaks	No cleanup of timeouts/intervals	Battery/memory degradation
+Silent failures	Empty catch blocks everywhere	Cannot debug issues
+Navigation timing	Immediate routing vs. async TTS	No user confirmation
+Permission issues	Silent error swallowing	User confusion
+Silence detection	Hardcoded thresholds	Fails in noisy/quiet environments
+Cache collisions	200-char limit on keys	Wrong TTS returned for similar texts
+Status: Ready for implementation per your iterative approach. Implement one phase at a time and test thoroughly.

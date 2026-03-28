@@ -93,8 +93,8 @@ The project is structured as a pnpm monorepo with TypeScript, enabling efficient
 - `contexts/ReadingPreferences.tsx` - User settings context (voice, speed, language, text size, subscription).
 - `contexts/VoiceActivation.tsx` - Voice activation state, mic recording, STT, intent matching.
 - `services/voiceRouter.ts` - Intent matching patterns (EN+ID) and global navigation execution.
-- `services/speech.ts` - AudioRecorder, speechToText, speechToTextFromUri, speakText, stopTTSPlayback.
-- `hooks/useTTSAnnounce.ts` - Auto-announce on mount via TTS.
+- `services/speech.ts` - AudioRecorder, speechToText, speechToTextFromUri, speakText (queued), speakTextWithProgress, stopTTSPlayback. TTS uses a sequential queue to prevent audio overlap; stopTTSPlayback clears queue and rejects pending promises.
+- `hooks/useTTSAnnounce.ts` - Auto-announce on mount via TTS (300ms delay, cleanup stops TTS on unfocus).
 - `hooks/useTranslation.ts` - Translation hook wrapping getTranslations().
 - `constants/translations.ts` - Full EN/ID translation strings.
 - `contexts/BooksContext.tsx` - Books data context (merges API books + local sampleBooks, 5-min auto-refresh, content cache for API PDFs).

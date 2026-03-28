@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useState, useRef } from "react";
+import React, { createContext, useContext, useCallback, useState, useRef, useEffect } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
 import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
@@ -53,6 +53,39 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { speed, setSpeed, selectedVoice, language, interactionMode, setInteractionMode } = useReadingPreferences();
 
+  const clearDismissTimeout = useCallback(() => {
+    if (dismissTimeoutRef.current) {
+      clearTimeout(dismissTimeoutRef.current);
+      dismissTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      import("expo-av").then(({ Audio }) => {
+        Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        }).catch((err: any) => {
+          console.error('[VoiceContext] Audio init failed:', err?.message);
+        });
+      }).catch((err: any) => {
+        console.error('[VoiceContext] expo-av import failed:', err?.message);
+      });
+    }
+
+    return () => {
+      clearDismissTimeout();
+      if (listenTimeoutRef.current) {
+        clearTimeout(listenTimeoutRef.current);
+        listenTimeoutRef.current = null;
+      }
+    };
+  }, [clearDismissTimeout]);
+
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
     try {
@@ -87,7 +120,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
               ? `Kecepatan diubah ke level ${param}`
               : `Speed set to level ${param}`;
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 1).catch(() => {});
+            speakText(msg, selectedVoice, 1).catch((err) => {
+              console.warn('[Voice] Speed change announcement failed:', err?.message);
+            });
             setIsVoiceActive(false);
             return;
           }
@@ -102,13 +137,17 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
               ? `Kecepatan dinaikkan ke ${newSpeed}x`
               : `Speed increased to ${newSpeed}x`;
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 1).catch(() => {});
+            speakText(msg, selectedVoice, 1).catch((err) => {
+              console.warn('[Voice] Speed increase announcement failed:', err?.message);
+            });
           } else {
             const msg = language === "id"
               ? "Sudah di kecepatan maksimum"
               : "Already at maximum speed";
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 1).catch(() => {});
+            speakText(msg, selectedVoice, 1).catch((err) => {
+              console.warn('[Voice] Max speed announcement failed:', err?.message);
+            });
           }
           setIsVoiceActive(false);
           return;
@@ -123,13 +162,17 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
               ? `Kecepatan diturunkan ke ${newSpeed}x`
               : `Speed decreased to ${newSpeed}x`;
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 1).catch(() => {});
+            speakText(msg, selectedVoice, 1).catch((err) => {
+              console.warn('[Voice] Speed decrease announcement failed:', err?.message);
+            });
           } else {
             const msg = language === "id"
               ? "Sudah di kecepatan minimum"
               : "Already at minimum speed";
             AccessibilityInfo.announceForAccessibility(msg);
-            speakText(msg, selectedVoice, 1).catch(() => {});
+            speakText(msg, selectedVoice, 1).catch((err) => {
+              console.warn('[Voice] Min speed announcement failed:', err?.message);
+            });
           }
           setIsVoiceActive(false);
           return;
@@ -147,7 +190,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? (language === "id" ? "Mode suara saja diaktifkan" : "Voice-only mode activated")
             : (language === "id" ? "Mode sentuh diaktifkan" : "Touch mode activated");
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
+          speakText(msg, selectedVoice, 1).catch((err) => {
+            console.warn('[Voice] Mode switch announcement failed:', err?.message);
+          });
           setIsVoiceActive(false);
           return;
         }
@@ -155,6 +200,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         if (callbackRef.current) {
           const handled = callbackRef.current(text, intent, param);
           if (handled === true) {
+            clearDismissTimeout();
             dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 1500);
             return;
           }
@@ -171,7 +217,10 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? "Perintah ini hanya tersedia di halaman pembaca buku. Buka buku terlebih dahulu."
             : "This command is only available on the reader page. Open a book first.";
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
+          speakText(msg, selectedVoice, 1).catch((err) => {
+            console.warn('[Voice] Reader-only announcement failed:', err?.message);
+          });
+          clearDismissTimeout();
           dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
           return;
         }
@@ -181,7 +230,10 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? "Perintah ini hanya tersedia di halaman detail buku."
             : "This command is only available on the book detail page.";
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
+          speakText(msg, selectedVoice, 1).catch((err) => {
+            console.warn('[Voice] Book-detail-only announcement failed:', err?.message);
+          });
+          clearDismissTimeout();
           dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
           return;
         }
@@ -191,25 +243,32 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
             ? "Maaf, saya tidak mengerti perintah tersebut. Untuk navigasi, ucapkan 'Buka' diikuti nama halaman, misalnya 'Buka pengaturan'."
             : "Sorry, I didn't understand that command. For navigation, say 'Open' followed by the page name, for example 'Open settings'.";
           AccessibilityInfo.announceForAccessibility(msg);
-          speakText(msg, selectedVoice, 1).catch(() => {});
+          speakText(msg, selectedVoice, 1).catch((err) => {
+            console.warn('[Voice] Unknown command announcement failed:', err?.message);
+          });
         }
 
+        clearDismissTimeout();
         dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
       } else {
         const msg = language === "id"
           ? "Tidak terdengar suara. Coba lagi."
           : "Could not understand. Please try again.";
         AccessibilityInfo.announceForAccessibility(msg);
-        speakText(msg, selectedVoice, 1).catch(() => {});
+        speakText(msg, selectedVoice, 1).catch((err) => {
+          console.warn('[Voice] No-speech announcement failed:', err?.message);
+        });
+        clearDismissTimeout();
         dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
       }
     } catch (err) {
       console.error("STT error:", err);
       setIsListening(false);
       AccessibilityInfo.announceForAccessibility("Voice recognition failed. Please try again.");
+      clearDismissTimeout();
       dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
     }
-  }, [speed, setSpeed, selectedVoice, language]);
+  }, [speed, setSpeed, selectedVoice, language, clearDismissTimeout]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -239,7 +298,9 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
         : "Microphone access denied. Please allow microphone access in browser settings.";
       setTranscribedText(msg);
       AccessibilityInfo.announceForAccessibility(msg);
-      speakText(msg, selectedVoice, 1).catch(() => {});
+      speakText(msg, selectedVoice, 1).catch((speakErr) => {
+        console.warn('[Voice] Permission error announcement failed:', speakErr?.message);
+      });
       setTimeout(() => {
         setIsVoiceActive(false);
         setTranscribedText("");
@@ -249,10 +310,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
   const activateVoice = useCallback(() => {
     stopTTS();
-    if (dismissTimeoutRef.current) {
-      clearTimeout(dismissTimeoutRef.current);
-      dismissTimeoutRef.current = null;
-    }
+    clearDismissTimeout();
     if (listenTimeoutRef.current) {
       clearTimeout(listenTimeoutRef.current);
       listenTimeoutRef.current = null;
@@ -265,13 +323,10 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
     setIsListening(false);
     setTranscribedText("");
     startRecording();
-  }, [startRecording]);
+  }, [startRecording, clearDismissTimeout]);
 
   const dismissVoice = useCallback(() => {
-    if (dismissTimeoutRef.current) {
-      clearTimeout(dismissTimeoutRef.current);
-      dismissTimeoutRef.current = null;
-    }
+    clearDismissTimeout();
     if (listenTimeoutRef.current) {
       clearTimeout(listenTimeoutRef.current);
       listenTimeoutRef.current = null;
@@ -283,7 +338,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
     setIsVoiceActive(false);
     setIsListening(false);
     setTranscribedText("");
-  }, []);
+  }, [clearDismissTimeout]);
 
   const onTranscription = useCallback((callback: TranscriptionCallback) => {
     callbackRef.current = callback;

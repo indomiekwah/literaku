@@ -16,8 +16,10 @@ export function useTTSAnnounce(text: string) {
       AccessibilityInfo.announceForAccessibility(text);
 
       const timer = setTimeout(() => {
-        speakText(text, selectedVoice, ANNOUNCE_SPEED).catch(() => {});
-      }, 500);
+        speakText(text, selectedVoice, ANNOUNCE_SPEED).catch((err) => {
+          console.warn('[useTTSAnnounce] TTS failed:', err?.message);
+        });
+      }, 300);
 
       return () => {
         clearTimeout(timer);

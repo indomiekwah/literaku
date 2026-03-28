@@ -330,7 +330,9 @@ export function matchVoiceIntentSync(text: string): MatchResult {
 export function executeGlobalNavigation(intent: VoiceIntent, voice: string, param?: string, lang?: string): boolean {
   const confirm = (msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
-    speakText(msg, voice, CONFIRM_SPEED).catch(() => {});
+    speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
+      console.warn('[VoiceRouter] Navigation confirmation TTS failed:', err?.message);
+    });
   };
 
   switch (intent) {
