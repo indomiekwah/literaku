@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useRef, useEffect } from "react";
 import { AccessibilityInfo, Platform } from "react-native";
+import { Audio } from "expo-av";
 import { AudioRecorder, speechToText, speechToTextFromUri, stopTTSPlayback as stopTTS } from "@/services/speech";
 import { speakText } from "@/services/speech";
 import { useReadingPreferences, type SpeedValue, type InteractionMode } from "@/contexts/ReadingPreferences";
@@ -62,18 +63,14 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
-      import("expo-av").then(({ Audio }) => {
-        Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          staysActiveInBackground: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        }).catch((err: any) => {
-          console.error('[VoiceContext] Audio init failed:', err?.message);
-        });
+      Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
       }).catch((err: any) => {
-        console.error('[VoiceContext] expo-av import failed:', err?.message);
+        console.error('[VoiceContext] Audio init failed:', err?.message);
       });
     }
 
@@ -206,7 +203,7 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
           }
         }
 
-        const globalHandled = executeGlobalNavigation(intent, selectedVoice, param, language);
+        const globalHandled = await executeGlobalNavigation(intent, selectedVoice, param, language);
         if (globalHandled) {
           setIsVoiceActive(false);
           return;

@@ -1,0 +1,293 @@
+🔴 CRITICAL Voice/TTS Audio Fixes (Updated Analysis)
+Status: Code is 60% fixed already, but 4 critical issues remain that cause the "no sound" problem.
+
+Issue #1 (CRITICAL): Audio Mode Initialize Before Component Renders
+Current Location: artifacts/mobile/contexts/VoiceActivation.tsx Lines 65-76
+
+Current Code (WRONG):
+
+useEffect(() => {
+  if (Platform.OS !== 'web') {
+    import("expo-av").then(({ Audio }) => {
+      Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      }).catch((err: any) => {
+        console.error('[VoiceContext] Audio init failed:', err);
+      });
+    }).catch((err: any) => {
+      console.error('[VoiceContext] Expo-av import failed:', err);
+    });
+  }
+
+  return () => {
+    clearDismissTimeout();
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+  };
+}, [clearDismissTimeout]);
+Problem:
+
+Audio init happens inside a dynamic import callback
+Waits for expo-av to load (adds delay)
+First TTS call might happen before audio mode is set
+This is the #1 reason for "no sound on fresh install"
+Fix: Move to synchronous import at top of file
+
+Replace the imports section (top of file):
+
+// ADD at very top of file:
+import { Audio } from 'expo-av';
+
+// Then in same useEffect, synchronous init:
+useEffect(() => {
+  if (Platform.OS !== 'web') {
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    }).catch((err: any) => {
+      console.error('[VoiceContext] Audio init failed:', err);
+    });
+  }
+
+  return () => {
+    clearDismissTimeout();
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+  };
+}, [clearDismissTimeout]);
+Why: Guarantees audio mode is set before any TTS call.
+
+Issue #2 (CRITICAL): dismissTimeoutRef Memory Leak
+Current Location: artifacts/mobile/contexts/VoiceActivation.tsx Lines 183, 199, 217, 233, 244, 252
+
+Current Code (WRONG):
+
+// Line 183:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 1500);
+
+// Line 199:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
+
+// Line 217:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
+
+// Line 233:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
+
+// Line 244:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
+
+// Line 252:
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), 2000);
+
+// ... plus 1-2 more locations
+Problem:
+
+Sets new timeout without clearing the old one
+Old timeout still fires unless overwritten
+Causes "voice active state" to hang, confusing next commands
+Battery drain from lingering timeouts
+Fix: Create helper function and use it everywhere
+
+Step 1: Add helper function after the ref declaration (around line 52):
+
+const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+// ADD THIS HELPER:
+const clearDismissTimeout = useCallback(() => {
+  if (dismissTimeoutRef.current) {
+    clearTimeout(dismissTimeoutRef.current);
+    dismissTimeoutRef.current = null;
+  }
+}, []);
+Step 2: Update the useEffect to call it:
+
+useEffect(() => {
+  // ... audio init code ...
+  
+  return () => {
+    clearDismissTimeout(); // ADD THIS
+    if (listenTimeoutRef.current) {
+      clearTimeout(listenTimeoutRef.current);
+      listenTimeoutRef.current = null;
+    }
+  };
+}, [clearDismissTimeout]); // ADD clearDismissTimeout to deps
+Step 3: Replace ALL 7 timeout assignments:
+
+Replace each occurrence of:
+
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), TIME);
+With:
+
+clearDismissTimeout(); // Clear old timeout first
+dismissTimeoutRef.current = setTimeout(() => setIsVoiceActive(false), TIME);
+Locations to update:
+
+Line 183 (in stopRecording)
+Line 199 (after stopRecording complete)
+Line 217 (after router.replace cleanup)
+Line 233 (after command execution)
+Line 244 (after confirmed command)
+Line 252 (after speak text)
+Plus any other setTimeout(..., IsVoiceActive) assignments
+Issue #3 (CRITICAL): Audio Mode Conflicts During Recording
+Current Location: artifacts/mobile/services/speech.ts Lines 652, 689
+
+Current Code (WRONG):
+
+// Line 652 - During recording START:
+async start(): Promise<void> {
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: true,
+    playsInSilentModeIOS: true,
+  });
+  // ... continue recording setup
+}
+
+// Line 689 - During recording STOP:
+async stop(): Promise<URI | Blob> {
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: false,
+    playsInSilentModeIOS: true,
+  });
+  // ... continue cleanup
+}
+Problem:
+
+Recording mode sets allowsRecordingIOS: true
+TTS mode sets allowsRecordingIOS: false
+They fight over audio mode
+If TTS tries to play while recording mode is active, it fails silently
+OR if leftover recording state persists after STT, TTS is blocked
+Fix: Set ONE consistent audio mode at app startup (already done in Issue #1)
+
+Then, remove these Audio.setAudioModeAsync calls from AudioRecorder and let the global init handle it:
+
+// OLD (Lines 652-656):
+async start(): Promise<void> {
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: true,
+    playsInSilentModeIOS: true,
+  });
+  // ...
+}
+
+// NEW - Remove the Audio.setAudioModeAsync, rely on global init:
+async start(): Promise<void> {
+  // Audio mode already set globally at app startup
+  // Just start recording without changing mode
+  // ...
+}
+
+// Similarly for stop() - remove the Audio.setAudioModeAsync call
+Why: One authoritative audio mode (at startup) prevents conflicts.
+
+Issue #4 (CRITICAL): Navigation Happens Before TTS Finishes
+Current Location: artifacts/mobile/services/voiceRouter.ts Lines 479-567
+
+Current Code (WRONG):
+
+// Line 487 example (nav_home case):
+speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
+  console.warn('[VoiceRouter] Navigation confirmation TTS failed:', err?.message);
+});
+router.replace("/student/home"); // OOPS: Executes immediately!
+Problem:
+
+speakText() returns a Promise, but it's NOT awaited
+.catch() only handles errors, doesn't wait for completion
+Router navigates immediately while TTS is still playing
+Audio context switches mid-playback → sound cuts off or never plays
+Users hear no confirmation, just get navigated
+Fix: Await the TTS before navigating
+
+Pattern to replace everywhere (8 occurrences in lines 487-557):
+
+// OLD:
+speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
+  console.warn('[VoiceRouter] Navigation confirmation TTS failed:', err?.message);
+});
+router.replace("/student/home");
+
+// NEW:
+await speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
+  console.warn('[VoiceRouter] Navigation confirmation TTS failed:', err?.message);
+  // Continue navigation even if TTS fails (don't reject)
+});
+router.replace("/student/home");
+Important Notes:
+
+The .catch() prevents rejection, so navigation continues even if TTS fails
+This ensures UX never breaks, audio is just a bonus
+Make sure executeGlobalNavigation() is marked async
+All locations (lines with router.replace/push):
+
+Line 487: After speakText for nav_home
+Line 494: After speakText for nav_explorer
+Line 501: After speakText for nav_collection
+Line 508: After speakText for nav_history
+Line 515: After speakText for nav_guide
+Line 522: After speakText for nav_settings
+Line 529: After speakText for nav_join_institution
+Line 536: After speakText for nav_back
+Line 543: After speakText for nav_login
+Line 550: After speakText for nav_subscription
+Line 557: After speakText for nav_logout
+Implementation Order
+Issue #1 (Audio Init) - FIX FIRST ← Fixes ~60% of the problem
+Issue #4 (Await Navigation TTS) - FIX SECOND ← Fixes ~25%
+Issue #2 (Timeout Cleanup) - FIX THIRD ← Fixes memory leaks
+Issue #3 (Audio Mode Conflict) - FIX FOURTH ← Cleanup/optimization
+Testing After Each Fix
+After Issue #1:
+Fresh install → open app → try voice command → hear response immediately
+Close/reopen app → voice command → hear response
+After Issue #4:
+Voice command with navigation (e.g., "go home") → hear confirmation → then navigate
+Rapid navigation commands → each gets confirmed audio before navigating
+After Issue #2:
+Multiple voice commands in a row → no "voice active" state lingering
+App is responsive (not stuck in voice mode)
+After Issue #3:
+Record audio + play TTS → no conflicts
+Switch between STT and TTS rapidly → no audio drops
+File Summary
+File	Changes	Lines
+VoiceActivation.tsx	Add import, fix init, add helper, fix 7 timeouts	Top + 52, 65-80, 183-252
+voiceRouter.ts	Add await to 8 speakText calls	487, 494, 501, 508, 515, 522, 529, 536, 543, 550, 557
+speech.ts	Remove 2 Audio.setAudioModeAsync calls	652-656, 689-693
+Why These ARE The Problems
+Scenario: User reinstalls app
+
+App launches → iOS/Android audio modes are unknown
+App renders → useEffect tries to initialize audio (late import delay)
+User speaks → STT works fine
+App calls speakText() → Audio.setAudioModeAsync might not have run yet
+Sound fails silently → "Why is there no audio?"
+User restarts app → sometimes works (if audio init completed), sometimes doesn't
+With fixes:
+
+App launches → synchronous Audio.setAudioModeAsync runs immediately (Issue #1)
+Audio is ready before render completes
+User speaks → STT works
+App calls speakText() → Audio is already initialized
+Sound plays ✅
+Works consistently every time
+Rollback
+If audio breaks after changes:
+
+Revert VoiceActivation.tsx (Issue #1 & #2)
+Check console for [VoiceContext] or [TTS] errors
+Re-apply one issue at a time

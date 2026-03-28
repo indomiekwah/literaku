@@ -327,68 +327,68 @@ export function matchVoiceIntentSync(text: string): MatchResult {
   return matchRegex(text);
 }
 
-export function executeGlobalNavigation(intent: VoiceIntent, voice: string, param?: string, lang?: string): boolean {
-  const confirm = (msg: string) => {
+export async function executeGlobalNavigation(intent: VoiceIntent, voice: string, param?: string, lang?: string): Promise<boolean> {
+  const confirm = async (msg: string) => {
     AccessibilityInfo.announceForAccessibility(msg);
-    speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
+    await speakText(msg, voice, CONFIRM_SPEED).catch((err) => {
       console.warn('[VoiceRouter] Navigation confirmation TTS failed:', err?.message);
     });
   };
 
   switch (intent) {
     case "nav_home":
-      confirm(lang === "id" ? "Membuka halaman utama" : "Going back to the home page");
+      await confirm(lang === "id" ? "Membuka halaman utama" : "Going back to the home page");
       router.replace("/student/home");
       return true;
     case "nav_explorer":
-      confirm(lang === "id" ? "Membuka penjelajah" : "Opening the explorer page");
+      await confirm(lang === "id" ? "Membuka penjelajah" : "Opening the explorer page");
       router.push("/student/penjelajah");
       return true;
     case "nav_collection":
-      confirm(lang === "id" ? "Membuka koleksi buku" : "Opening your book collection");
+      await confirm(lang === "id" ? "Membuka koleksi buku" : "Opening your book collection");
       router.push("/student/library");
       return true;
     case "nav_history":
-      confirm(lang === "id" ? "Membuka riwayat" : "Opening the history page");
+      await confirm(lang === "id" ? "Membuka riwayat" : "Opening the history page");
       router.push("/student/riwayat");
       return true;
     case "nav_guide":
-      confirm(lang === "id" ? "Membuka panduan suara" : "Opening the voice guide");
+      await confirm(lang === "id" ? "Membuka panduan suara" : "Opening the voice guide");
       router.push("/student/guide");
       return true;
     case "nav_settings":
-      confirm(lang === "id" ? "Membuka pengaturan" : "Opening the settings page");
+      await confirm(lang === "id" ? "Membuka pengaturan" : "Opening the settings page");
       router.push("/student/settings");
       return true;
     case "nav_join_institution":
-      confirm(lang === "id" ? "Membuka halaman institusi" : "Opening the institution page");
+      await confirm(lang === "id" ? "Membuka halaman institusi" : "Opening the institution page");
       router.push("/student/institusi");
       return true;
     case "nav_back":
-      confirm(lang === "id" ? "Kembali ke halaman sebelumnya" : "Going back to the previous page");
+      await confirm(lang === "id" ? "Kembali ke halaman sebelumnya" : "Going back to the previous page");
       router.back();
       return true;
     case "nav_login":
-      confirm(lang === "id" ? "Sedang masuk..." : "Signing in...");
+      await confirm(lang === "id" ? "Sedang masuk..." : "Signing in...");
       router.replace("/student/home");
       return true;
     case "nav_subscription":
-      confirm(lang === "id" ? "Membuka halaman langganan" : "Opening subscription page");
+      await confirm(lang === "id" ? "Membuka halaman langganan" : "Opening subscription page");
       router.push("/student/subscription");
       return true;
     case "nav_logout":
-      confirm(lang === "id" ? "Sedang keluar..." : "Signing out...");
+      await confirm(lang === "id" ? "Sedang keluar..." : "Signing out...");
       router.replace("/student/login");
       return true;
     case "open_book":
       if (param) {
         const book = findBookByTitle(param);
         if (book) {
-          confirm(lang === "id" ? `Membuka ${book.title}` : `Opening ${book.title}`);
+          await confirm(lang === "id" ? `Membuka ${book.title}` : `Opening ${book.title}`);
           router.push({ pathname: "/student/book/[id]", params: { id: book.id } });
           return true;
         } else {
-          confirm(
+          await confirm(
             lang === "id"
               ? `Buku "${param}" tidak ditemukan. Coba gunakan pencarian.`
               : `Book "${param}" not found. Try searching for it.`

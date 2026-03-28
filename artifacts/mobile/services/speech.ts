@@ -647,11 +647,6 @@ export class AudioRecorder {
         throw new Error("Microphone permission denied");
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
       const recording = new Audio.Recording();
       await recording.prepareToRecordAsync({
         android: {
@@ -793,12 +788,6 @@ export class AudioRecorder {
       await this.nativeRecording.stopAndUnloadAsync();
       const uri = this.nativeRecording.getURI();
       this.nativeRecording = null;
-
-      const { Audio } = await import("expo-av");
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-      });
 
       return uri!;
     }
