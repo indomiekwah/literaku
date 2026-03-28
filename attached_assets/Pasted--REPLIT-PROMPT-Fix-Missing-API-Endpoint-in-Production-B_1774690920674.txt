@@ -1,0 +1,227 @@
+🔧 REPLIT PROMPT: Fix Missing API Endpoint in Production Build
+Problem Statement
+Voice commands (TTS/STT) dan Book Reading tidak berfungsi di APK production build, padahal berfungsi di Replit dev mode.
+
+Root Cause Identified
+File: artifacts/mobile/services/speech.ts Line 3
+
+const API_BASE = Platform.OS === "web"
+  ? "/api"
+  : `https://${process.env.EXPO_PUBLIC_DOMAIN}/api`;
+Issue:
+
+✅ Di Replit dev: EXPO_PUBLIC_DOMAIN di-set via npm script
+❌ Di APK production: EXPO_PUBLIC_DOMAIN = undefined
+❌ API endpoint jadi: https://undefined/api → Request gagal
+❌ Semua TTS, STT, dan book reading fail silently
+Current State
+package.json (dev only):
+
+{
+  "scripts": {
+    "dev": "EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN ..."
+  }
+}
+eas.json (production - MISSING env vars):
+
+{
+  "build": {
+    "preview": {
+      "android": { "buildType": "apk" }
+      // ❌ NO env variables set
+    },
+    "production": {
+      "android": { "buildType": "app-bundle" }
+      // ❌ NO env variables set
+    }
+  }
+}
+Solution
+Step 1: Identify Production API Domain
+Pertanyaan untuk Anda:
+
+Literaku API server di-deploy di mana?
+
+[ ] Replit: https://<username>-<project-name>.replit.dev
+[ ] Azure App Service: https://literaku.azurewebsites.net
+[ ] Custom Domain: https://api.literaku.com
+[ ] Other: ___________
+Action: Cek di Replit:
+
+Buka Project Literaku → API Server
+Lihat URL yang ditampilkan (biasanya di banner atas)
+Contoh: https://Your-Username-literaku.replit.dev
+Step 2: Update eas.json Dengan Environment Variables
+File: artifacts/mobile/eas.json
+
+Replace entire file with:
+
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "REPLACE_WITH_REPLIT_DEV_DOMAIN"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "REPLACE_WITH_PRODUCTION_API_DOMAIN"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "REPLACE_WITH_PRODUCTION_API_DOMAIN"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
+Step 3: Replace Placeholder Domains
+Ganti placeholder dengan nilai sebenarnya:
+
+Placeholder	Ganti Dengan	Contoh
+REPLACE_WITH_REPLIT_DEV_DOMAIN	Domain dev Replit (tanpa https://)	Your-Username-literaku.replit.dev
+REPLACE_WITH_PRODUCTION_API_DOMAIN	Domain production API (tanpa https://)	Your-Username-literaku.replit.dev atau domain custom
+Contoh Final (jika pakai Replit):
+
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "Your-Username-literaku.replit.dev"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "Your-Username-literaku.replit.dev"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "Your-Username-literaku.replit.dev"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
+Testing Steps
+Test 1: Verify Environment Variables
+cd artifacts/mobile
+
+# Check eas.json is valid:
+eas build --dry-run --platform android --profile preview
+
+# Should show:
+# ✓ Project config is valid
+# ✓ Environment: EXPO_PUBLIC_DOMAIN=<your-domain>
+Test 2: Build APK
+# Clean rebuild dengan env vars:
+eas build --platform android --profile preview --clean
+Test 3: Install & Test on Device
+# Download APK dari EAS build
+# Install ke device
+
+# Test voice command:
+1. Open app
+2. Press mic button
+3. Say "open book" atau "go home"
+4. EXPECTED: Hear TTS response ✓
+
+# Test book reading:
+1. Open book
+2. Press play button
+3. EXPECTED: Hear TTS reading ✓
+Files Changed
+File	Change	Reason
+artifacts/mobile/eas.json	Add env section dengan EXPO_PUBLIC_DOMAIN	Provide API endpoint ke production build
+Why This Fixes It
+Before:
+
+APK Build → EXPO_PUBLIC_DOMAIN=undefined
+→ API_BASE = "https://undefined/api"
+→ Fetch fails → No sound
+After:
+
+APK Build → EXPO_PUBLIC_DOMAIN="your-api-domain.replit.dev"
+→ API_BASE = "https://your-api-domain.replit.dev/api"
+→ Fetch successful → TTS works ✓
+Verification Checklist
+[ ] eas.json valid JSON (no syntax errors)
+[ ] EXPO_PUBLIC_DOMAIN set untuk preview dan production
+[ ] Domain tidak pakai https:// (script akan add-nya)
+[ ] Build clean (gunakan --clean flag)
+[ ] APK diinstall ulang (bukan update dari versi lama)
+[ ] Microphone permission ON (Settings → Apps → Literaku → Permissions)
+Jika Masih Tidak Berfungsi
+Debug:
+
+# 1. Check API connectivity dari device:
+# (di device browser, buka: https://your-api-domain/api/speech/token)
+# Should return JSON dengan token, bukan 404 error
+
+# 2. Check Replit API server berjalan:
+# (di Replit, lihat "Run" console - harus ada "Listening on port...")
+
+# 3. Check network dari phone bisa reach Replit:
+# (phone harus di network yang sama, atau Replit domain accessible publik)
+Optional: Production Domain Configuration
+Jika di masa depan API di-deploy ke domain custom (bukan Replit):
+
+# Tambahkan ke eas.json:
+"production": {
+  "env": {
+    "EXPO_PUBLIC_DOMAIN": "api.literaku.com"  // Production domain
+  }
+}
+Implementation Action Items
+For User:
+[ ] Tentukan Replit API domain (dari Replit dashboard)
+[ ] Update eas.json dengan domain yang benar
+[ ] Commit changes: git commit -am "fix: add EXPO_PUBLIC_DOMAIN to eas.json for production builds"
+[ ] Build ulang: eas build --platform android --profile preview --clean
+[ ] Test di Android device
+For Replit (jika diminta code review):
+Perubahan sederhana - hanya menambah environment variable ke eas.json agar APK build tau API domain mana yang harus dipakai. Tidak ada code logic changes, hanya configuration.
+
+Estimated Impact
+Metric	Before	After
+Voice Commands	❌ Silent	✅ Works
+Book Reading Audio	❌ Silent	✅ Works
+STT (Listening)	⚠️ Maybe	✅ Works
+TTS (Speaking)	❌ Never	✅ Works
+Summary
+Masalah: APK build tidak tahu API endpoint mana yang harus dipakai (undefined domain)
+
+Solusi: Set EXPO_PUBLIC_DOMAIN di eas.json untuk preview & production builds
+
+Hasil: APK bisa connect ke API → TTS dan STT berfungsi
