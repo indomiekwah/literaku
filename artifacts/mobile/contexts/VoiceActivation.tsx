@@ -62,15 +62,13 @@ export function VoiceActivationProvider({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    if (Platform.OS !== 'web') {
+    if (Platform.OS === 'android') {
       Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
         staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       }).catch((err: any) => {
-        console.error('[VoiceContext] Audio init failed:', err?.message);
+        console.error('[VoiceContext] Android audio init failed:', err?.message);
       });
     }
 
